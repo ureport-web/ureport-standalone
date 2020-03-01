@@ -1,0 +1,6 @@
+{
+    "type" : "Prod",
+    "DBHost": "your prod db",
+    "PORT": 8080
+  }
+  

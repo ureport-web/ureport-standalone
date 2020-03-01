@@ -1,0 +1,3 @@
+db.getCollection('tests').createIndex( { build: 1 } )
+db.getCollection('tests').createIndex( { uid: 1 } )
+db.getCollection('tests').createIndex( { build: 1 , uid: 1 } )

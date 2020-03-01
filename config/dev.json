@@ -1,0 +1,4 @@
+{
+  "DBHost": "mongodb://localhost:27017/ureport",
+  "PORT": 4100
+}

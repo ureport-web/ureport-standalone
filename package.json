@@ -1,0 +1,50 @@
+{
+  "name": "ureport-server",
+  "version": "1.0.0",
+  "description": "The universal automation reporting app server",
+  "main": "server.js",
+  "scripts": {
+    "test": "mocha",
+    "start": "nodemon server",
+    "seed": "node seedGenerator"
+  },
+  "keywords": [
+    "automation",
+    "report"
+  ],
+  "author": "Ji",
+  "license": "ISC",
+  "dependencies": {
+    "accesscontrol": "^2.2.1",
+    "async": "^3.1.0",
+    "bcrypt": "^3.0.6",
+    "cluster-node-cache": "^0.1.5",
+    "coffee-script": "^1.12.7",
+    "compression": "^1.7.4",
+    "config": "^1.31.0",
+    "connect-mongo": "^2.0.3",
+    "cookie-parser": "^1.4.4",
+    "express": "^4.17.1",
+    "express-session": "^1.17.0",
+    "helmet": "^3.21.2",
+    "moment": "^2.24.0",
+    "mongoose": "^5.7.8",
+    "morgan": "^1.9.1",
+    "nodejs-license-file": "^4.0.0",
+    "nodemailer": "^6.3.1",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0",
+    "rotating-file-stream": "^1.4.6",
+    "underscore": "^1.9.1",
+    "uuid": "^3.3.3"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-http": "^3.0.0",
+    "faker": "^4.1.0",
+    "mocha": "^3.3.0"
+  },
+  "engines": {
+    "node": "10.x"
+  }
+}

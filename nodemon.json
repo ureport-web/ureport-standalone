@@ -1,0 +1,23 @@
+{
+  "restartable": "rs",
+  "ignore": [
+    ".git",
+    "node_modules",
+    "log"
+  ],
+  "verbose": true,
+  "env": {
+    "NODE_ENV": "dev",
+    "PORT": 4000
+  },
+  "watch": [
+    "config/dev.json",
+    "app.js",
+    "server.js",
+    "src/models",
+    "src/routes",
+    "src/configuration",
+    "src/utils"
+  ],
+  "ext": "js json coffee"
+}

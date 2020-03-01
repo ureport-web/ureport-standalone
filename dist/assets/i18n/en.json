@@ -1,0 +1,71 @@
+{
+  "GENERAL":{
+    "TT_CLOSE" : "Close"
+  },
+  "NAVIGATION": {
+    "DASHBOARD_LNK": "Dashboard",
+    "INVESTIGATED_TEST_LNK": "Investigated Tests",
+    "USERS_LNK" : "Users",
+    "SETUP_LNK" : "Settings" ,
+    "EXECUTIONREPORT_LNK" : "Execution",
+    "LOGOUT_LNK" : "Logout"
+  },
+  "SETTING": {
+    "SYSTEM_SETTING_TAB": "System Setting",
+    "AUTOANALYSIS" : "Auto Analysis"
+  },
+  "DASHBOARD": {
+    "TITLE_LBE": "Dashboards",
+    "ADD_BTN": "Add Dashboard",
+    "TT_ADD_BTN": "Add New Dashboard"
+  },
+  "BUILD": {
+    "WIDGET_MENU": "Add Widget"
+  },
+  "TEST_REPORT": {
+    "GROUP_BY_TRACKNUM_BTN": "Group by track number",
+    "TT_INFO_BTN": "{{buildToString}} - Build: {{buildNumber}} - Pass Rate: {{passRate}}%",
+    "TT_INVESTIGATEDLISTDISPLAY" : "Build: {{buildNumber}} - Pass Rate: {{passRate}}%"
+  },
+  "TEST_TOOLBAR": {
+    "HISTORY_BUILD_BTN": "History Build"
+  },
+  "TEST_DETAIL": {
+    "TRACK_AS_LBE": "Tracked as {{value}} issue.",
+    "TRACK_AT_LBE": "Tracked at {{value}}",
+    "TT_DISPLAY" : "Display in full screen"
+  },
+  "TEST_LIST": {
+    "NO_TEST_MSG": "No tests found based on current filter"
+  },
+  "TEST_STEP": {
+    "SETUP_PANEL_LBE": "Setup"
+  },
+  "WIDGET_CREATE": {
+    "TYPE_STEP_LBE": "Type"
+  },
+  "WIDGET_DESCRIPTION": {
+    "STATUS_PIE": "Display the latest execution status in a pie chart.",
+    "STATUS_PIE_ADVANCE": "",
+    "INVESTIGATED_TEST_STATUS_PIE": "",
+    "PASSRATE_LINE": "",
+    "MPL_PASSRATE_LINE": "",
+    "RELATIONS_GROUP_BY_BAR": "",
+    "BUILD_HISTORY_BAR": "",
+    "BUILD_HISTORY_GROUP_BAR": "",
+    "TEST_TABLE": "",
+    "MOSTFAILREASON_TABLE": "",
+    "UNSTABLE_TESTS_TABLE": "",
+    "STABLE_TESTS_TABLE": "",
+    "MPL_BUILD_TABLE": "",
+    "BUILD_CALENDAR": ""
+  },
+  "SHARED": {
+    "SELECT_PRODUCT_LINE": {
+      "PREVIEW_BTN" : "Preview Builds"
+    },
+    "BUTTON_GROUP_STATUS": {
+      "TT_RERUN" : "Rerun"
+    }
+  }
+}
