@@ -45,50 +45,50 @@ userSchema = new Schema(
     type: String
   },
   settings: Schema(
-			{	
-        language: {
-          type: String,
-          default: "en"
-        },
-        theme: {
-          type: Schema.Types.Mixed,
-          default: {
-            name: 'bootstrap',
-            type: 'light'
-          }
-        },
-        dashboard: Schema(
-            {
-              isShowWidgetBorder : {
-                type: Boolean,
-                default: false
-              },
-              isExpandMenu : {
-                type: Boolean,
-                default: false
-              },
-              isWidgetBarOnHover : {
-                type: Boolean,
-                default: true
-              }
-            }, {_id: false}),
-        report: Schema(
-            {
-              assignmentRI : {
-                type: Number,
-                default: 30
-              },
-              displaySelfAN : {
-                type: Boolean,
-                default: false
-              },
-              displaySearchAndFilterBoxInStep : {
-                type: Boolean,
-                default: true
-              },
-              status : Schema.Types.Mixed
-            }, {_id: false})
-			}, {_id: false})
+    {	
+      language: {
+        type: String,
+        default: "en"
+      },
+      theme: {
+        type: Schema.Types.Mixed,
+        default: {
+          name: 'bootstrap',
+          type: 'light'
+        }
+      },
+      dashboard: Schema(
+          {
+            isShowWidgetBorder : {
+              type: Boolean,
+              default: false
+            },
+            isExpandMenu : {
+              type: Boolean,
+              default: false
+            },
+            isWidgetBarOnHover : {
+              type: Boolean,
+              default: true
+            }
+          }, {_id: false}),
+      report: Schema(
+          {
+            assignmentRI : {
+              type: Number,
+              default: 30
+            },
+            displaySelfAN : {
+              type: Boolean,
+              default: false
+            },
+            displaySearchAndFilterBoxInStep : {
+              type: Boolean,
+              default: true
+            },
+            status : Schema.Types.Mixed
+          }, {_id: false})
+    }, {_id: false})
 )
 
 userSchema.pre 'save', (next) ->

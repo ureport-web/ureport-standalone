@@ -7,13 +7,8 @@ getSystemSetting = require('../utils/getSystemSetting')
 
 ObjectId = require('mongoose').Types.ObjectId;
 async = require("async")
-
-router.get '/test',  (req, res, next) ->
-  getSystemSetting(req,"SYSTEM_SETTING", false,
-  (rs) ->
-    res.json {error: "No setting found"} if !rs
-    res.json rs
-  )
+AccessControl = require('../utils/ac_grants')
+component = 'setting'
 
 router.get '/:name',  (req, res, next) ->
   if(!req.params.name)
@@ -50,6 +45,9 @@ router.get '/:name',  (req, res, next) ->
   )
 
 router.put '/:id',  (req, res, next) ->
+  if (!AccessControl.canAccessDeleteAny(req.user.role,component))
+    return res.status(403).json({"error": "You don't have permission to perform this action"})
+
   SystemSetting.findOne({_id: req.params.id}).
   exec((err, systemSetting) ->
     if err
@@ -70,5 +68,26 @@ router.put '/:id',  (req, res, next) ->
       res.status(404)
       res.json {"error": "Cannot find System Setting with id " + req.params.id}
   );
+
+router.post '/',  (req, res, next) ->
+  if (!AccessControl.canAccessDeleteAny(req.user.role,component))
+    return res.status(403).json({"error": "You don't have permission to perform this action"})
+  console.log(req.body)
+  SystemSetting.findOneAndUpdate({name: 'SYSTEM_SETTING' },req.body, 
+    { 
+      upsert: true, 
+      new: true, 
+      runValidators: true, 
+      setDefaultsOnInsert: true 
+    }, (err, systemSetting) ->
+      if err
+        return next(err)
+      
+      req.app.locals.systemSettingCache.set(systemSetting.name, systemSetting)
+      .then( (result) ->
+          return next(result.err) if result.err
+          res.json systemSetting
+      )
+  )
 
 module.exports = router

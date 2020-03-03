@@ -1,5 +1,14 @@
 express = require('express')
 router = express.Router()
+# file upload
+multer  = require('multer')
+storage = multer.diskStorage({
+  destination: (req, file, cb) ->
+    cb(null, 'dist/assets/images/uploads')
+  filename: (req, file, cb) ->
+    cb(null, file.fieldname + '-' + Date.now())
+})
+upload = multer({ storage: storage })
 
 Test = require('../models/test')
 async = require("async")
@@ -17,6 +26,25 @@ router.get '/:id',  (req, res, next) ->
       res.json test
     );
 
+router.post '/single', upload.single('image'), (req, res, next) ->
+    if (!AccessControl.canAccessCreateAny(req.user.role,component))
+        return res.status(403).json({"error": "You don't have permission to perform this action"})
+    if(req.file && req.file.mimetype)
+        if(req.file.mimetype == 'image/jpg' || req.file.mimetype == 'image/png')
+            try 
+                console.log(req.body.test)
+                res.status(200)
+                res.json {msg:"success"}
+            catch e
+                res.json {error : e}
+        else
+            res.status(400)
+            return res.json {error: "Sorry, We only support jpg or png format."}
+    else
+        res.status(400)
+        return res.json {error: "Cannot find any attachment."}
+
+#TODO: update to make changes for the rerun
 router.post '/multi', (req, res, next) ->
     if (!AccessControl.canAccessCreateAny(req.user.role,component))
         return res.status(403).json({"error": "You don't have permission to perform this action"})

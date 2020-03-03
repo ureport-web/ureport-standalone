@@ -30,13 +30,12 @@ mongoose.connect(config.DBHost, {
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
 
-# Promise.all([
-#   User.create(users)
-# ]).then( (values) ->
-#   console.log(values);
-#   process.exit();
-# ).catch((err) ->
-#   console.log(err.message);
-#   process.exit(1);
-# );
+Promise.all([
+  User.create(users)
+]).then( (values) ->
+  process.exit();
+).catch((err) ->
+  console.log(err.message);
+  process.exit(1);
+);
 

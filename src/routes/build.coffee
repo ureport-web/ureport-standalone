@@ -215,7 +215,6 @@ router.post '/outage/:buildId',  (req, res, next) ->
 
     if build
       Build.manipulateOutage(build, req.body)
-      console.log("before save", build)
       Build.findOneAndUpdate({ _id: new ObjectId(req.params.buildId) }, build,
           {
               upsert: true,

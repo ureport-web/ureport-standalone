@@ -16,7 +16,8 @@ If you need to admin permission, please contact ureport@outlook.com
 4. Run `npm install`
 5. Go to config folder, change DBHost and PORT if it is different from the given one
     + If you need to deploy is as prod, please modify the file **production.json**
-6. Run `` to initilize mongo db
+6. Runb `npm install --global coffeescript`
+6. Run `coffee initalization.coffee ` to initilize db
 7. Run `npm start` to start the server
 8. Open browser and go to http://localhost:4100 to start using the application
     + By default, there is one admin user created for you with credential admin/1234. You can change it in the app or use API to add addtional user.

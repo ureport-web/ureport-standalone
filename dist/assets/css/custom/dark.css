@@ -321,3 +321,87 @@ nav#sidebar.shrinked ul i {
   .fa-border {
     border: solid 0.08em #eee !important;
   }
+
+
+/* guide style */
+
+body.tour-open {
+  overflow: hidden;
+}
+ngx-guided-tour .guided-tour-user-input-mask {
+  z-index: 1081;
+}
+ngx-guided-tour .guided-tour-spotlight-overlay {
+  z-index: 1082;
+}
+ngx-guided-tour .tour-orb {
+  z-index: 1079;
+  background-color: #625aff;
+  box-shadow: 0 0 0.3rem 0.1rem #625aff;
+}
+ngx-guided-tour .tour-orb .tour-orb-ring::after {
+  border: 1rem solid #625aff;
+  box-shadow: 0 0 0.1rem 0.1rem #625aff;
+}
+ngx-guided-tour .tour-step {
+  z-index: 1083;
+}
+ngx-guided-tour .tour-step.tour-bottom .tour-arrow::before, ngx-guided-tour .tour-step.tour-bottom-right .tour-arrow::before, ngx-guided-tour .tour-step.tour-bottom-left .tour-arrow::before {
+  width: 0;
+  height: 0;
+  content: '';
+  z-index: 2;
+  border-bottom: 1rem solid #34373d;
+  border-left: 1rem solid transparent;
+  border-right: 1rem solid transparent;
+}
+ngx-guided-tour .tour-step.tour-top .tour-arrow::before, ngx-guided-tour .tour-step.tour-top-right .tour-arrow::before, ngx-guided-tour .tour-step.tour-top-left .tour-arrow::before {
+  width: 0;
+  height: 0;
+  content: '';
+  z-index: 2;
+  border-top: 1rem solid #34373d;
+  border-left: 1rem solid transparent;
+  border-right: 1rem solid transparent;
+}
+ngx-guided-tour .tour-step.tour-left .tour-arrow::before {
+  width: 0;
+  height: 0;
+  content: '';
+  z-index: 2;
+  border-left: 1rem solid #34373d;
+  border-bottom: 1rem solid transparent;
+  border-top: 1rem solid transparent;
+}
+ngx-guided-tour .tour-step.tour-right .tour-arrow::before {
+  width: 0;
+  height: 0;
+  content: '';
+  z-index: 2;
+  border-right: 1rem solid #34373d;
+  border-bottom: 1rem solid transparent;
+  border-top: 1rem solid transparent;
+}
+ngx-guided-tour .tour-step .tour-block {
+  color: #fff;
+  background-color: #34373d;
+  box-shadow: 0 0.4rem 0.6rem #4c4c4c;
+}
+ngx-guided-tour .tour-step .tour-buttons button.skip-button {
+  color: #5e5e5e;
+}
+ngx-guided-tour .tour-step .tour-buttons .back-button {
+  color: #fff;
+}
+ngx-guided-tour .tour-step .tour-buttons .next-button {
+  background-color: #34373d;
+  color: #fff;
+}
+ngx-guided-tour .tour-step .tour-buttons .next-button:hover {
+  background-color: #5e5e5e;
+  color: #fff;
+}
+
+ngx-guided-tour .tour-step h2.tour-title {
+  font-size: 20px !important;
+}  
