@@ -57,12 +57,14 @@ if (config !== undefined) {
    */
   const bodyParser = require('body-parser')
   app.use(bodyParser.json({
+    limit: '50mb',
     type: 'application/json'
   }))
   app.use(bodyParser.urlencoded({
+    parameterLimit: 100000,
+    limit: '50mb',
     extended: false
   }))
-
   /*
    * loging
    */
