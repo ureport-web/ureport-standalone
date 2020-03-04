@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "mocha",
-    "start": "nodemon server",
+    "start": "node server",
     "seed": "node seedGenerator"
   },
   "keywords": [
