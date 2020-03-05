@@ -33,6 +33,7 @@ dashboardSchema = new Schema(
 				resizeEnabled: Boolean,
 				legendEnabled: Boolean,
 				xaixs: String, # mainly for line chart/bar chart
+				customTableConfig: Schema.Types.Mixed, # mainly for line chart/bar chart
 				type: String,
 				multi_query: Schema.Types.Mixed, # used by multiple product line
 				product_line_query: Schema.Types.Mixed, # used by non default product line

@@ -298,22 +298,22 @@ router.get '/entity/read',  (req, res, next) ->
   key = 'entity'
   entities = ['product','type','version','device','team', 'browser']
   async.map(entities,
-      (item, callback) ->
-          Build.distinct(item).
-          exec((err, entity) ->
-              _t = {}
-              _t[item] = entity
-              callback(err,_t)
-          )
-      (err,rs) ->
-          if err
-            return next(err) 
-          res.json rs
-          # req.app.locals.commonCache.set(key, rs)
-          # .then( (result) ->
-          #     next(result.err) if result.err
-          #     res.json rs
-          # )
+    (item, callback) ->
+        Build.distinct(item).
+        exec((err, entity) ->
+            _t = {}
+            _t[item] = entity
+            callback(err,_t)
+        )
+    (err,rs) ->
+        if err
+          return next(err) 
+        res.json rs
+        # req.app.locals.commonCache.set(key, rs)
+        # .then( (result) ->
+        #     next(result.err) if result.err
+        #     res.json rs
+        # )
   )
   # req.app.locals.commonCache.get(key)
   # .then( (crs)->
@@ -343,5 +343,60 @@ router.get '/entity/read',  (req, res, next) ->
   #     )
   # )
 
+router.post '/total',  (req, res, next) ->
+    query = {}
+    if(req.body.product)
+        query.product = req.body.product
+
+    if(req.body.type)
+        query.type = req.body.type
+
+    Build.find(query)
+    .count()
+    .exec((err, count) ->
+      if err
+        return next(err)
+      res.json count
+    );
+
+router.post '/:page/:perPage',  (req, res, next) ->
+    if (!req.params.perPage)
+      size = 10
+    else if (req.params.perPage <= 0)
+      size = 10
+    else if (req.params.perPage > 50)
+      size = 50
+    else
+      size = parseInt(req.params.perPage);
+
+    page = parseInt(req.params.page)
+    if (page < 0)
+      response = { error: true, message: "invalid page number, should start with 0" };
+      return res.json(response)
+
+    query = {}
+    if(req.body.product)
+        query.product = req.body.product
+
+    if(req.body.type)
+        query.type = req.body.type
+
+    pagnition = {
+        skip: size * page
+    }
+
+    if(req.body.sort)
+      sort = req.body.sort
+    else
+      sort = {create_at: 'desc'}
+    # invTest filter and condition
+    Build.find(query, {}, pagnition)
+    .limit(size)
+    .sort(sort)
+    .exec((err, builds) ->
+      if err
+          return next(err)
+      res.json builds
+    );
 
 module.exports = router
