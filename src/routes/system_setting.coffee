@@ -33,8 +33,11 @@ router.get '/:name',  (req, res, next) ->
               res.json systemSetting
           )
         else
-          res.status(404)
-          res.json {"error": "Cannot find System Setting with name " + key}
+          if(key != 'SYSTEM_SETTING')
+            res.status(404)
+            res.json {"error": "Cannot find System Setting with name " + key}
+          else
+            res.json {"error": "Cannot find System Setting with name " + key}
       );
     else
       req.app.locals.systemSettingCache.getStats()
@@ -72,7 +75,6 @@ router.put '/:id',  (req, res, next) ->
 router.post '/',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role,component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
-  console.log(req.body)
   SystemSetting.findOneAndUpdate({name: 'SYSTEM_SETTING' },req.body, 
     { 
       upsert: true, 

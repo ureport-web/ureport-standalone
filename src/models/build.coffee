@@ -34,6 +34,14 @@ buildSchema = new Schema(
 		type: String,
 		trim: true
   	},
+	platform: {
+		type: String,
+		trim: true
+  	},
+	platform_version: {
+		type: String,
+		trim: true
+  	},
 	start_time: { type: Date, default: Date.now },
 	end_time: Date,
 	owner: String,
@@ -81,16 +89,27 @@ buildSchema.statics.initBuild = (payload) ->
 	if(payload.device)
 		newBuildPayload.device = payload.device
 
+	if(payload.platform)
+		newBuildPayload.platform = payload.platform
+
+	if(payload.platform_version)
+		newBuildPayload.platform_version = payload.platform_version
+
 	if(payload.is_archive)
 		newBuildPayload.is_archive = payload.is_archive
+
 	if(payload.start_time)
 		newBuildPayload.start_time = payload.start_time
+
 	if(payload.end_time)
 		newBuildPayload.end_time = payload.end_time
+
 	if(payload.owner)
 		newBuildPayload.owner = payload.owner
+
 	if(payload.comments)
 		newBuildPayload.comments = payload.comments
+
 	if(payload.outages)
 		newBuildPayload.outages = payload.outages
 

@@ -183,7 +183,6 @@ router.post '/comment/:id',  (req, res, next) ->
 
     if assignment
       Assignment.addComment(assignment, req.body)
-      # Assignment.updateOne(assignment, (err, rs) ->
       assignment.save (err, rs) ->
         if err
           return next(err)

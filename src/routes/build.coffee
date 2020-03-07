@@ -65,6 +65,16 @@ router.post '/',  (req, res, next) ->
   else
     conditions.push({ $or : [{device: null}] })
 
+  if(req.body.platform)
+    conditions.push({ $or : [{platform: req.body.platform}] })
+  else
+    conditions.push({ $or : [{platform: null}] })
+
+  if(req.body.platform_version)
+    conditions.push({ $or : [{platform_version: req.body.platform_version}] })
+  else
+    conditions.push({ $or : [{platform_version: null}] })
+
   query = {
       $and : conditions
   }
@@ -82,7 +92,6 @@ router.post '/',  (req, res, next) ->
         res.json rs
       )
     else
-      # foundBuild = new Build(req.body)
       foundBuild = Build.initBuild(req.body)
       Build.updateStatus(foundBuild, req.body.status)
 
@@ -263,23 +272,21 @@ router.post '/filter',  (req, res, next) ->
 
   if(req.body.version)
     conditions.push({ $or : req.body.version })
-  # else
-  #   conditions.push({ $or : [{version: null}] })
 
   if(req.body.team)
     conditions.push({ $or : req.body.team })
-  # else
-  #   conditions.push({ $or : [{team: null}] })
 
   if(req.body.browser)
     conditions.push({ $or : req.body.browser })
-  # else
-  #   conditions.push({ $or : [{browser: null}] })
 
   if(req.body.device)
     conditions.push({ $or : req.body.device })
-  # else
-  #   conditions.push({ $or : [{device: null}] })
+  
+  if(req.body.platform)
+    conditions.push({ $or : req.body.platform })
+  
+  if(req.body.platform_version)
+    conditions.push({ $or : req.body.platform_version })
 
   query = {
       $and : conditions
@@ -288,18 +295,58 @@ router.post '/filter',  (req, res, next) ->
   Build.find(query).
   sort({"start_time": -1}).
   limit(range).
-  exec((err, cases) ->
+  exec((err, builds) ->
     if(err)
       next err
-    res.json cases
+    res.json builds
   );
 
 router.get '/entity/read',  (req, res, next) ->
-  key = 'entity'
-  entities = ['product','type','version','device','team', 'browser']
+  entities = ['product', 'type', 'version','device','team', 'browser']
+  async.map(entities,
+    (item, callback) ->
+        Build.distinct(item, {product : req.body.product, type: req.body.type}).
+        exec((err, entity) ->
+            _t = {}
+            _t[item] = entity
+            callback(err,_t)
+        )
+    (err,rs) ->
+        if err
+          return next(err) 
+        res.json rs
+  )
+
+router.get '/entity/producttype',  (req, res, next) ->
+  entities = ['product','type']
   async.map(entities,
     (item, callback) ->
         Build.distinct(item).
+        exec((err, entity) ->
+            _t = {}
+            _t[item] = entity
+            callback(err,_t)
+        )
+    (err,rs) ->
+        if err
+          return next(err) 
+        res.json rs
+  )
+
+router.post '/entity/others',  (req, res, next) ->
+  if(!req.body.product)
+    res.status(400)
+    return res.json {error: "Product is mandatory"}
+
+  if(!req.body.type)
+    res.status(400)
+    return res.json {error: "Type is mandatory"}
+
+  key = 'entity'
+  entities = ['version','device','team', 'browser', 'platform', 'platform_version']
+  async.map(entities,
+    (item, callback) ->
+        Build.distinct(item, {product : req.body.product, type: req.body.type}).
         exec((err, entity) ->
             _t = {}
             _t[item] = entity
@@ -376,11 +423,24 @@ router.post '/:page/:perPage',  (req, res, next) ->
 
     query = {}
     if(req.body.product)
-        query.product = req.body.product
+      query.product = req.body.product
 
     if(req.body.type)
-        query.type = req.body.type
+      query.type = req.body.type
 
+    if(req.body.version)
+      query.version = req.body.version
+
+    if(req.body.team)
+      query.team = req.body.team
+
+    if(req.body.browser)
+      query.browser = req.body.browser
+
+    if(req.body.device)
+      query.device = req.body.device
+    
+    console.log(query)
     pagnition = {
         skip: size * page
     }
