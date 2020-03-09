@@ -305,7 +305,7 @@ router.get '/entity/read',  (req, res, next) ->
   entities = ['product', 'type', 'version','device','team', 'browser']
   async.map(entities,
     (item, callback) ->
-        Build.distinct(item, {product : req.body.product, type: req.body.type}).
+        Build.distinct(item).
         exec((err, entity) ->
             _t = {}
             _t[item] = entity
@@ -440,7 +440,6 @@ router.post '/:page/:perPage',  (req, res, next) ->
     if(req.body.device)
       query.device = req.body.device
     
-    console.log(query)
     pagnition = {
         skip: size * page
     }
