@@ -149,6 +149,7 @@ if (config !== undefined) {
   const preference = require('./src/routes/preference')
   const assignment = require('./src/routes/assignment')
   const user = require('./src/routes/user')
+  const userFav = require('./src/routes/user_favorite')
 
   app.use('/api', authenticate)
   app.use('/api/setting', setting)
@@ -162,6 +163,7 @@ if (config !== undefined) {
   app.use('/api/assignment', assignment)
   app.use('/api/user', user)
   app.use('/api/user/preference', preference)
+  app.use('/api/user/favorite', userFav)
 
   app.use(function (err, req, res, next) {
     if (res.headersSent) {

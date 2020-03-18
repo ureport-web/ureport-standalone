@@ -20,7 +20,8 @@ settingSchema = new Schema(
 	component_filter: Schema.Types.Mixed,
 	issue_tracking: Schema.Types.Mixed,
 	tc_management: Schema.Types.Mixed,
-	relations_filter: Schema.Types.Mixed
+	relations_filter: Schema.Types.Mixed,
+	custom_execution_script: Schema.Types.Mixed
 )
 settingSchema.index({product: 1, type: 1}, {unique: true});
 
@@ -40,4 +41,7 @@ settingSchema.statics.update = (setting, payload) ->
 			setting.tc_management = payload.tc_management
 		if(payload.relations_filter)
 			setting.relations_filter = payload.relations_filter
+		if(payload.custom_execution_script)
+			setting.custom_execution_script = payload.custom_execution_script
+
 module.exports = mongoose.model('Setting', settingSchema)
