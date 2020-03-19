@@ -65,7 +65,7 @@
       "PREVIEW_BTN" : "Preview Builds"
     },
     "BUTTON_GROUP_STATUS": {
-      "TT_RERUN" : "Rerun"
+      "TT_RERUN" : "Rerun (rerun number is not calucalted in the total number of tests executed)"
     }
   }
 }
