@@ -324,6 +324,8 @@ router.post '/aggregate/single/history', (req, res, next) ->
             status: "$status",
             start_time : "$start_time" ,
             end_time : "$end_time" ,
+            is_rerun: "$is_rerun",
+            failure: "$failure",
             build: { 
                 _id : "$build._id",
                 product : "$build.product",
