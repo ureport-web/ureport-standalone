@@ -21,7 +21,20 @@ settingSchema = new Schema(
 	issue_tracking: Schema.Types.Mixed,
 	tc_management: Schema.Types.Mixed,
 	relations_filter: Schema.Types.Mixed,
-	custom_execution_script: Schema.Types.Mixed
+	custom_execution_script: [Schema(
+		{	
+			name: {
+				type: String
+			},
+			type: {
+				type: String
+			},
+			script: {
+				type: String
+			}
+		}, 
+		{_id: true}
+	)]
 )
 settingSchema.index({product: 1, type: 1}, {unique: true});
 
