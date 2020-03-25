@@ -124,6 +124,7 @@ if (config !== undefined) {
   app.use('/api/setting', isAuthenticatedMid)
   app.use('/api/assignment', isAuthenticatedMid)
   app.use('/api/investigated_test', isAuthenticatedMid)
+  app.use('/api/tracking', isAuthenticatedMid)
 
 
   app.get('/api/unauthorized', (req, res) => {
@@ -150,6 +151,7 @@ if (config !== undefined) {
   const assignment = require('./src/routes/assignment')
   const user = require('./src/routes/user')
   const userFav = require('./src/routes/user_favorite')
+  const trackingJIRA = require('./src/routes/tracking/jira')
 
   app.use('/api', authenticate)
   app.use('/api/setting', setting)
@@ -164,6 +166,7 @@ if (config !== undefined) {
   app.use('/api/user', user)
   app.use('/api/user/preference', preference)
   app.use('/api/user/favorite', userFav)
+  app.use('/api/tracking/jira', trackingJIRA)
 
   app.use(function (err, req, res, next) {
     if (res.headersSent) {

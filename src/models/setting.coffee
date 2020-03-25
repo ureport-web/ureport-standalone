@@ -18,8 +18,6 @@ settingSchema = new Schema(
 	issue_type: Schema.Types.Mixed,
 	product_line: Schema.Types.Mixed,
 	component_filter: Schema.Types.Mixed,
-	issue_tracking: Schema.Types.Mixed,
-	tc_management: Schema.Types.Mixed,
 	relations_filter: Schema.Types.Mixed,
 	custom_execution_script: [Schema(
 		{	
@@ -48,10 +46,6 @@ settingSchema.statics.update = (setting, payload) ->
 			setting.product_line = payload.product_line
 		if(payload.component_filter)
 			setting.component_filter = payload.component_filter
-		if(payload.issue_tracking)
-			setting.issue_tracking = payload.issue_tracking
-		if(payload.tc_management)
-			setting.tc_management = payload.tc_management
 		if(payload.relations_filter)
 			setting.relations_filter = payload.relations_filter
 		if(payload.custom_execution_script)

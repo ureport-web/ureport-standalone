@@ -28,6 +28,11 @@ try {
       checkperiod: 3600
     });
 
+    app.locals.commonCache = require('cluster-node-cache')(cluster, {
+      stdTTL: 72000,
+      checkperiod: 3600
+    });
+
     //don't use cluster when it is testing env
     if (process.env.NODE_ENV != undefined && process.env.NODE_ENV === 'test') {
       var server = http.createServer(app);

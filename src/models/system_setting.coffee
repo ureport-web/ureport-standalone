@@ -12,7 +12,9 @@ systemSettingSchema = new Schema(
 		default: 30
 	},
 	suggested_issue_types: Schema.Types.Mixed,
-	notification: Schema.Types.Mixed
+	notification: Schema.Types.Mixed,
+	issue_tracking: Schema.Types.Mixed,
+	tc_management: Schema.Types.Mixed,
 )
 
 systemSettingSchema.statics.updateSetting = (setting, payload) ->
@@ -23,4 +25,8 @@ systemSettingSchema.statics.updateSetting = (setting, payload) ->
 			setting.suggested_issue_types = payload.suggested_issue_types
 		if(payload.notification)
 			setting.notification = payload.notification
+		if(payload.issue_tracking)
+			setting.issue_tracking = payload.issue_tracking
+		if(payload.tc_management)
+			setting.tc_management = payload.tc_management
 module.exports = mongoose.model('SystemSetting', systemSettingSchema)
