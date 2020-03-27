@@ -3,6 +3,7 @@ router = express.Router()
 moment = require('moment');
 
 Build = require('../models/build')
+Test = require('../models/test')
 ObjectId = require('mongoose').Types.ObjectId;
 async = require("async")
 
@@ -84,7 +85,7 @@ router.post '/',  (req, res, next) ->
       return next err
 
     if(foundBuild)
-      Build.updateAtttributes(foundBuild,req.body)
+      Build.updateAttributes(foundBuild,req.body)
       Build.updateStatus(foundBuild, req.body.status)
       foundBuild.save((err, rs) ->
         if(err)
@@ -113,7 +114,7 @@ router.put '/:id',  (req, res, next) ->
 
     if build
       #perform update
-      Build.updateAtttributes(build, req.body)
+      Build.updateAttributes(build, req.body)
       build.save (err, results) ->
         if err
           next err
@@ -127,12 +128,18 @@ router.put '/:id',  (req, res, next) ->
 router.delete '/:id',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role,component))
       return res.status(403).json({"error": "You don't have permission to perform this action"})
+
   Build.deleteOne({_id: req.params.id}).
   exec((err, build) ->
     if err
       next err
 
-    res.json build
+    Test.deleteMany({build: req.params.id}).
+      exec((err, rs) ->
+        if err
+          next err
+        res.json rs
+    );
   );
 
 router.put '/status/:id',  (req, res, next) ->
@@ -235,11 +242,6 @@ router.post '/outage/:buildId',  (req, res, next) ->
                   return next(err)
               res.json rs
       )
-      # build.save (err, rs) ->
-      #   console.log("after save", rs)
-      #   if err
-      #     return next(err)
-      #   res.json rs
     else
       res.status(404)
       res.json {"error": "Cannot find Build with id " + req.params.buildId}

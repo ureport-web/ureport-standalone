@@ -126,9 +126,9 @@ buildSchema.statics.initBuild = (payload) ->
 
 	return new Build(newBuildPayload)
 
-buildSchema.statics.updateAtttributes = (build, payload) ->
+buildSchema.statics.updateAttributes = (build, payload) ->
 	if(payload)
-		if(payload.is_archive)
+		if(payload.is_archive != undefined)
 			build.is_archive = payload.is_archive
 		if(payload.start_time)
 			build.start_time = payload.start_time

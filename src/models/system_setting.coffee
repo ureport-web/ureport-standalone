@@ -1,6 +1,5 @@
 mongoose = require('mongoose')
 ObjectId = mongoose.Types.ObjectId;
-async = require("async")
 Schema = mongoose.Schema
 
 systemSettingSchema = new Schema(

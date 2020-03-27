@@ -69,8 +69,7 @@ router.post '/search', (req, res, next) ->
         res.status(400)
         return res.json {error: "Please provide a user name"}
 
-    regex = new RegExp(req.body.username.trim(), 'i')
-
+    regex = new RegExp(req.body.username.trim())
     User.find({
       username: { $regex: regex, $options: 'i' }
     }, { password:0 }).
