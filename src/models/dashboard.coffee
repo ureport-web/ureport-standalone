@@ -38,7 +38,7 @@ dashboardSchema = new Schema(
 				multi_query: Schema.Types.Mixed, # used by multiple product line
 				product_line_query: Schema.Types.Mixed, # used by non default product line
 				pattern: Schema({
-					groupByRelation: String,
+					groupByRelation: Schema.Types.Mixed,
 					status: Schema.Types.Mixed,
 					relations: Schema.Types.Mixed
 				}, {_id: false})
