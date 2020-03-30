@@ -153,6 +153,50 @@ router.post '/filter',  (req, res, next) ->
         res.json tests
     );
 
+router.post '/filter/nonpass',  (req, res, next) ->
+    if(!req.body.build)
+        res.status(400)
+        return res.json {error: "Build id is mandatory"}
+
+    if( typeof req.body.build == 'string' )
+        query = {
+          build: new ObjectId(req.body.build)
+        }
+    else
+        ins = []
+        Test.buildBuildsQuery(ins,req.body.build)
+        query = {
+            build : {
+                $in : ins
+            }
+        }
+    # build filter and condition
+    conditions = [{ $or: [{is_rerun:false},{is_rerun:null}] }]
+    if(req.body.status)
+        status = []
+        Test.buildStatusQuery(status,req.body.status)
+        conditions.push({ $or: status })
+    
+    query.$or = [
+        { $and: conditions }, 
+        { 
+            $and: [{ $or: [{is_rerun:true}] }]
+        }
+    ]
+
+    #build exclude doc
+    if(req.body.exclude)
+        exclude = {}
+        Test.buildExcludeFieldQuery(exclude,req.body.exclude)
+
+    Test.find(query,exclude)
+    .sort({uid:1})
+    .exec((err, tests) ->
+        if(err)
+            next err
+        res.json tests
+    );
+
 router.post '/steps/:id',  (req, res, next) ->
   Test.findOne({_id: req.params.id}).
   exec((err, test) ->
@@ -294,6 +338,7 @@ router.post '/aggregate/trend', (req, res, next) ->
             trend: { $push: { 
                     build: "$build", 
                     status : "$status",
+                    uid : "$uid",
                     id: "$_id"
                 }
             }
