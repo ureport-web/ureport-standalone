@@ -335,6 +335,34 @@ router.get '/entity/producttype',  (req, res, next) ->
         res.json rs
   )
 
+router.get '/entity/:product/:type/:since/recommend',  (req, res, next) ->
+  Build.aggregate()
+  .match({ 
+    product: req.params.product, 
+    type: req.params.type, 
+    start_time: { $gte: new Date(moment().subtract(req.params.since,'day').format()) }
+  })
+  .group({
+    _id: {
+      $concat: ['$product', '_', '$type']
+    }, 
+    types: {
+      $addToSet: {
+        product: '$product',
+        type: '$type',
+        team: '$team',
+        version: '$version', 
+        browser: '$browser', 
+        device: '$device', 
+        platform: '$platform', 
+        platform_version: '$platform_version'
+      }
+    }
+  })
+  .exec((err, recommends) ->
+    res.json recommends
+  );
+
 router.post '/entity/others',  (req, res, next) ->
   if(!req.body.product)
     res.status(400)

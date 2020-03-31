@@ -379,12 +379,14 @@ router.post '/aggregate/single/history', (req, res, next) ->
                 browser : "$build.browser",
                 device : "$build.device",
                 version : "$build.version",
+                platform : "$build.platform",
+                platform_version : "$build.platform_version",
                 build : "$build.build",
                 status: "$build.status"
             }
         })
         .match({ build : { $exists: true, $ne: [] } })
-        .limit(100)
+        .limit(500)
         .exec((err, tests) -> res.json tests );
     else
         res.status(404)
