@@ -1,9 +1,75 @@
 {
   "GENERAL":{
-    "TT_CLOSE" : "Close"
+    "PL_PRODUCT": "Product",
+    "PL_TYPE": "Automation Type",
+    "PL_VERSION": "Version",
+    "PL_TEAM": "Team",
+    "PL_BROWSER": "Browser",
+    "PL_DEVICE": "Device",
+    "PL_PLATFORM": "Platform",
+    "PL_PLATFORM_VERSION": "Platform Version",
+    "TT_NAVIVATIOPN": "Open Navigation Menu",
+    "TT_GUIDE" : "Guide Tour",
+    "TT_CLOSE" : "Close",
+    "TT_SAVE_LBL" : "Save",
+    "TT_NEXT_LBL" : "Next",
+    "TT_CANCEL_LBL" : "Cancel",
+    "TT_CHOOSE_LBL" : "Choose",
+    "TT_EDIT_LBL" : "Edit",
+    "TT_DELETE_LBL" : "Delete",
+    "TT_STATUS_LBL" : "Status",
+    "TT_BACK_LBL" : "Back",
+    "TT_HELP_LBL" : "Help",
+    "TT_RESET_LBL" : "Reset",
+    "NAME_LBL": "Name",
+    "COMMENTS_LBL": "Comments",
+    "PRODUCT_LINE_LBL": "Product line",
+    "PREVIEW_LBL": "Preview",
+    "START_TIME_LBL": "Start Time",
+    "START_DATE_LBL": "Start Date",
+    "END_TIME_LBL": "Start Time",
+    "TT_TIME_LBL" : "Time",
+    "COMPONENT_LBL": "Component",
+    "TEAM_TIME_LBL": "Teams",
+    "BUILD_NUMBER_LBL": "Build Number",
+    "TAGS_TIME_LBL": "Tags",
+    "ADD_NEW_BTN": "Add New",
+    "TT_COPY_TO_CLIPBOARD": "Copy to clipboard"
+  },
+  "MESSAGE": {
+    "MSG_NO_FILTER": "There are no filters to be used in this product line. Please contact your administrator to setup the filter.",
+    "MSG_CHOOSE_RELATION": "Choose a relation.",
+    "MSG_SHOW_LEGEND": "Show Legend",
+    "MSG_CHOOSE_DIFFERENT_PL": "Choose a different product line.",
+    "MSG_CHOOSE_DIFFERENT_PL_HELP": "* You can choose a product line other than the default product line (if default product line exists)",
+    "MSG_CHOOSE_CONFIG": "Choose one or more configuration.",
+    "MSG_CHOOSE_CONFIG_HELP": "* A multiple product line graph allows you to compare stats cross different product lines or different configrautions in the same product line"
+
+  },
+  "COMMENT":{
+    "TT_POST_LBL" : "Post",
+    "TT_SEND_LBL" : "Post Comment",
+    "MSG_DELETED_BY_USER" : "Message was deleted by sender",
+    "PLACEHOLDER_POST" : "Leave a comment. (Shift+Enter to add new line; Enter to save)",
+    "PLACEHOLDER_UPDATE" : "Update your comment. (Shift+Enter to add new line; Enter to save)"
+  },
+  "CES": {
+    "TT_REMOVE_SCRIPT": "Setup",
+    "TT_EDIT_SCRIPT": "Setup",
+    "NO_SCRIPT_DEFINED_LBL": "No product line CES defined"
+  },
+  "ERROR":{
+    "TITLE_LBL" : "Error Details",
+    "MORE_BTN" : "More Details"
+  },
+  "PREFERENCE":{
+    "APPLY_BTN" : "Apply",
+    "TITLE_LBL" : "Preference"
   },
   "NAVIGATION": {
     "DASHBOARD_LNK": "Dashboard",
+    "BUILDS_LNK" : "Builds",
+    "TEST_RELATIONS_LNK" : "Test Relations",
     "INVESTIGATED_TEST_LNK": "Investigated Tests",
     "USERS_LNK" : "Users",
     "SETUP_LNK" : "Settings" ,
@@ -15,12 +81,25 @@
     "AUTOANALYSIS" : "Auto Analysis"
   },
   "DASHBOARD": {
+    "MSG_NO_DASHBOARD": "You don't have any dashboard yet. Click here to create.",
+    "MSG_YOUR_DASHBOARD": "Your Dashboard",
+    "MSG_SHARED_DASHBOARD": "Shared dashboards from others",
     "TITLE_LBE": "Dashboards",
-    "ADD_BTN": "Add Dashboard",
-    "TT_ADD_BTN": "Add New Dashboard"
+    "TT_ADD_LBL": "Add Dashboard"
   },
   "BUILD": {
-    "WIDGET_MENU": "Add Widget"
+    "VIEW_DASHBOARD_LBL": "View Dashboard",
+    "ANALYZE_RUN_LBL": "Analyze Run",
+    "TT_EXPAND_MENU": "Expand Menu",
+    "TT_COLLAPSE_MENU": "Collapse menu",
+    "TT_WIDGET_MENU_LBL": "Add Widget",
+    "TT_EDIT_LAYOUT_LBL": "Edit Layout",
+    "TT_PREFERENCE_LBL": "Preference",
+    "TT_SWITCH_LBL": "Switch Dashboard",
+    "TT_EDIT_LBL": "Edit Dashboard Info",
+    "TT_SHARE_LBL": "Share Dashboard",
+    "TT_DELETE_LBL": "Delete Dashboard",
+    "TT_CLONE_LBL": "Clone Dashboard"
   },
   "TEST_REPORT": {
     "GROUP_BY_TRACKNUM_BTN": "Group by track number",
@@ -33,16 +112,47 @@
   "TEST_DETAIL": {
     "TRACK_AS_LBE": "Tracked as {{value}} issue.",
     "TRACK_AT_LBE": "Tracked at {{value}}",
-    "TT_DISPLAY" : "Display in full screen"
+    "TT_DISPLAY" : "Display in full screen",
+    "FAILURE_TAB" : "Failure",
+    "RERUN_TAB" : "Reruns",
+    "STEPS_TAB" : "Steps",
+    "INFO_TAB" : "Info & Relations",
+    "INVESTIGATED_TAB" : "Investigation Comments",
+    "ASSIGNMENT_TAB" : "Assignment Comments",
+    "RUN_HISTORY_TAB" : "Run History",
+    "AUDIT_TAB" : "Audit",
+    "ISSUE_TAB" : "Issue History",
+    "TT_OEPN_CALENDAR" : "Open Calendar",
+    "TT_BACK_DETAIL" : "Back to detail view"
   },
   "TEST_LIST": {
     "NO_TEST_MSG": "No tests found based on current filter"
   },
   "TEST_STEP": {
-    "SETUP_PANEL_LBE": "Setup"
+    "PLACEHOLDER_SEARCH_STEP": "Search in steps",
+    "SETUP_PANEL_LBE": "Setup",
+    "BODY_PANEL_LBE": "Body",
+    "TEARDOWN_PANEL_LBE": "Teardown",
+    "STEPS_LBE": "Steps",
+    "TT_JUMP_TO_FAIL": "Jump to first failure step.",
+    "TT_BACK_TO_FIRST": "Go back to first step."
+  },
+  "TABLE": {
+    "DESCRIPTION_HEADER": "Description",
+    "ACTION_HEADER": "Action",
+    "BY_USER_HEADER": "By User",
+    "DATE_HEADER": "Date",
+    "TACKING_HEADER": "Tracking",
+    "CAUSED_BY_HEADER": "Caused By",
+    "TIME_HEADER": "Time",
+    "FAILURE_HEADER": "Failure",
+    "MARKED_AT": "Marked At",
+    "MARKED_AS": "Marked As"
   },
   "WIDGET_CREATE": {
-    "TYPE_STEP_LBE": "Type"
+    "TYPE_STEP_LBE": "Type",
+    "TT_X_AXIS_BUILD": "Show x-axis label in build number",
+    "TT_X_AXIS_DATE": "Show x-axis label in start date"
   },
   "WIDGET_DESCRIPTION": {
     "STATUS_PIE": "Display the latest execution status in a pie chart.",
