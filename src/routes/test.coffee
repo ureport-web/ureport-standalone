@@ -32,7 +32,6 @@ router.post '/single', upload.single('image'), (req, res, next) ->
     if(req.file && req.file.mimetype)
         if(req.file.mimetype == 'image/jpg' || req.file.mimetype == 'image/png')
             try 
-                console.log(req.body.test)
                 res.status(200)
                 res.json {msg:"success"}
             catch e
@@ -66,7 +65,7 @@ router.post '/multi', (req, res, next) ->
             return next(err)
         state = "Success"
         if(req.body.tests.length != tests.length)
-          state = "Partial Success, you might have missing field in your paylaod, not all tests are saved."
+          state = "Partial Success, you might have missing fields in your paylaod, not all tests are saved."
         res.json { 
           state : state
           provided : req.body.tests.length

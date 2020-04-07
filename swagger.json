@@ -15,14 +15,407 @@
   "tags": [
     {
       "name": "authentication",
-      "description": "Login, signup, logout"
+      "description": "Login, logout"
+    },
+    {
+      "name": "user",
+      "description": "Users"
     },
     {
       "name": "build",
-      "description": "Everything about your build"
+      "description": "Builds from CI automation execution"
+    },
+    {
+      "name": "test",
+      "description": "Tests from each automation execution"
+    },
+    {
+      "name": "testRelation",
+      "description": "Tests Relation for each test"
     }
   ],
   "paths": {
+    "/login": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Login to server.",
+        "operationId": "login",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "required": [
+                "username",
+                "password"
+              ],
+              "type": "object",
+              "properties": {
+                "username": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "xxx is mandatory"
+          }
+        }
+      }
+    },
+    "/logout": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Logout",
+        "operationId": "logout",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Logout successfully"
+          }
+        }
+      }
+    },
+    "/user/signup": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Sing up new user",
+        "operationId": "signup",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logout successfully"
+          }
+        }
+      }
+    },
+    "/user/{page}/{perpage}": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Retrive list of builds based on the query",
+        "operationId": "pagnition",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "description": "page number",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "perpage",
+            "in": "path",
+            "description": "Number of users per page, minimum 10, maximum value 50",
+            "required": true,
+            "type": "string",
+            "minimum": 10,
+            "maximum": 50
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "required": [
+                "username"
+              ],
+              "type": "object",
+              "properties": {
+                "username": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "xxx is mandatory"
+          }
+        }
+      }
+    },
+    "/user/update/{username}": {
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Update user information",
+        "operationId": "updateUser",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "username",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "xxx is mandatory"
+          }
+        }
+      }
+    },
+    "/test/multi": {
+      "post": {
+        "tags": [
+          "test"
+        ],
+        "summary": "Add array of tests",
+        "description": "Attach array of tests to existing build. Due to performance/load consideration, the length of array cannot excceed 100 or max of 50 MB in size.",
+        "operationId": "addTests",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MutltiTests"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "xxx is mandatory"
+          }
+        }
+      }
+    },
+    "/test/filter": {
+      "post": {
+        "tags": [
+          "test"
+        ],
+        "summary": "Recieve tests from a build or builds",
+        "description": "Filter tests based from a specific build or builds. Exclude will filter out unwanted fields from the response",
+        "operationId": "filterTests",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "build"
+              ],
+              "properties": {
+                "build": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "status": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "All",
+                      "PASS",
+                      "FAIL",
+                      "SKIP"
+                    ]
+                  }
+                },
+                "exclude": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "_id",
+                      "build",
+                      "setup",
+                      "teardown",
+                      "body",
+                      "info",
+                      "start_time",
+                      "end_time"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "xxx is mandatory"
+          }
+        }
+      }
+    },
+    "/test_relation/": {
+      "post": {
+        "tags": [
+          "testRelation"
+        ],
+        "summary": "Create test relation",
+        "description": "<strong>How to add custom relation field.</strong><br>\nUReport allows you to add any relations other than those predefined.\nSimply the key:value pair as the content of customs field\nFor example, you want label as multiple value and severity as single value. You can provide the following payload\n<code><pre> \ncustoms: { \n  label: ['regression','smoke']\n  severity: 'Blocker'\n}\n</pre></cod3>\"\n",
+        "operationId": "createTestRelation",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TestRelation"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "xxx is mandatory"
+          }
+        }
+      }
+    },
+    "/test_relation/{page}/{perpage}": {
+      "post": {
+        "tags": [
+          "testRelation"
+        ],
+        "summary": "Retrive list of test lists",
+        "operationId": "pagnitionTestRelation",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "description": "page number",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "perpage",
+            "in": "path",
+            "description": "Number of test relation per page, minimum 10, maximum value 50",
+            "required": true,
+            "type": "string",
+            "minimum": 10,
+            "maximum": 50
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "required": [
+                "product",
+                "type"
+              ],
+              "type": "object",
+              "properties": {
+                "product": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "xxx is mandatory"
+          }
+        }
+      }
+    },
     "/build": {
       "post": {
         "tags": [
@@ -279,7 +672,7 @@
           "build"
         ],
         "summary": "Retrive list of builds based on the query",
-        "operationId": "pagnition",
+        "operationId": "pagnitionBuild",
         "consumes": [
           "application/json"
         ],
@@ -352,6 +745,136 @@
     }
   },
   "definitions": {
+    "User": {
+      "type": "object",
+      "required": [
+        "username",
+        "password",
+        "email",
+        "role"
+      ],
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "displayname": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "admin",
+            "operator",
+            "viewer"
+          ]
+        },
+        "password": {
+          "type": "string"
+        },
+        "position": {
+          "type": "string"
+        },
+        "settings": {
+          "type": "object",
+          "properties": {
+            "language": {
+              "type": "string",
+              "default": "en"
+            },
+            "theme": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "default": "bootstrap"
+                },
+                "type": {
+                  "type": "string",
+                  "default": "light"
+                }
+              }
+            },
+            "dashboard": {
+              "type": "object",
+              "properties": {
+                "isShowWidgetBorder": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "isExpandMenu": {
+                  "type": "boolean",
+                  "default": "fals"
+                },
+                "isWidgetBarOnHover": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            },
+            "report": {
+              "type": "object",
+              "properties": {
+                "assignmentRI": {
+                  "type": "integer",
+                  "default": 30
+                },
+                "displaySelfAN": {
+                  "type": "boolean",
+                  "default": "fals"
+                },
+                "displaySearchAndFilterBoxInStep": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "status": {
+                  "type": "object",
+                  "properties": {
+                    "pass": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "rerun": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "fail": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "skip": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "ki": {
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "out": {
+                      "type": "boolean",
+                      "default": false
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "MutltiTests": {
+      "type": "object",
+      "properties": {
+        "tests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Test"
+          }
+        }
+      }
+    },
     "Test": {
       "type": "object",
       "required": [
@@ -440,6 +963,20 @@
               },
               "detail": {
                 "type": "string"
+              },
+              "attachment": {
+                "type": "object",
+                "properties": {
+                  "screenshot": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "base64"
+                    ]
+                  }
+                }
               }
             }
           }
@@ -464,6 +1001,20 @@
               },
               "detail": {
                 "type": "string"
+              },
+              "attachment": {
+                "type": "object",
+                "properties": {
+                  "screenshot": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "base64"
+                    ]
+                  }
+                }
               }
             }
           }
@@ -488,7 +1039,84 @@
               },
               "detail": {
                 "type": "string"
+              },
+              "attachment": {
+                "type": "object",
+                "properties": {
+                  "screenshot": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "base64"
+                    ]
+                  }
+                }
               }
+            }
+          }
+        }
+      }
+    },
+    "TestRelation": {
+      "type": "object",
+      "required": [
+        "uid",
+        "product",
+        "type"
+      ],
+      "properties": {
+        "uid": {
+          "type": "string"
+        },
+        "product": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "components": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          }
+        },
+        "teams": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "customs": {
+          "type": "object",
+          "properties": {
+            "any": {
+              "type": "string"
             }
           }
         }
