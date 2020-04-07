@@ -142,6 +142,8 @@
     "USERS_LNK" : "Users",
     "SETUP_LNK" : "Settings" ,
     "EXECUTIONREPORT_LNK" : "Execution",
+    "FAQ_LNK": "FAQ",
+    "API_DOC_LNK": "API Doc",
     "LOGOUT_LNK" : "Logout"
   },
   "SETTING": {
@@ -196,6 +198,8 @@
     "MORE_ACTION_BTN": "More actions",
     "LOAD_DATE_BTN": "Load on date",
     "LOAD_MORE_BTN": "Load more",
+    "PINN_TEST_BTN": "Pin/Unpin test",
+    "TT_PIN_TEST_AT": "Pinned at {{date}}",
     "ASSIGNED_TO_ME" : "Assigned to me",
     "GROUP_BY_TRACKNUM_BTN": "Group by track number",
     "GROUP_BY_CREATE_DATE_BTN" : "Group by create date",
@@ -206,6 +210,7 @@
     "TT_INVESTIGATED_TEST" : "Investigated Tests",
     "TT_TEST_ASSIGNMENT" : "Test Assignments",
     "TT_COMPARE_WITH_OTHER" : "Compare current build with others",
+    "TT_PIN_TEST_FILTER": "Show/Hide my pinned tests",
     "TT_TABLE_VIEW" : "Table View",
     "TT_TREE_VIEW" : "Tree View",
     "TT_TREND_VIEW" : "Trend View",

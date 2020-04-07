@@ -1,0 +1,613 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "Start to push your automation data to UReport. Happy analyzing",
+    "x-explorer-enabled": false,
+    "version": "1.0.0",
+    "title": "UReport API",
+    "termsOfService": "",
+    "contact": {
+      "email": "ureport@outlook.com"
+    }
+  },
+  "host": "localhost:4200",
+  "basePath": "/api/",
+  "tags": [
+    {
+      "name": "authentication",
+      "description": "Login, signup, logout"
+    },
+    {
+      "name": "build",
+      "description": "Everything about your build"
+    }
+  ],
+  "paths": {
+    "/build": {
+      "post": {
+        "tags": [
+          "build"
+        ],
+        "summary": "Add a new build or update exist build with provided value.",
+        "description": " <ul> <li> If a build already exists, and the status is present in the payload. Status will be added to the existing value instead of overwrite.</li> <li> If a build already exists, and key client is present in the payload. Envrionments and settings will be set to as the value of key client inside environments and settings </li> </ul>\n",
+        "operationId": "addBuild",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Build"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "xxx is mandatory"
+          }
+        }
+      }
+    },
+    "/build/status/{buildId}": {
+      "post": {
+        "tags": [
+          "build"
+        ],
+        "summary": "Update status of existing build using its id.",
+        "operationId": "updateStatus",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "buildId",
+            "in": "path",
+            "description": "ID of build",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "pass": {
+                  "type": "integer"
+                },
+                "fail": {
+                  "type": "integer"
+                },
+                "skip": {
+                  "type": "integer"
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "xxx is mandatory"
+          }
+        }
+      }
+    },
+    "/build/{buildId}": {
+      "get": {
+        "tags": [
+          "build"
+        ],
+        "summary": "Find build by ID",
+        "description": "Returns a single build",
+        "operationId": "getBuildById",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "buildId",
+            "in": "path",
+            "description": "ID of build",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/Build"
+            }
+          },
+          "404": {
+            "description": "Build not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "build"
+        ],
+        "summary": "Updates a build except its status.",
+        "description": "Don't use this api to update status of exist build. Use /build/status/ instead.",
+        "operationId": "updateBuild",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "buildId",
+            "in": "path",
+            "description": "ID of build that needs to be updated",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Permission Restriction"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "build"
+        ],
+        "summary": "Deletes a build and all tests under it",
+        "description": "",
+        "operationId": "deleteBuild",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "buildId",
+            "in": "path",
+            "description": "Build id to delete",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid ID supplied"
+          },
+          "404": {
+            "description": "Build not found"
+          }
+        }
+      }
+    },
+    "/build/filter": {
+      "post": {
+        "tags": [
+          "build"
+        ],
+        "summary": "Retrive list of builds based on the query",
+        "operationId": "filter",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "required": [
+                "product",
+                "type"
+              ],
+              "type": "object",
+              "properties": {
+                "product": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                },
+                "team": {
+                  "type": "string"
+                },
+                "browser": {
+                  "type": "string"
+                },
+                "device": {
+                  "type": "string"
+                },
+                "platform": {
+                  "type": "string"
+                },
+                "platform_version": {
+                  "type": "string"
+                },
+                "since": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "after": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "range": {
+                  "type": "integer",
+                  "default": 5
+                },
+                "is_archive": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "xxx is mandatory"
+          }
+        }
+      }
+    },
+    "/build/{page}/{perpage}": {
+      "post": {
+        "tags": [
+          "build"
+        ],
+        "summary": "Retrive list of builds based on the query",
+        "operationId": "pagnition",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "description": "page number",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "perpage",
+            "in": "path",
+            "description": "Number of build per page, minimum 10, maximum value 50",
+            "required": true,
+            "type": "string",
+            "minimum": 10,
+            "maximum": 50
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "",
+            "required": true,
+            "schema": {
+              "required": [
+                "product",
+                "type"
+              ],
+              "type": "object",
+              "properties": {
+                "product": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                },
+                "team": {
+                  "type": "string"
+                },
+                "browser": {
+                  "type": "string"
+                },
+                "device": {
+                  "type": "string"
+                },
+                "platform": {
+                  "type": "string"
+                },
+                "platform_version": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "xxx is mandatory"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Test": {
+      "type": "object",
+      "required": [
+        "uid",
+        "name",
+        "status"
+      ],
+      "properties": {
+        "uid": {
+          "type": "string"
+        },
+        "build": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL",
+            "SKIP"
+          ]
+        },
+        "start_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "failure": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string"
+            },
+            "error_message": {
+              "type": "string"
+            },
+            "stack_trace": {
+              "type": "string"
+            }
+          }
+        },
+        "is_rerun": {
+          "type": "boolean"
+        },
+        "info": {
+          "type": "object",
+          "description": "Despite of four predefined parameter, all value in info can be any value user wants to store. These value will be displayed in the test detail panel in the execution page.",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "duration": {
+              "type": "string"
+            },
+            "file": {
+              "type": "string"
+            },
+            "path": {
+              "type": "string"
+            }
+          }
+        },
+        "setup": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP",
+                  "INFO"
+                ]
+              },
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "body": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP",
+                  "INFO"
+                ]
+              },
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "teardown": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "SKIP",
+                  "INFO"
+                ]
+              },
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Build": {
+      "type": "object",
+      "required": [
+        "product",
+        "type",
+        "build"
+      ],
+      "properties": {
+        "product": {
+          "type": "string",
+          "example": "Reporting"
+        },
+        "type": {
+          "type": "string",
+          "example": "API"
+        },
+        "version": {
+          "type": "string",
+          "example": "1.0.0"
+        },
+        "team": {
+          "type": "string",
+          "example": "Team Alpha"
+        },
+        "build": {
+          "type": "integer",
+          "example": 100
+        },
+        "browser": {
+          "type": "string",
+          "enum": [
+            "Chrome",
+            "Firefox",
+            "Edge",
+            "Safari",
+            "Opera",
+            "IE",
+            "Internet Explorer"
+          ],
+          "example": "Chrome",
+          "description": "browser is case sensitive for filtering. for example, chrome and Chrome are treated differently to the search engine"
+        },
+        "device": {
+          "type": "string",
+          "example": "Windows VM"
+        },
+        "platform": {
+          "type": "string",
+          "example": "iOS"
+        },
+        "platfomr_version": {
+          "type": "string",
+          "example": "13.0.4"
+        },
+        "start_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "end_time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "is_archive": {
+          "type": "boolean",
+          "example": "false",
+          "description": "Only set this value when you don't want the build to be seen"
+        },
+        "status": {
+          "type": "object",
+          "description": "status of your automation run",
+          "properties": {
+            "pass": {
+              "type": "integer"
+            },
+            "fail": {
+              "type": "integer"
+            },
+            "skip": {
+              "type": "integer"
+            },
+            "total": {
+              "type": "integer"
+            }
+          }
+        },
+        "environments": {
+          "type": "object",
+          "description": "To hold all environment variables of the automation run. Notice it is a object could holds other object. It is designed for parallel executions where different environments (machines/clients) could be involved during the execution",
+          "properties": {
+            "default": {
+              "type": "object",
+              "description": "could be anything you want to save as envrionment"
+            }
+          }
+        },
+        "settings": {
+          "type": "object",
+          "description": "To hold all settings variables of the automation run. Notice it is a object could holds other object. It is designed for parallel executions where different settings could be involved during the execution",
+          "properties": {
+            "default": {
+              "type": "object",
+              "description": "could be anything you want to save as envrionment"
+            }
+          }
+        },
+        "client": {
+          "type": "string",
+          "example": "VM-01",
+          "description": "if client is detected in the payload, all settings and environments value will be saved as the name of the client instead of default."
+        }
+      }
+    }
+  }
+}

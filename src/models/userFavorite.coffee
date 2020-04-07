@@ -13,7 +13,32 @@ userFavoriteSchema = new Schema(
     required: [true, 'Username is required'],
     maxlength: 20,
     minlength: 2
-  }
+  },
+  pinned: [Schema(
+    {
+      product : {
+        type: String,
+        required: true
+      },
+      type : {
+        type: String,
+        required: true
+      },
+      uid : {
+        type: String,
+        required: true
+      },
+      originBuild: {
+        type: Schema.Types.ObjectId,
+      },
+      originDate: {
+        type: Date,
+      },
+      comments: Schema.Types.Mixed
+    }, 
+    {_id: true}
+    )
+  ],
   executions: [Schema(
     {	
       name: {
@@ -50,6 +75,8 @@ userFavoriteSchema.statics.updateOne = (userFav, payload) ->
       userFav.username = payload.username
     if(payload.executions)
       userFav.executions = payload.executions
+    if(payload.pinned)
+      userFav.pinned = payload.pinned
     if(payload.ceses)
       userFav.ceses = payload.ceses
 

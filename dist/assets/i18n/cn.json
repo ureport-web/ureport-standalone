@@ -141,6 +141,8 @@
     "USERS_LNK" : "用户",
     "SETUP_LNK" : "设置" ,
     "EXECUTIONREPORT_LNK" : "执行",
+    "FAQ_LNK": "常问问题",
+    "API_DOC_LNK": "API 文档",
     "LOGOUT_LNK" : "注销"
   },
   "SETTING": {
@@ -193,6 +195,8 @@
     "EXPORT_AS_CSV" : "导出为CSV",
     "LOAD_DATE_BTN": "按日期加载",
     "LOAD_MORE_BTN": "加载更多",
+    "PINN_TEST_BTN": "固定/移除测试",
+    "TT_PIN_TEST_AT": "固定日期: {{date}}",
     "ASSIGNED_TO_ME" : "已分配给我",
     "MORE_ACTION_BTN": "更多",
     "GROUP_BY_TRACKNUM_BTN": "按编号分组",
@@ -204,6 +208,7 @@
     "TT_INVESTIGATED_TEST" : "调查测试",
     "TT_TEST_ASSIGNMENT" : "测试分配",
     "TT_COMPARE_WITH_OTHER" : "与其他比较当前版本",
+    "TT_PIN_TEST_FILTER": "显示/隐藏我的固定测试",
     "TT_TABLE_VIEW" : "表格图",
     "TT_TREE_VIEW" : "树图",
     "TT_TREND_VIEW" : "趋势图",

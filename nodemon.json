@@ -13,6 +13,7 @@
   "watch": [
     "config/dev.json",
     "app.js",
+    "swagger.json",
     "server.js",
     "src/models",
     "src/routes",

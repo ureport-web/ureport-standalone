@@ -8,6 +8,28 @@ config = require('config')
 const path = require('path')
 const express = require('express')
 const cookieParser = require('cookie-parser');
+
+// swaggerUI
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+const DisableTryItOutPlugin = function() {
+  return {
+    statePlugins: {
+      spec: {
+        wrapSelectors: {
+          allowTryItOutFor: () => () => false
+        }
+      }
+    }
+  }
+}
+const options = {
+  swaggerOptions: {
+      plugins: [
+           DisableTryItOutPlugin
+      ]
+   }
+};
 let app = undefined;
 
 /**
@@ -21,6 +43,9 @@ if (config !== undefined) {
   // set static file to dist folder.
   app.use(express.static(path.join(__dirname, 'dist')))
   // app.use(express.static(path.join(__dirname, 'public')))
+
+  //API doc
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument,options));
 
   /**
    * sessions

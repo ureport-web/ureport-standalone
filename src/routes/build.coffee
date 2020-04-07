@@ -470,6 +470,12 @@ router.post '/:page/:perPage',  (req, res, next) ->
     if(req.body.device)
       query.device = req.body.device
     
+    if(req.body.platform)
+      query.platform = req.body.platform
+  
+    if(req.body.platform_version)
+      query.platform_version = req.body.platform_version
+
     pagnition = {
         skip: size * page
     }
@@ -484,7 +490,7 @@ router.post '/:page/:perPage',  (req, res, next) ->
     .sort(sort)
     .exec((err, builds) ->
       if err
-          return next(err)
+        return next(err)
       res.json builds
     );
 
