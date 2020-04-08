@@ -35,6 +35,7 @@
     "NAME_LBL": "Name",
     "TT_THEME_LBL": "Theme",
     "TT_LANGUAGE_LBL" : "Language",
+    "TT_PROVIDE_LBL" : "Provide",
     "COMMENTS_LBL": "Comments",
     "PRODUCT_LINE_LBL": "Product line",
     "PREVIEW_LBL": "Preview",
@@ -56,7 +57,12 @@
     "TT_RANGE_SELECT_VALUE_5": "Last 5 builds",
     "TT_RANGE_SELECT_VALUE_10": "Last 10 builds",
     "TT_RANGE_SELECT_VALUE_20": "Last 20 builds",
-    "TT_RANGE_SELECT_VALUE_40": "Last 40 builds"
+    "TT_RANGE_SELECT_VALUE_40": "Last 40 builds",
+    "TT_STEP_1": "Step 1",
+    "TT_STEP_2": "Step 2",
+    "TT_STEP_3": "Step 3",
+    "TT_STEP_4": "Step 4",
+    "TT_STEP_5": "Step 5"
   },
   "MODAL": {
     "BUILD_ONDATE" : "* Choose start date if you want build(s) from a single date",
@@ -155,11 +161,22 @@
     "AUTOANALYSIS_TXT": " # of days UReport should go back for auto-analysis",
     "PRODUCT_LINE_SETTING" : "Product Line Settings",
     "SETUPS": "General Setups",
+    "FIELD_SETUP": "Field Setups",
+    "FIELD_SETUP_LBL": "Show/Hide field",
+    "DRAG_AND_DROP_ISSUE_TYPE": "Drag suggested Issue Type and Drop to Display Issue Type",
+    "DISPLAY_ISSUE_TYPE": "Display Issue Type",
     "ISSUE_TYPE_LBL": "Issue Type",
     "ISSUE_TYPE_CHOOSE_COLOR" : "Choose a color",
     "ISSUE_TYPE_LBL_SUBTITLE" : "Create your own issue type",
     "TEST_RELATION_FILTER_LBL": "Test Relation Filter",
     "TEST_RELATION_FILTER_LBL_SUBTITLE" : "Available filters from test relations",
+    "TEST_RELATION_FILTER_DEFAULT_LBL": "Default Filter",
+    "TEST_RELATION_FILTER_GROUP_LBL": "Customize Group Filter",
+    "TEST_RELATION_FILTER_DD_LBL": "Drag and Drop relation to make it appear in the filter",
+    "TEST_RELATION_FILTER_DISPLAY_LBL": "Display Filter",
+    "TEST_RELATION_SELECT_R_LBL": "Select a relation",
+    "TEST_RELATION_SELECT_V_LBL": "Select value(s) from the relation",
+    "TEST_RELATION_GN_LBL": "group name",
     "CES_LBL": "",
     "CES_LBL_SUBTITLE" : "All scripts are accessible from test detail in execution page.",
     "PLACEHOLDER_NUMBER_OF_DAYS" : "Number of Days",
@@ -395,5 +412,24 @@
       "TT_NEW_TESTS" : "New tests appeared in recent run",
       "TT_TEST_DIDNT_RUN" : "Tests didn't run"
     }
-  }
+  },
+  "FAQ": {
+    "GENERAL_LBL" : "General",
+    "QUESTION_PL" : "What is a product line?",
+    "ANSWER_API_LBL" : "Please refer to API DOC for more information.",
+    "ANSWER_PL_1" : "A product line represent a conceptual combination of 8 variables from the automatoin execution. Among these 8 values, 2 are mandatory, and the other 6 are optional.<br> Let's use an exmaple to explain it. <br> Say we have a web application that we need to run automation regression in the nightly build. We need to run it in three different browsers. (Chrome, Firefox and Safari).<br> We could have 3 potential product lines in this scearnio.",
+    "ANSWER_PL_2" : "Once these product line are set, all future executions should keep pushing result under the same product line with different build number from your CI software. <br>To know how to send data to UReport server.",
+    "QUESTION_AUTOANALYZE" : "How does auto analyze work?",
+    "ANSWER_AUTOANALYZE_1" : "Auto analysis is one of the key feature UReport offers. User does not need to setup anything. it will be always turned on.<br> Once you mark one fail test as any issue type, if the marked test case failed in the future for the same reason, the test wll be automatically marked as Investigated <i class='fas fa-microscope c-investigated' ></i>.<br> UReport will search back, by default, 30 days for all investigated issues within the same product line. <br> This day number can be changed in the Settings.<hr> <br><strong>How does it work?</strong><br>When save failed test case through API, there are three fields user can provide: ",
+    "ANSWER_AUTOANALYZE_2" : "To allow the auto analysis to work. <u>error_message</u> must be provided. This is the string UReport uses to achieve the auto analysis.<br>To allow a percise auto analysis result, field <u>token</u> is recommended. <br> <u>Then what is token? </u>",
+    "QUESTION_UID" : "What is a UID of a test?",
+    "QUESTION_D_PL" : "What is the difference between a bind product line dashboard and non-bind product line dashboard?",
+    "QUESTION_T_UID" : "What is the difference among investigated test, assign test and pin test?",
+    "QUESTION_T_OUT" : "What is the difference between investigated status and outage status?",
+    "QUESTION_T_CES" : "What is CES?",
+    "QUESTION_TR_RELATION" : "What is Test Relation?",
+    "QUESTION_S_PLS" : "What is Product Line setting?",
+    "QUESTION_S_IT" : "What is Issue Type?",
+    "QUESTION_S_RF" : "What is Test Relation Filter? And what is the group filter?"
+  } 
 }

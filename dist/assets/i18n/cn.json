@@ -34,6 +34,7 @@
     "NAME_LBL": "名称",
     "TT_THEME_LBL": "主题",
     "TT_LANGUAGE_LBL" : "语言",
+    "TT_PROVIDE_LBL" : "提供",
     "COMMENTS_LBL": "评论",
     "PRODUCT_LINE_LBL": "产品线",
     "PREVIEW_LBL": "预览",
@@ -55,7 +56,12 @@
     "TT_RANGE_SELECT_VALUE_5": "最近5个 builds",
     "TT_RANGE_SELECT_VALUE_10": "最近10个 builds",
     "TT_RANGE_SELECT_VALUE_20": "最近20个 builds",
-    "TT_RANGE_SELECT_VALUE_40": "最近40个 builds"
+    "TT_RANGE_SELECT_VALUE_40": "最近40个 builds",
+    "TT_STEP_1": "第1步",
+    "TT_STEP_2": "第2步",
+    "TT_STEP_3": "第3步",
+    "TT_STEP_4": "第4步",
+    "TT_STEP_5": "第5步"
   },
   "MODAL": {
     "BUILD_ONDATE" : "* Choose start date if you want build(s) from a single date",
@@ -107,8 +113,8 @@
     "TT_POST_LBL" : "发送",
     "TT_SEND_LBL" : "发送评论",
     "MSG_DELETED_BY_USER" : "发件人删除",
-    "PLACEHOLDER_POST" : "发表评论。（Shift + Enter键添加新行； Enter键保存）",
-    "PLACEHOLDER_UPDATE" : "更新您的评论。（按Shift + Enter键添加新行；按Enter键保存）"
+    "PLACEHOLDER_POST" : "发表评论。（按Shift键 + Enter键添加新行； Enter键保存）",
+    "PLACEHOLDER_UPDATE" : "更新您的评论。（按Shift键 + Enter键添加新行；按Enter键保存）"
   },
   "CES": {
     "TT_REMOVE_SCRIPT": "删除",
@@ -154,14 +160,26 @@
     "AUTOANALYSIS_TXT": " UReport应该返回进行自动分析的天数",
     "PRODUCT_LINE_SETTING" : "产品线设置",
     "SETUPS": "常规",
+    "FIELD_SETUP": "产品值设置",
+    "FIELD_SETUP_LBL": "显示/隐藏产品值",
+    "DRAG_AND_DROP_ISSUE_TYPE": "拖放问题类型拖放到“显示问题类型”栏",
+    "DISPLAY_ISSUE_TYPE": "显示问题类型",
     "ISSUE_TYPE_LBL": "问题类型",
     "ISSUE_TYPE_CHOOSE_COLOR" : "选择颜色",
     "ISSUE_TYPE_LBL_SUBTITLE" : "创建自定义问题类型",
     "TEST_RELATION_FILTER_LBL": "测试关系过滤",
     "TEST_RELATION_FILTER_LBL_SUBTITLE" : "来自测试关系的可用过滤器",
+    "TEST_RELATION_FILTER_DEFAULT_LBL": "默认过滤器",
+    "TEST_RELATION_FILTER_GROUP_LBL": "自定义组过滤器",
+    "TEST_RELATION_FILTER_DD_LBL": "拖放关联到“显示过滤器”栏",
+    "TEST_RELATION_FILTER_DISPLAY_LBL": "显示过滤器",
+    "TEST_RELATION_SELECT_R_LBL": "选择一个关系",
+    "TEST_RELATION_SELECT_V_LBL": "从关系中选择一个或多个值",
+    "TEST_RELATION_GN_LBL": "群组名",
     "CES_LBL": "",
     "CES_LBL_SUBTITLE" : "可以从执行页面中的测试详细信息访问所有脚本",
-    "PLACEHOLDER_NUMBER_OF_DAYS" : "天数"
+    "PLACEHOLDER_NUMBER_OF_DAYS" : "天数",
+    "FILTER_LBL" : "过滤器名称"
   },
   "DASHBOARD": {
     "MSG_NO_DASHBOARD": "您还没有任何仪表板。请单击此处创建。",
@@ -391,5 +409,24 @@
       "TT_NEW_TESTS" : "新测试",
       "TT_TEST_DIDNT_RUN" : "未运行测试"
     }
-  }
+  },
+  "FAQ": {
+    "GENERAL_LBL" : "General",
+    "QUESTION_PL" : "What is a product line?",
+    "ANSWER_API_LBL" : "Please refer to API DOC for more information.",
+    "ANSWER_PL_1" : "A product line represent a conceptual combination of 8 variables from the automatoin execution. Among these 8 values, 2 are mandatory, and the other 6 are optional.<br> Let's use an exmaple to explain it. <br> Say we have a web application that we need to run automation regression in the nightly build. We need to run it in three different browsers. (Chrome, Firefox and Safari).<br> We could have 3 potential product lines in this scearnio.",
+    "ANSWER_PL_2" : "Once these product line are set, all future executions should keep pushing result under the same product line with different build number from your CI software. <br>To know how to send data to UReport server.",
+    "QUESTION_AUTOANALYZE" : "How does auto analyze work?",
+    "ANSWER_AUTOANALYZE_1" : "Auto analysis is one of the key feature UReport offers. User does not need to setup anything. it will be always turned on.<br> Once you mark one fail test as any issue type, if the marked test case failed in the future for the same reason, the test wll be automatically marked as Investigated <i class='fas fa-microscope c-investigated' ></i>.<br> UReport will search back, by default, 30 days for all investigated issues within the same product line. <br> This day number can be changed in the Settings.<hr> <br><strong>How does it work?</strong><br>When save failed test case through API, there are three fields user can provide: ",
+    "ANSWER_AUTOANALYZE_2" : "To allow the auto analysis to work. <u>error_message</u> must be provided. This is the string UReport uses to achieve the auto analysis.<br>To allow a percise auto analysis result, field <u>token</u> is recommended. <br> <u>Then what is token? </u>",
+    "QUESTION_UID" : "What is a UID of a test?",
+    "QUESTION_D_PL" : "What is the difference between a bind product line dashboard and non-bind product line dashboard?",
+    "QUESTION_T_UID" : "What is the difference among investigated test, assign test and pin test?",
+    "QUESTION_T_OUT" : "What is the difference between investigated status and outage status?",
+    "QUESTION_T_CES" : "What is CES?",
+    "QUESTION_TR_RELATION" : "What is Test Relation?",
+    "QUESTION_S_PLS" : "What is Product Line setting?",
+    "QUESTION_S_IT" : "What is Issue Type?",
+    "QUESTION_S_RF" : "What is Test Relation Filter? And what is the group filter?"
+  } 
 }
