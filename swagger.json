@@ -103,7 +103,7 @@
         "tags": [
           "user"
         ],
-        "summary": "Sing up new user",
+        "summary": "Sign up new user",
         "operationId": "signup",
         "consumes": [
           "application/json"

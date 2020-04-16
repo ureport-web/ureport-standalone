@@ -32,7 +32,23 @@ settingSchema = new Schema(
 			}
 		}, 
 		{_id: true}
-	)]
+	)],
+	investigated_setting: Schema(
+		{	
+			sharePL: [Schema(
+				{	
+					product: {
+						type: String
+					},
+					type: {
+						type: String
+					}
+				}, 
+				{_id: true}
+			)]
+		}, 
+		{_id: false}
+	)
 )
 settingSchema.index({product: 1, type: 1}, {unique: true});
 
@@ -50,5 +66,7 @@ settingSchema.statics.update = (setting, payload) ->
 			setting.relations_filter = payload.relations_filter
 		if(payload.custom_execution_script)
 			setting.custom_execution_script = payload.custom_execution_script
+		if(payload.investigated_setting)
+			setting.investigated_setting = payload.investigated_setting
 
 module.exports = mongoose.model('Setting', settingSchema)

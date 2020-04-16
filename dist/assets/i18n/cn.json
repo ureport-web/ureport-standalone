@@ -162,6 +162,9 @@
     "SETUPS": "常规",
     "FIELD_SETUP": "产品值设置",
     "FIELD_SETUP_LBL": "显示/隐藏产品值",
+    "INVESTIGATED_SETUP":"调查测试设置",
+    "INVESTIGATED_SETUP_SIPL_TITLE":"定义共享的调查测试",
+    "INVESTIGATED_SETUP_SIPL_MSG":"将其他产品线的调查测试包括在自动分析引擎中。",
     "DRAG_AND_DROP_ISSUE_TYPE": "拖放问题类型拖放到“显示问题类型”栏",
     "DISPLAY_ISSUE_TYPE": "显示问题类型",
     "ISSUE_TYPE_LBL": "问题类型",
@@ -293,7 +296,8 @@
     "ALWAYS_PASS": "总是通过",
     "ALWAYS_SKIPL": "总是跳过",
     "HIGH_PASS_RATE": "高失败率",
-    "LOW_PASS_RATE": "低失败率"
+    "LOW_PASS_RATE": "低失败率",
+    "ANALYZE_FROM_SOURCE": "来源"
   },
   "INVESTIGATED_SLIDER": {
     "MARK_AS_LBL": "标记为",

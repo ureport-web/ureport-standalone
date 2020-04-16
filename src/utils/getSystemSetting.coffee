@@ -15,7 +15,6 @@ module.exports = (req, key, isForced, callback) ->
           callback undefined
 
         if(systemSetting)
-          console.log("store in cache")
           req.app.locals.systemSettingCache.set(key, systemSetting)
           .then( (result) ->
               callback undefined if result.err

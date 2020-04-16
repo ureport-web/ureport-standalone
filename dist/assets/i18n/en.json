@@ -163,6 +163,10 @@
     "SETUPS": "General Setups",
     "FIELD_SETUP": "Field Setups",
     "FIELD_SETUP_LBL": "Show/Hide field",
+    "INVESTIGATED_SETUP":"Investigated Test Setup",
+    "INVESTIGATED_SETUP_SIPL_TITLE":"Define shared investigated tests.",
+    "INVESTIGATED_SETUP_SIPL_MSG":"You can define and include other product line's investigated test to the auto-analysis engine.",
+    "TT_INVESTIGATED_SETUP_SPL_LINK":"Current product line will also search investigated tests from the chosen product and type",
     "DRAG_AND_DROP_ISSUE_TYPE": "Drag suggested Issue Type and Drop to Display Issue Type",
     "DISPLAY_ISSUE_TYPE": "Display Issue Type",
     "ISSUE_TYPE_LBL": "Issue Type",
@@ -294,7 +298,8 @@
     "ALWAYS_PASS": "Always pass",
     "ALWAYS_SKIPL": "Always skip",
     "HIGH_PASS_RATE": "High fail rate",
-    "LOW_PASS_RATE": "Low fail rate"
+    "LOW_PASS_RATE": "Low fail rate",
+    "ANALYZE_FROM_SOURCE": "Analyzed from source"
   },
   "INVESTIGATED_SLIDER": {
     "MARK_AS_LBL": "Mark as",
