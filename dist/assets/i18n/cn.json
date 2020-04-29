@@ -23,7 +23,7 @@
     "TT_STATUS_LBL" : "状态",
     "TT_BACK_LBL" : "返回",
     "TT_HELP_LBL" : "帮助",
-    "TT_RESET_LBL" : "重至",
+    "TT_RESET_LBL" : "重置",
     "TT_NONE_LBL" : "无",
     "TT_ADD_LBL" : "添加",
     "TT_CONFIRM_LBL" : "确认",
@@ -41,7 +41,7 @@
     "TEMPLATE_LBL": "模板",
     "START_TIME_LBL": "开始时间",
     "START_DATE_LBL": "开始日期",
-    "END_DATE_LBL": "结束日",
+    "END_DATE_LBL": "结束日期",
     "END_TIME_LBL": "结束时间",
     "TT_TIME_LBL" : "时间",
     "COMPONENT_LBL": "组件",
@@ -71,7 +71,7 @@
     "DASHBOARD_CONFIRM_LBL" : "您确定要删除 {{ name }} 吗?",
     "COMPARE_TITLE" : "加载不同的产品线进行比较",
     "DO_YOU_WANT_TO_CONTINUE" : "确定继续吗?",
-    "MSG_BUILD_PURGE": "如果您只想隐藏内部版本，则可以将其存档。清除操作无法还原。确定继续吗？",
+    "MSG_BUILD_PURGE": "你可以把它存档，如果你只想隐藏内部版本。清除操作无法还原。确定继续吗？",
     "MSG_REMOVE_SHARE_DASHBOARD": "您的仪表板将不再对其他人可见。",
     "MSG_USERNAME_CHANGE":"您已经更改了用户名，如果继续，您将在成功更新后注销。"
   },
@@ -90,14 +90,14 @@
     "MSG_IS_REQUIRED" : "是必需的",
     "MSG_NO_TEST" : "基于当前过滤器未找到测试",
     "MSG_VALID_TRACKING_NUMBER" : "请输入一个有效的跟踪号。",
-    "MSG_VALID_TRACKING_NUMBER_REQUIRED" : "需要跟踪号。",
+    "MSG_VALID_TRACKING_NUMBER_REQUIRED" : "跟踪号是必须的。",
     "MSG_PASSWORD_NOT_MATCH" : "密码不匹配。",
     "MSG_RECOMMENDED_PL" : "推荐产品线",
-    "MSG_RECENT_SELECTED_PL" : "最近选择产品线",
-    "MSG_LOAD_BUILD_DATE" : "从日期加载",
+    "MSG_RECENT_SELECTED_PL" : "最近选择的产品线",
+    "MSG_LOAD_BUILD_DATE" : "根据日期加载",
     "MSG_LOAD_BUILD" : "加载",
     "MSG_NO_TEST_FOUND" : "未找到测试",
-    "MSB_NO_INVESTIGATED_TEST": "未找到调查的测试，开始分析？",
+    "MSB_NO_INVESTIGATED_TEST": "未找到已调查的测试，开始分析？",
     "MSG_PL_SELECT_REQUIRED_FIELD": "Please select required fields"
   },
   "REQUIRED_LBL": {
@@ -112,7 +112,7 @@
   "COMMENT":{
     "TT_POST_LBL" : "发送",
     "TT_SEND_LBL" : "发送评论",
-    "MSG_DELETED_BY_USER" : "发件人删除",
+    "MSG_DELETED_BY_USER" : "消息被发件人删除",
     "PLACEHOLDER_POST" : "发表评论。（按Shift键 + Enter键添加新行； Enter键保存）",
     "PLACEHOLDER_UPDATE" : "更新您的评论。（按Shift键 + Enter键添加新行；按Enter键保存）"
   },
@@ -127,7 +127,7 @@
     "MSG_COPY_SCRIPT_TO_CLIPBOARD" : "将 {{key}} 变量复制到剪贴板"
   },
   "ERROR":{
-    "TITLE_LBL" : "错误详细信息",
+    "TITLE_LBL" : "详细错误信息",
     "MORE_BTN" : "更多详细信息"
   },
   "PREFERENCE":{
@@ -159,7 +159,7 @@
     "ISSUE_TRACKING_LBL_SUBTITLE": "连接到您的问题跟踪系统",
     "AUTOANALYSIS_TXT": " UReport应该返回进行自动分析的天数",
     "PRODUCT_LINE_SETTING" : "产品线设置",
-    "SETUPS": "常规",
+    "SETUPS": "常规设定",
     "FIELD_SETUP": "产品值设置",
     "FIELD_SETUP_LBL": "显示/隐藏产品值",
     "INVESTIGATED_SETUP":"调查测试设置",
@@ -236,6 +236,7 @@
     "TT_OPEN_SEARCH" : "打开搜索",
     "TT_MOST_FAILURE" : "当前故障最多",
     "TT_ANALYZE_TEST_STATUS": "分析测试状态",
+    "SIG_LBL": "状态图标词汇表",
     "MSG_MISSING_PRODUCT_LINE" : "* 您的产品线缺少值。",
     "MSG_CHOOSE_PRODUCT_LINE" : "请选择一个产品线。"
   },
@@ -243,7 +244,7 @@
     "HISTORY_BUILD_BTN": "历史记录"
   },
   "TEST_DETAIL": {
-    "DURATION" : "持续时间（秒",
+    "DURATION" : "持续时间（秒)",
     "TRACK_AS_LBE": "追踪为 {{value}} 问题.",
     "TRACK_AT_LBE": "追踪于 {{value}}",
     "TT_DISPLAY" : "全屏显示",
@@ -255,10 +256,10 @@
     "INVESTIGATED_TAB" : "调查评论",
     "ASSIGNMENT_TAB" : "分配评论",
     "RUN_HISTORY_TAB" : "运行历史",
-    "AUDIT_TAB" : "Audit",
+    "AUDIT_TAB" : "审计",
     "ISSUE_TAB" : "问题历史",
     "TT_OEPN_CALENDAR" : "打开日历",
-    "TT_BACK_DETAIL" : "返回详细图",
+    "TT_BACK_DETAIL" : "返回到详细图",
     "PLACEHOLDER_SEARCH_TEST" : "根据UID输入要搜索的任何内容",
     "COMPARE_STEPS": "比较步骤",
     "WITH_BUILD_TO_CURRENT": "of build #{{ build }} 与当前比较",
@@ -267,12 +268,12 @@
     "MSG_TEST_PASSED": "测试通过"
   },
   "TEST_STEP": {
-    "PLACEHOLDER_SEARCH_STEP": "搜索步骤",
+    "PLACEHOLDER_SEARCH_STEP": "在步骤中搜索",
     "SETUP_PANEL_LBE": "设置步骤",
     "BODY_PANEL_LBE": "测试步骤",
     "TEARDOWN_PANEL_LBE": "拆解步骤",
-    "STEPS_LBE": "步",
-    "TT_JUMP_TO_FAIL": "“跳至第一个故障步骤。",
+    "STEPS_LBE": "步骤",
+    "TT_JUMP_TO_FAIL": "“跳至第一个失败步骤。",
     "TT_BACK_TO_FIRST": "返回第一步。"
   },
   "TABLE": {
@@ -336,12 +337,12 @@
   },
   "WIDGET_CREATE": {
     "TYPE_STEP_LBE": "类型",
-    "TT_X_AXIS_BUILD": "版本号显示x轴标签",
-    "TT_X_AXIS_DATE": "开始日期显示x轴标签",
+    "TT_X_AXIS_BUILD": "显示版本号为x轴标签",
+    "TT_X_AXIS_DATE": "显示开始日期为x轴标签",
     "PLACEHOLDER_WIDGET_NAME": "部件名称",
     "PLACEHOLDER_SELECT_WIDGET": "选择部件",
     "TT_SHOW_TABLE_VIEW": "显示表",
-    "TT_SHOT_GRAPH_VIEW": "显示图",
+    "TT_SHOT_GRAPH_VIEW": "显示曲线图",
     "TT_BUIDS_IN_CALENDAR": "日历中 Builds",
     "WIDGET_NAME_GROUP_CAL_LBL": "日历",
     "WIDGET_NAME_GROUP_PIE_LBL": "饼图",
@@ -376,7 +377,7 @@
     "EXECUTION_PAGE_PREF": "执行页面首选项"
   },
   "WIDGET_DESCRIPTION": {
-    "STATUS_PIE": "",
+    "STATUS_PIE": "用饼状图显示最新执行结果",
     "STATUS_PIE_ADVANCE": "",
     "INVESTIGATED_TEST_STATUS_PIE": "",
     "PASSRATE_LINE": "",
@@ -396,7 +397,7 @@
       "PREVIEW_BTN" : "预览 Builds"
     },
     "BUTTON_GROUP_STATUS": {
-      "TT_RERUN" : "重运行",
+      "TT_RERUN" : "重运行（重运行数量不会被计算在执行总数内）",
       "TT_RERUN_LBL" : "重运行",
       "TT_TOTAL" : "全部",
       "TT_PASS" : "通过",
@@ -405,13 +406,15 @@
       "TT_SKIP" : "跳过",
       "TT_OUTAGE" : "中断",
       "TT_INVESTIGATED" : "已调查",
+      "TT_INVESTIGATED_LINK" : "来自共享产品线",
       "TT_UNRESOLVED_INVESTIGATED" : "过去所有未解决",
       "TT_ALWAYS_FAIL" : "始终失败",
       "TT_NEW_FAILURE" : "新失败",
       "TT_NEWLY_FIXED_TESTS" : "新近修复",
       "TT_STABLE_TESTS" : "稳定测试",
       "TT_NEW_TESTS" : "新测试",
-      "TT_TEST_DIDNT_RUN" : "未运行测试"
+      "TT_TEST_DIDNT_RUN" : "未运行测试",
+      "TT_TEST_NOT_RUN" : "未运行"
     }
   },
   "FAQ": {

@@ -238,6 +238,7 @@
     "TT_OPEN_SEARCH" : "Open Search",
     "TT_MOST_FAILURE" : "Most Failure Message in current build",
     "TT_ANALYZE_TEST_STATUS": "Analyzed Tests status scenario",
+    "SIG_LBL": "Status Icon Glossary",
     "MSG_MISSING_PRODUCT_LINE" : "* You are missing value in your product line.",
     "MSG_CHOOSE_PRODUCT_LINE" : "Please choose a product line frist."
   },
@@ -401,7 +402,7 @@
     },
     "BUTTON_GROUP_STATUS": {
       "TT_RERUN" : "Rerun (rerun number is not calucalted in the total number of tests executed)",
-      "TT_RERUN_LBL" : "Rerun",
+      "TT_RERUN_LBL" : "Rerun ",
       "TT_TOTAL" : "Total",
       "TT_PASS" : "Pass",
       "TT_INFO" : "Info",
@@ -409,13 +410,15 @@
       "TT_SKIP" : "Skip",
       "TT_OUTAGE" : "Outage",
       "TT_INVESTIGATED" : "Investigated",
+      "TT_INVESTIGATED_LINK" : "Investigated from shared product line",
       "TT_UNRESOLVED_INVESTIGATED" : "Unresolved investigated tests from all past run",
       "TT_ALWAYS_FAIL" : "Tests always Fail",
       "TT_NEW_FAILURE" : "New Failure",
       "TT_NEWLY_FIXED_TESTS" : "Newly fixed tests",
       "TT_STABLE_TESTS" : "Stable tests in recent run",
       "TT_NEW_TESTS" : "New tests appeared in recent run",
-      "TT_TEST_DIDNT_RUN" : "Tests didn't run"
+      "TT_TEST_DIDNT_RUN" : "Tests didn't run",
+      "TT_TEST_NOT_RUN" : "Not run"
     }
   },
   "FAQ": {
@@ -425,16 +428,27 @@
     "ANSWER_PL_1" : "A product line represent a conceptual combination of 8 variables from the automatoin execution. Among these 8 values, 2 are mandatory, and the other 6 are optional.<br> Let's use an exmaple to explain it. <br> Say we have a web application that we need to run automation regression in the nightly build. We need to run it in three different browsers. (Chrome, Firefox and Safari).<br> We could have 3 potential product lines in this scearnio.",
     "ANSWER_PL_2" : "Once these product line are set, all future executions should keep pushing result under the same product line with different build number from your CI software. <br>To know how to send data to UReport server.",
     "QUESTION_AUTOANALYZE" : "How does auto analyze work?",
-    "ANSWER_AUTOANALYZE_1" : "Auto analysis is one of the key feature UReport offers. User does not need to setup anything. it will be always turned on.<br> Once you mark one fail test as any issue type, if the marked test case failed in the future for the same reason, the test wll be automatically marked as Investigated <i class='fas fa-microscope c-investigated' ></i>.<br> UReport will search back, by default, 30 days for all investigated issues within the same product line. <br> This day number can be changed in the Settings.<hr> <br><strong>How does it work?</strong><br>When save failed test case through API, there are three fields user can provide: ",
-    "ANSWER_AUTOANALYZE_2" : "To allow the auto analysis to work. <u>error_message</u> must be provided. This is the string UReport uses to achieve the auto analysis.<br>To allow a percise auto analysis result, field <u>token</u> is recommended. <br> <u>Then what is token? </u>",
-    "QUESTION_UID" : "What is a UID of a test?",
+    "ANSWER_AUTOANALYZE_1" : "Auto analysis is one of the key feature UReport offers. User does not need to setup anything. it is on by default and cannot be turn off.<br> When user mark a fail test as an issue type, if the marked test case failed in the future for the same reason, UReport will automatically mark the test as Investigated and indicate with the symbol <i class='fas fa-microscope c-investigated' ></i>.<br> UReport will search back, by default, 30 days for all investigated issues within the same product and type. <br> This day number can be changed in the Settings.<hr> <br><strong>How does it work?</strong><br>When save failed test case through API, there are three fields user can provide: ",
+    "ANSWER_AUTOANALYZE_2" : "To allow the auto analysis to work. <u>error_message</u> must be provided. This is the field UReport uses to achieve the auto analysis.<br>To allow a percise auto analysis result, field <u>token</u> is recommended. Because a error message might contain dynamic value that vary from execution. <br> <br> <u>Then what is token? </u><br> A token is a string field that is totally up to the user to set. <br> For example, if you are using a framework from Java, it won't be very hard to generate a string of number based on the line number of the failure from stack trace. <br> Such number sequence can be used as your unique token. If the error message contains dynamic value such as date, providing the token will make the auto-analysis more accureate.<br><br><u> Note: UReport does not genreate the token, it is up to the user to provide the value</u><br> <ul><li>When field <u>token</u> is present, <u>token</u> will be used for auto-analysis</li><li>When only field <u>error_message</u> is present, <u>error_message</u> will be used for auto-analysis</li><li>When only field <u>stack_trace</u> is present, <u>stack_trace</u> will be used for auto-analysis</li><li>The precedence of the fileds is:  token > error_message > stack_trace </li><li>When all three fileds are missing from a fail test, false will be return for all analysis.</li></ul>",
+    "QUESTION_UID" : "What is a UID from the test?",
+    "ANSWER_UID": "UID stands for unique ID. It could be a number or string or the combination of both. The point is to have such unique ID mapped to each of the automation test. <br> To make the auto anaylsis work, UReport need to have a way to identify the uniqueness of each test, by providing a unique id when sending test run results to the UReport server, it will enable UReport to work normally.<br> You will find this UID field everywhere when using API. <br> If your orgnization is using any testing management tool such as TestRail, PractiTest or HP ALM, you won't have trouble finding a unique number associated with any test you create. You can use this id to link with your automation run and then send this info to the UReport server.<br> Even if your orgnization does not use any test management tool, you can still assign some unique string or number to your automation. You just need to make sure they don't change after it is decided.",
     "QUESTION_D_PL" : "What is the difference between a bind product line dashboard and non-bind product line dashboard?",
-    "QUESTION_T_UID" : "What is the difference among investigated test, assign test and pin test?",
-    "QUESTION_T_OUT" : "What is the difference between investigated status and outage status?",
+    "ANSWER_D_PL": "",
+    "QUESTION_T_INV_ASS_PIN" : "What is the difference among investigated test, assign test and pin test?",
+    "ANSWER_T_INV_ASS_PIN": "<ul><li>An investigated test will be carried to future and past builds, it will be attached to test case only when the failure reason is the same. User can set the number of days in system setting to control how long should the auto-analysis engine search back.</li> <li> A assinged test can be viewed by anyone, and the assignment of the same test will be carried to future runs until it is unassigned. Assignment will not show only when test is either pass or mark as investigated.</li> <li> A pinned test case can only be viewed by the user who pins it. A pin will always carried to furture builds regarless the status of the test until it is unpinned by the user.</li> ",
+    "QUESTION_T_INV_OUT" : "What is the difference between investigated status and outage status?",
+    "ANSWER_T_INV_OUT": "<ul><li>An investigated test will be carried to future and past builds, it will be attached to test case only when the failure reason is the same.</li><li> An outage is only apply to the build it marked at. An outage will <strong>NOT</strong> be carried to future or past builds.</li>",
     "QUESTION_T_CES" : "What is CES?",
+    "ANSWER_CES": "CES stands for Customize Executable Script. ",
     "QUESTION_TR_RELATION" : "What is Test Relation?",
+    "ANSWER_TR_RELATION": "",
     "QUESTION_S_PLS" : "What is Product Line setting?",
+    "ANSWER_S_PLS_1": "A product line setting is a set of configuration for a specific product and type combination. Such setting will only apply to builds or product lines under the defined product and type. <br> For instance, if there are three product lines as below:",
+    "ANSWER_S_PLS_2": "And there is a product line setting bind with product <u>UReport</u> and type <u>UI</u>, such setting will only apply to the builds from the first two product line, because the third product line has the type <u>API</u>",
     "QUESTION_S_IT" : "What is Issue Type?",
-    "QUESTION_S_RF" : "What is Test Relation Filter? And what is the group filter?"
+    "ANSWER_S_IT_1": "An Issue Type is a type of investigated test user can select when test is marked as Investigated or Outage. UReport provide a list of available Issue Type to select from and also support custom Issue Type.<br>The available Issue Type are:",
+    "ANSWER_S_IT_2": "If no product line setting is defined, two default Issue Type will be available to select for Mark as Investigated and Mark as Outage. They are <u>Defect</u> and <u>Automation Issue</u>",
+    "QUESTION_S_RF" : "What is Test Relation Filter? And what is the group filter?",
+    "ANSWER_S_RF": ""
   } 
 }
