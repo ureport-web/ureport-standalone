@@ -145,10 +145,10 @@ if (config !== undefined) {
     app.use('/api/user', isAuthenticatedMid)
   }
   app.use('/api/build', isAuthenticatedMid)
+  app.use('/api/investigated_test', isAuthenticatedMid)
   app.use('/api/dashboard', isAuthenticatedMid)
   app.use('/api/setting', isAuthenticatedMid)
   app.use('/api/assignment', isAuthenticatedMid)
-  app.use('/api/investigated_test', isAuthenticatedMid)
   app.use('/api/tracking', isAuthenticatedMid)
 
 
@@ -178,6 +178,9 @@ if (config !== undefined) {
   const userFav = require('./src/routes/user_favorite')
   const trackingJIRA = require('./src/routes/tracking/jira')
 
+  // list of endpoints for readonly page
+  const noauth = require('./src/routes/noauth/noauth')
+
   app.use('/api', authenticate)
   app.use('/api/setting', setting)
   app.use('/api/system/setting', systemSetting)
@@ -192,6 +195,7 @@ if (config !== undefined) {
   app.use('/api/user/preference', preference)
   app.use('/api/user/favorite', userFav)
   app.use('/api/tracking/jira', trackingJIRA)
+  app.use('/api/noauth', noauth)
 
   app.use(function (err, req, res, next) {
     if (res.headersSent) {

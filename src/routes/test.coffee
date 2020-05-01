@@ -360,27 +360,27 @@ router.post '/aggregate/single/history', (req, res, next) ->
            localField: "build",
            foreignField: "_id",
            as: "build"
-        })
+        })
         .unwind("$build")
         .project({
-            uid: "$uid",
+            uid: "$uid",
             x:"$newField"
-            status: "$status",
-            start_time : "$start_time" ,
-            end_time : "$end_time" ,
+            status: "$status",
+            start_time : "$start_time" ,
+            end_time : "$end_time" ,
             is_rerun: "$is_rerun",
             failure: "$failure",
-            build: { 
+            build: { 
                 _id : "$build._id",
-                product : "$build.product",
-                type : "$build.type",
-                team : "$build.team",
-                browser : "$build.browser",
-                device : "$build.device",
-                version : "$build.version",
+                product : "$build.product",
+                type : "$build.type",
+                team : "$build.team",
+                browser : "$build.browser",
+                device : "$build.device",
+                version : "$build.version",
                 platform : "$build.platform",
                 platform_version : "$build.platform_version",
-                build : "$build.build",
+                build : "$build.build",
                 status: "$build.status"
             }
         })
