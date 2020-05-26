@@ -172,6 +172,9 @@ nav#sidebar.shrinked ul i {
 .hide-anchor-widget-border{
   border-style: solid;
   border-width: 0px !important;
+  -webkit-box-shadow: 0px 0px 0px 0px rgba(209, 204, 204, 0.75);
+  -moz-box-shadow: 0px 0px 0px 0px rgba(209, 204, 204, 0.75);
+  box-shadow: 0px 0px 0px 0px rgba(209, 204, 204, 0.75);
 }
 
 ::ng-deep .mat-horizontal-stepper-header-container{

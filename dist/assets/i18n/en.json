@@ -396,6 +396,15 @@
     "MPL_BUILD_TABLE": "",
     "BUILD_CALENDAR": ""
   },
+  "SEARCH": {
+    "OPTION_SELECT": "Select Search Options",
+    "AGO_LBL": "ago",
+    "TIME_LBL": "Time",
+    "END_LBL": "End",
+    "START_LBL": "Start",
+    "TEXT_CONTAINS_LBL": "Contains text",
+    "AS_FIRST_FAILURE": "Show test as first failure step (Include setup and teardown)"
+  },
   "SHARED": {
     "SELECT_PRODUCT_LINE": {
       "PREVIEW_BTN" : "Preview Builds"
