@@ -58,6 +58,7 @@
     "TT_RANGE_SELECT_VALUE_10": "Last 10 builds",
     "TT_RANGE_SELECT_VALUE_20": "Last 20 builds",
     "TT_RANGE_SELECT_VALUE_40": "Last 40 builds",
+    "TT_RANGE_SELECT_VALUE_60": "Last 60 builds",
     "TT_STEP_1": "Step 1",
     "TT_STEP_2": "Step 2",
     "TT_STEP_3": "Step 3",

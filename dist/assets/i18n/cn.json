@@ -57,6 +57,7 @@
     "TT_RANGE_SELECT_VALUE_10": "最近10个 builds",
     "TT_RANGE_SELECT_VALUE_20": "最近20个 builds",
     "TT_RANGE_SELECT_VALUE_40": "最近40个 builds",
+    "TT_RANGE_SELECT_VALUE_60": "最近60个 builds",
     "TT_STEP_1": "第1步",
     "TT_STEP_2": "第2步",
     "TT_STEP_3": "第3步",
