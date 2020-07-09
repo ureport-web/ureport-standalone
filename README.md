@@ -17,8 +17,8 @@ If you need to admin permission, please contact ureport@outlook.com
 4. Run `npm install`
 5. Go to config folder, change DBHost and PORT if it is different from the given one
     + If you need to deploy is as prod, please modify the file **production.json**
-6. Runb `npm install --global coffeescript`
-6. Run `coffee initalization.coffee ` to initilize db
+6. Run `npm install --global coffeescript`
+6. Run `coffee initalization.coffee ` to initilize db (You can edit the payload in the file if you want provide different user information)
 7. Run `npm start` to start the server
 8. Open browser and go to http://localhost:4100 to start using the application
     + By default, there is one admin user created for you with credential admin/1234. You can change it in the app or use API to add addtional user.
@@ -54,9 +54,11 @@ UReport offers various API for you to adjust your automation framework to send d
 There are two important collections you need to know about for you to send your data.
 <br>
 **Build and Test**
-Build is a collection holds all your executions. It is named as Build to reflect the build numnber your CI software generated when buidling your application 
+<P>Build is a collection holds all your executions. It is named as Build to reflect the build numnber your CI software generated when buidling your application and executing automation tests
+<br> 
 Test is a collections holds all your tests belongs to a specifc build
-Once you deploy the server, you can go to http://<your-server>:<your-port>/api-docs/
+<br>
+Once you deploy the server, you can go to http://your-server:your-port/api-docs/
 
 <!-- # What to contribute to UI?
 Check out our UI repo -->
