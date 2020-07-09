@@ -55,7 +55,8 @@ There are two important collections you need to know about for you to send your 
 <br>
 **Build and Test**
 Build is a collection holds all your executions. It is named as Build to reflect the build numnber your CI software generated when buidling your application 
-API for Build
+Test is a collections holds all your tests belongs to a specifc build
+Once you deploy the server, you can go to http://<your-server>:<your-port>/api-docs/
 
 <!-- # What to contribute to UI?
 Check out our UI repo -->
