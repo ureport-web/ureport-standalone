@@ -27,7 +27,6 @@ module.exports = (req, key, isForced, callback) ->
       req.app.locals.systemSettingCache.getStats()
       .then( (rs) ->
           callback undefined if rs.err
-          console.log("Getting from cache", crs.value[key])
           callback crs.value[key]
       )
   )

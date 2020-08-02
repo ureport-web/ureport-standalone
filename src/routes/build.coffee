@@ -179,6 +179,23 @@ router.post '/comment/:id',  (req, res, next) ->
       res.json {"error": "Cannot find Build with id " + req.params.id}
   );
 
+router.put '/comment/:id',  (req, res, next) ->
+  Build.findOne({_id: req.params.id}).
+  exec((err, build) ->
+    if err
+      return next(err)
+
+    if build
+      Build.updateComments(build, req.body)
+      build.save (err, rs) ->
+        if err
+          return next(err)
+        res.json rs
+    else
+      res.status(404)
+      res.json {"error": "Cannot find build with id " + req.params.id}
+  );
+
 router.post '/outage/comment/:buildId',  (req, res, next) ->
   if(!req.body.search_type)
     res.status(400)

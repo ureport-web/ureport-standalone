@@ -60,7 +60,13 @@ buildSchema = new Schema(
 	},
 	# if client exists, we map the settings and environments to the clients
 	outages: [],
-	comments: []
+	comments: [Schema({
+		userId: Schema.Types.ObjectId,
+		user: String,
+		time: Date,
+		message: String,
+		isDeleted: { type: Boolean, default: false }
+	}, {_id: true})]
 )
 
 buildSchema.statics.initBuild = (payload) ->
@@ -172,18 +178,19 @@ buildSchema.statics.updateStatus = (build, payload) ->
 
 buildSchema.statics.addComment = (build, payload) ->
 	if(payload)
-		comment = {
-			time: new Date()
-		}
-		if(payload.user != undefined)
-			comment.user = payload.user
-		if(payload.message != undefined)
-			comment.message = payload.message
+		if(payload.comment)
+			if(build.comments)
+				build.comments = build.comments.concat(payload.comment)
+			else
+				build.comments = [payload.comment]
 
-		if(build.comments)
-			build.comments.push(comment)
-		else
-			build.comments = [comment]
+buildSchema.statics.updateComments = (build, payload) ->
+	if(payload)
+		if(payload.comments)
+			if(build.comments)
+				build.comments = payload.comments
+			else
+				build.comments = payload.comments
 
 buildSchema.statics.addOutageComment = (build, payload) ->
 	if(build.outages)
