@@ -17,7 +17,7 @@
   "dependencies": {
     "accesscontrol": "^2.2.1",
     "async": "^3.1.0",
-    "bcrypt": "^3.0.6",
+    "bcrypt": "^5.0.0",
     "cluster-node-cache": "^0.1.5",
     "coffee-script": "^1.12.7",
     "compression": "^1.7.4",
