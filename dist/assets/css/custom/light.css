@@ -154,7 +154,8 @@ nav#sidebar.shrinked ul i {
 * ==========================================================
 */
 .dashboard-board {
-  background: var(--light)
+  background: var(--light);
+  overflow-y: hidden;
 }
 
 .dashboard-card {
