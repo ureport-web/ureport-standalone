@@ -350,7 +350,10 @@
     "PLACEHOLDER_SEARCH_RELATION" : "使用UID搜索测试关系",
     "COMPONENT_LBL": "组件",
     "FILE_NAME_LBL": "文档名",
-    "FILE_PATH_LBL": "文件路径"
+    "FILE_PATH_LBL": "文件路径",
+    "CREATE_NEW_CUSTOM": "创建新的自定义测试关系",
+    "CREATE_NEW_CUSTOM_PLACEHOLDER": "按Enter添加新的自定义关系",
+    "ADD_NEW_PLACEHOLDER": "添加新值"
   },
   "WIDGET_CREATE": {
     "TYPE_STEP_LBE": "类型",

@@ -353,7 +353,10 @@
     "PLACEHOLDER_SEARCH_RELATION" : "Search test relations with UID",
     "COMPONENT_LBL": "A Component test validates",
     "FILE_NAME_LBL": "File name",
-    "FILE_PATH_LBL": "File path location"
+    "FILE_PATH_LBL": "File path location",
+    "CREATE_NEW_CUSTOM": "Create new custom test relation",
+    "CREATE_NEW_CUSTOM_PLACEHOLDER": "Press Enter to add new custom relation",
+    "ADD_NEW_PLACEHOLDER": "Add new values"
   },
   "WIDGET_CREATE": {
     "TYPE_STEP_LBE": "Type",

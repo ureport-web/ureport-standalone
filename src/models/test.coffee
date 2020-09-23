@@ -34,7 +34,14 @@ testSchema = new Schema(
 	version: String,
 	start_time: Date,
 	end_time: Date,
-	failure: Schema.Types.Mixed,
+	failure: Schema(
+		{
+			error_message: String,
+			stack_trace: String,
+			token: String
+		},
+		{_id: false}
+	),
 	is_rerun: { type: Boolean, default: false },
 	setup: Schema.Types.Mixed,
 	body: Schema.Types.Mixed,
