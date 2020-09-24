@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "Start to push your automation data to UReport. Happy analyzing",
+    "description": "There are only two endpoints that are needed to push data POST /build and POST /test/multi ",
     "x-explorer-enabled": false,
     "version": "1.0.0",
     "title": "UReport API",
@@ -10,8 +10,8 @@
       "email": "ureport@outlook.com"
     }
   },
-  "host": "localhost:4200",
-  "basePath": "/api/",
+  "host": "",
+  "basePath": "/api",
   "tags": [
     {
       "name": "authentication",

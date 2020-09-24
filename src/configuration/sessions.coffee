@@ -5,12 +5,21 @@ MongoStore = require('connect-mongo')(session)
 
 config = require('config')
 
-console.log("Connect to db " + config.DBHost)
 mongoose = require('mongoose');
-mongoose.connect(config.DBHost, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+if(process.env.DBHost != undefined)
+    console.log("Connect to db " + process.env.DBHost)
+    mongoose.connect(process.env.DBHost, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    });
+else
+    console.log("Connect to db " + config.DBHost)
+    mongoose.connect(config.DBHost, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    });
+
+
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
 mongoose.Promise = global.Promise;
@@ -28,6 +37,6 @@ module.exports =  session({
       #  autoRemove: 'interval',
     }),
     cookie: {
-        maxAge: 60 * 120 * 1000, #In ms --> 5 minutes
+        maxAge: 600 * 120 * 1000, #In ms --> 5 minutes
     }
 })
