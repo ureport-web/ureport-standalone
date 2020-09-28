@@ -459,8 +459,10 @@ describe 'User can perform action on builds collection ', ->
         build.addComment(server,cookies,
             existbuildWithoutComment._id,
             {
-                user: "Mike"
-                message: "This build is very bad, everything is broken.",
+                comment:{ 
+                    user: "Mike"
+                    message: "This build is very bad, everything is broken."
+                }
             },
             200,
             (res) ->
@@ -480,8 +482,10 @@ describe 'User can perform action on builds collection ', ->
         build.addComment(server,cookies,
             existbuild._id,
             {
-                user: "Jason"
-                message: "Come on, everything is broken.",
+                comment:{ 
+                    user: "Jason"
+                    message: "Come on, everything is broken."
+                }
             },
             200,
             (res) ->

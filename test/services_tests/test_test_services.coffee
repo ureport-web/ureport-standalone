@@ -206,7 +206,7 @@ describe 'User can perform action on tests collection ', ->
                 }
                 test.create(server, cookies, payload,  200,
                 (res) ->
-                    res.body.state.should.be.equal 'Partial Success, you might have missing field in your paylaod, not all tests are saved.'
+                    res.body.state.should.be.equal 'Partial Success, you might have missing fields in your paylaod, not all tests are saved.'
                     res.body.provided.should.be.equal 4
                     res.body.saved.should.be.equal 3
                     done()

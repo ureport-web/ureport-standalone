@@ -63,7 +63,7 @@ buildSchema = new Schema(
 	comments: [Schema({
 		userId: Schema.Types.ObjectId,
 		user: String,
-		time: Date,
+		time: { type: Date, default: Date.now },
 		message: String,
 		isDeleted: { type: Boolean, default: false }
 	}, {_id: true})]

@@ -61,6 +61,9 @@
     "TT_RANGE_SELECT_VALUE_40": "最近40个作业",
     "TT_RANGE_SELECT_VALUE_60": "最近60个作业",
     "TT_RANGE_SELECT_VALUE_90": "最近90个作业",
+    "TT_REPEATS": "重复",
+    "TT_EVERY": "每",
+    "TT_OCCURANCE": "发生",
     "TT_STEP_1": "第1步",
     "TT_STEP_2": "第2步",
     "TT_STEP_3": "第3步",
@@ -85,6 +88,7 @@
     "MSG_USERNAME_CHANGE":"您已经更改了用户名，如果继续，您将在成功更新后注销。"
   },
   "MESSAGE": {
+    "MSG_NO_BUILD_FOUND" : "找不到任何作业",
     "MSG_NO_FILTER": "此产品系列中没有要使用的过滤器。请与管理员联系以设置过滤器",
     "MSG_CHOOSE_RELATION": "选择一种关系。",
     "MSG_SHOW_LEGEND": "显示图例",
@@ -107,7 +111,9 @@
     "MSG_LOAD_BUILD" : "加载",
     "MSG_NO_TEST_FOUND" : "未找到测试",
     "MSB_NO_INVESTIGATED_TEST": "未找到已调查的测试，开始分析？",
-    "MSG_PL_SELECT_REQUIRED_FIELD": "请选择必填字段"
+    "MSG_PL_SELECT_REQUIRED_FIELD": "请选择必填字段",
+    "MSG_DATE_RANGE" : "日期范围",
+    "MSG_DATE_RECURRENCE" : "循环"
   },
   "REQUIRED_LBL": {
     "REQ_PRODUCT" : "产品",

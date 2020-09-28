@@ -12,8 +12,8 @@ testSchema = new Schema(
   	},
 	build: {
 		type: Schema.Types.ObjectId,
-		index: true
-		# required: true
+		index: true,
+		required: true
   	},
 	name: {
 		type: String,
@@ -27,7 +27,7 @@ testSchema = new Schema(
 		uppercase: true,
 		enum: { 
 			values: ['PASS', 'FAIL', 'SKIP', 'WARNING','RERUN_PASS', 'RERUN_FAIL', 'RERUN_SKIP'],
-			message: "We only support status: [PASS, FAIL, SKIP]"
+			message: "We only support status: [PASS, FAIL, SKIP,RERUN_PASS, RERUN_FAIL, RERUN_SKIP]"
 		} 
 	},
 	old_status: { type: String, default: "UNKNOWN" },

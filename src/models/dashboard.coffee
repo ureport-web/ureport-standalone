@@ -16,7 +16,28 @@ dashboardSchema = new Schema(
 	is_public:  { type: Boolean, default: false },
 	is_default_widget:  { type: Boolean, default: false },
 	created_at: { type: Date, default: Date.now },
-	query: Schema.Types.Mixed,
+	query: Schema({
+		product : String,
+		type : String,
+		team: String,
+		version: String,
+		browser: String,
+		device: String,
+		platform: String,
+		platform_version: String,
+		range: Number,
+		since: String,
+		after: String,
+		date_range: Schema({
+			repeat: String,
+			frequency: Number,
+			start_date: String,
+			end_date: String,
+			end_date_type: String,
+			start_time: String,
+			end_time: String
+		}, {_id: false})
+	}, {_id: false}),
 	widgets: [Schema(
 			{	
 				name: String,
@@ -36,7 +57,28 @@ dashboardSchema = new Schema(
 				customTableConfig: Schema.Types.Mixed, # mainly for line chart/bar chart
 				type: String,
 				multi_query: Schema.Types.Mixed, # used by multiple product line
-				product_line_query: Schema.Types.Mixed, # used by non default product line
+				product_line_query: Schema({
+					product : String,
+					type : String,
+					team: String
+					version: String
+					browser: String
+					device: String
+					platform: String
+					platform_version: String
+					range: Number,
+					since: String,
+					after: String,
+					date_range: Schema({
+						repeat: String,
+						frequency: Number,
+						start_date: String,
+						end_date: String,
+						end_date_type: String,
+						start_time: String,
+						end_time: String
+					}, {_id: false})
+				}, {_id: false}), # used by non default product line
 				pattern: Schema({
 					groupByRelation: Schema.Types.Mixed,
 					status: Schema.Types.Mixed,
