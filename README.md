@@ -1,9 +1,11 @@
-# UReport Server
+# UReport
 ### Stand alone server side reporting and analyzing software for local or CI automation.
 [Demo](https://ureport-demo.herokuapp.com/#/)
 Username/password: operator/password
 
-If you need to admin permission, please contact ureport@outlook.com
+If you need an admin permission, please contact ureport@outlook.com
+or
+Download and setup your own env.
 
 # Prerequiste
 - MongoDB (> 3.0)
@@ -12,16 +14,16 @@ If you need to admin permission, please contact ureport@outlook.com
 
 # How to install
 1. Download or clone the repo.
-2. Open a terminal
-3. cd to the loaction of the repo
+2. Open a command line terminal
+3. cd to the location of the UReport server
 4. Run `npm install`
 5. Go to config folder, change DBHost and PORT if it is different from the given one
     + If you need to deploy is as prod, please modify the file **production.json**
 6. Run `npm install --global coffeescript`
-6. Run `coffee initalization.coffee ` to initilize db (You can edit the payload in the file if you want provide different user information)
-7. Run `npm start` to start the server
-8. Open browser and go to http://localhost:4100 to start using the application
-    + By default, there is one admin user created for you with credential admin/1234. You can change it in the app or use API to add addtional user.
+7. Run `coffee initalization.coffee ` to initilize db (You can edit the payload in the file if you want provide different user information)
+8. Run `npm start` to start the server
+9. Open browser and go to http://localhost:4100 to start using the application
+    + By default, there is one admin user created for you with credential admin/1234. You can change it in the app or use API to add more user.
 
 # Overview
 This repo include everything you need to setup your UReport server. And it is production ready to be used once you have downloaded. You have access to all the backend server code as well.
