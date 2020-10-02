@@ -76,6 +76,11 @@ router.post '/',  (req, res, next) ->
   else
     conditions.push({ $or : [{platform_version: null}] })
 
+  if(req.body.stage)
+    conditions.push({ $or : [{stage: req.body.stage}] })
+  else
+    conditions.push({ $or : [{stage: null}] })
+
   query = {
       $and : conditions
   }
@@ -307,6 +312,9 @@ router.post '/filter',  (req, res, next) ->
   if(req.body.platform_version)
     conditions.push({ $or : req.body.platform_version })
 
+  if(req.body.stage)
+    conditions.push({ $or : req.body.stage })
+
   query = {
       $and : conditions
   }
@@ -372,7 +380,8 @@ router.get '/entity/:product/:type/:since/recommend',  (req, res, next) ->
         browser: '$browser', 
         device: '$device', 
         platform: '$platform', 
-        platform_version: '$platform_version'
+        platform_version: '$platform_version',
+        stage: '$stage'
       }
     }
   })
@@ -390,7 +399,7 @@ router.post '/entity/others',  (req, res, next) ->
     return res.json {error: "Type is mandatory"}
 
   key = 'entity'
-  entities = ['version','device','team', 'browser', 'platform', 'platform_version']
+  entities = ['version','device','team', 'browser', 'platform', 'platform_version', 'stage']
   async.map(entities,
     (item, callback) ->
         Build.distinct(item, {product : req.body.product, type: req.body.type}).
@@ -492,6 +501,9 @@ router.post '/:page/:perPage',  (req, res, next) ->
   
     if(req.body.platform_version)
       query.platform_version = req.body.platform_version
+
+    if(req.body.stage)
+      query.stage = req.body.stage
 
     pagnition = {
         skip: size * page

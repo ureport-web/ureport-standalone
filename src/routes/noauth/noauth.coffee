@@ -57,6 +57,9 @@ router.post '/build/filter',  (req, res, next) ->
   if(req.body.platform_version)
     conditions.push({ $or : req.body.platform_version })
 
+  if(req.body.stage)
+    conditions.push({ $or : req.body.stage })
+
   query = {
       $and : conditions
   }

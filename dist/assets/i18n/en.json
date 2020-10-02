@@ -9,6 +9,7 @@
     "PL_DEVICE": "Device",
     "PL_PLATFORM": "Platform",
     "PL_PLATFORM_VERSION": "Platform Version",
+    "PL_STAGE": "Stage",
     "TT_BUILD": "Build",
     "TT_NAVIGATION": "Open Navigation Menu",
     "TT_GUIDE" : "Guide Tour",

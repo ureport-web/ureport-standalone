@@ -42,6 +42,10 @@ buildSchema = new Schema(
 		type: String,
 		trim: true
   	},
+	stage: {
+		type: String,
+		trim: true
+  	},
 	start_time: { type: Date, default: Date.now },
 	end_time: Date,
 	owner: String,
@@ -100,6 +104,9 @@ buildSchema.statics.initBuild = (payload) ->
 
 	if(payload.platform_version)
 		newBuildPayload.platform_version = payload.platform_version
+	
+	if(payload.stage)
+		newBuildPayload.stage = payload.stage
 
 	if(payload.is_archive)
 		newBuildPayload.is_archive = payload.is_archive

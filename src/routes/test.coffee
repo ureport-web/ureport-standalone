@@ -380,6 +380,7 @@ router.post '/aggregate/single/history', (req, res, next) ->
                 version : "$build.version",
                 platform : "$build.platform",
                 platform_version : "$build.platform_version",
+                stage : "$build.stage",
                 build : "$build.build",
                 status: "$build.status"
             }

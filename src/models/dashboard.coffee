@@ -25,6 +25,7 @@ dashboardSchema = new Schema(
 		device: String,
 		platform: String,
 		platform_version: String,
+		stage: String,
 		range: Number,
 		since: String,
 		after: String,
@@ -60,12 +61,13 @@ dashboardSchema = new Schema(
 				product_line_query: Schema({
 					product : String,
 					type : String,
-					team: String
-					version: String
-					browser: String
-					device: String
-					platform: String
-					platform_version: String
+					team: String,
+					version: String,
+					browser: String,
+					device: String,
+					platform: String,
+					platform_version: String,
+					stage: String,
 					range: Number,
 					since: String,
 					after: String,
