@@ -73,10 +73,10 @@ router.post '/',  (req, res, next) ->
             new: true,
             runValidators: true
         },
-        (err, invTest) ->
+        (err, relation) ->
             if err
                 next err
-            res.json invTest
+            res.json relation
     )
 
 router.post '/update/attributes',  (req, res, next) ->

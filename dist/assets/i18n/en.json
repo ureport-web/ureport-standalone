@@ -382,6 +382,7 @@
     "WIDGET_NAME_GROUP_LINE_LBL": "Line Chart",
     "WIDGET_NAME_GROUP_BAR_LBL": "Bar Chart",
     "WIDGET_NAME_GROUP_TABLE_LBL": "Table",
+    "WIDGET_NAME_GROUP_HEATMAP_LBL": "Heatmap",
     "WIDGET_NAME": {
       "Builds in Calendar" : "Builds in Calendar",
       "Status" : "Status",
@@ -390,12 +391,13 @@
       "Pass Rate" : "Pass Rate",
       "Multiple Product Line Pass Rate" : "Multiple Product Line Pass Rate",
       "Run History" : "Run History",
-      "Status By Filter From Latest Run" : "Status By Filter From Latest Run",
+      "Status By Filter From Latest Run" : "Test Relation From Latest Run",
       "Unstable Tests List" : "Unstable Tests List",
       "Stable Tests List" : "Stable Tests List",
       "Most Failed Reasons" : "Most Failed Reasons",
       "Multiple Product Line Build Table" : "Multiple Product Line Build Table",
-      "Customizable Status Table" : "Customizable Status Table"
+      "Customizable Status Table" : "Customizable Status Table",
+      "Status By Filter Heatmap": "Test Relation Heatmap"
     }
   },
   "USER_PROFILE": {
