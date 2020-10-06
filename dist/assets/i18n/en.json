@@ -236,7 +236,7 @@
   "TEST_REPORT": {
     "EXPORT_AS_CSV" : "Export as CSV",
     "MORE_ACTION_BTN": "More actions",
-    "LOAD_DATE_BTN": "Load on date",
+    "LOAD_DATE_BTN": "Custom Date Range",
     "LOAD_MORE_BTN": "Load more",
     "PINN_TEST_BTN": "Pin/Unpin test",
     "TT_PIN_TEST_AT": "Pinned at {{date}}",
@@ -383,6 +383,7 @@
     "WIDGET_NAME_GROUP_BAR_LBL": "Bar Chart",
     "WIDGET_NAME_GROUP_TABLE_LBL": "Table",
     "WIDGET_NAME_GROUP_HEATMAP_LBL": "Heatmap",
+    "WIDGET_NAME_GROUP_CARD_LBL" : "Card",
     "WIDGET_NAME": {
       "Builds in Calendar" : "Builds in Calendar",
       "Status" : "Status",
@@ -397,7 +398,10 @@
       "Most Failed Reasons" : "Most Failed Reasons",
       "Multiple Product Line Build Table" : "Multiple Product Line Build Table",
       "Customizable Status Table" : "Customizable Status Table",
-      "Status By Filter Heatmap": "Test Relation Heatmap"
+      "Status By Filter Heatmap": "Test Relation Heatmap",
+      "Tests Summary": "Tests Summary",
+      "Builds Summary": "Builds Summary",
+      "Investigated Tests Summary": "Investigated Tests Summary"
     }
   },
   "USER_PROFILE": {

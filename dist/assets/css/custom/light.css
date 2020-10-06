@@ -199,6 +199,10 @@ nav#sidebar.shrinked ul i {
 *     Main
 * ==========================================================
 */
+.border-blue{
+  border-color: #007bff !important
+}
+
 .page-content {
     position: relative;
     min-height: 100vh;

@@ -182,6 +182,10 @@ nav#sidebar.shrinked ul i {
 * ==========================================================
 */
 
+.border-blue{
+  border-color: #007bff !important
+}
+
 .page-content {
     position: relative;
     /* background: #22252a; */
