@@ -109,7 +109,7 @@
     "MSG_PASSWORD_NOT_MATCH" : "Password not match",
     "MSG_RECOMMENDED_PL" : "Recommended for selected product and type",
     "MSG_RECENT_SELECTED_PL" : "Recent selected Product Line",
-    "MSG_LOAD_BUILD_DATE" : "Load builds from dates",
+    "MSG_LOAD_BUILD_DATE" : "Load builds from date range",
     "MSG_LOAD_BUILD" : "Load builds",
     "MSG_NO_TEST_FOUND" : "No test found",
     "MSB_NO_INVESTIGATED_TEST": "No investigated tests are found, start analyzing now",
