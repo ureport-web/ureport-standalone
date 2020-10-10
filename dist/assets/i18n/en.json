@@ -90,7 +90,7 @@
     "MSG_USERNAME_CHANGE":"You have changed the username, if you proceed, you will be logged out after updating successfully."
   },
   "MESSAGE": {
-    "MSG_NO_BUILD_FOUND" : "Cannot find any builds",
+    "MSG_NO_RESULT_FOUND" : "Cannot find any results with given date and range",
     "MSG_NO_FILTER": "There are no filters to be used in this product line. Please contact your administrator to setup the filter.",
     "MSG_CHOOSE_RELATION": "Choose a relation.",
     "MSG_SHOW_LEGEND": "Show Legend",

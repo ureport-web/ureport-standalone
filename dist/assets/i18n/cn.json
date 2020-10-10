@@ -89,7 +89,7 @@
     "MSG_USERNAME_CHANGE":"您已经更改了用户名，如果继续，您将在成功更新后注销。"
   },
   "MESSAGE": {
-    "MSG_NO_BUILD_FOUND" : "找不到任何作业",
+    "MSG_NO_RESULT_FOUND" : "找不到任何作业",
     "MSG_NO_FILTER": "此产品系列中没有要使用的过滤器。请与管理员联系以设置过滤器",
     "MSG_CHOOSE_RELATION": "选择一种关系。",
     "MSG_SHOW_LEGEND": "显示图例",
