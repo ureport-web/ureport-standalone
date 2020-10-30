@@ -8,6 +8,7 @@ ac.grant('viewer')
     .readAny('investigate')
     .readAny('relation')
     .readAny('assignment')
+    .readAny('dependency')
     .updateOwn('preference')
     .updateOwn('user')
     .updateOwn('userFav')
@@ -31,6 +32,8 @@ ac.grant('viewer')
     .createAny('investigate')  #Tested
     .updateAny('investigate')  #Tested
     .deleteAny('investigate')  #Tested
+    .createAny('dependency')
+    .updateAny('dependency')
   .grant('admin')
     .extend('operator')
     .deleteAny('build') #Tested
@@ -42,7 +45,7 @@ ac.grant('viewer')
     .updateAny('user')
     .deleteAny('user')
     .deleteAny('test')
-    .deleteAny('user')
+    .deleteAny('dependency')
 
 ac.canAccessCreateAnyIfOwn = (user, userId, component) ->
   return user._id.toString() == userId.toString() && ac.can(user.role).createOwn(component).granted

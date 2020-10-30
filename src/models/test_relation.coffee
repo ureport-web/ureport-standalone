@@ -24,7 +24,10 @@ testRelationSchema = new Schema(
 	teams : Schema.Types.Mixed,
 	tags : Schema.Types.Mixed,
 	comments: Schema.Types.Mixed,
-	customs: Schema.Types.Mixed
+	customs: Schema.Types.Mixed,
+	dependencies: [Schema({
+		key: String
+	}, {_id: true})]
 )
 
 testRelationSchema.statics.buildExcludeFieldQuery = (rs, payload) ->
@@ -50,4 +53,6 @@ testRelationSchema.statics.update = (relation, payload) ->
 			relation.comments = payload.comments
 		if(payload.customs)
 			relation.customs = payload.customs
+		if(payload.dependencies)
+			relation.dependencies = payload.dependencies
 module.exports = mongoose.model('TestRelation', testRelationSchema)

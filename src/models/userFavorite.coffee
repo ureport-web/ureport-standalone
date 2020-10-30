@@ -66,7 +66,23 @@ userFavoriteSchema = new Schema(
     }, 
     {_id: true}
     )
-  ]
+  ],
+  workspaces: [Schema(
+    {	
+      name: {
+        type: String
+      },
+      description: {
+        type: String
+      },
+      product_lines: [Schema(
+        {	
+          query: Schema.Types.Mixed
+        }
+      )]
+    },
+    {_id: true}
+  )]
 )
 
 userFavoriteSchema.statics.updateOne = (userFav, payload) ->
@@ -79,6 +95,8 @@ userFavoriteSchema.statics.updateOne = (userFav, payload) ->
       userFav.pinned = payload.pinned
     if(payload.ceses)
       userFav.ceses = payload.ceses
+    if(payload.workspaces)
+      userFav.workspaces = payload.workspaces
 
 userFavoriteSchema.statics.find = (username, password, callback) ->
   User.findOne({username: username}).exec (err, user) ->

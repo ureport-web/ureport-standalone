@@ -233,6 +233,12 @@
     "TT_D_ACTIONS_LBL": "Dashboard Actions",
     "TT_W_ACTIONS_LBL": "Widgets Actions"
   },
+  "WORKSPACE": {
+    "LOAD" : "Load workspace",
+    "SAVE" : "Save workspace",
+    "SAVE_AS" : "Save worksapce as",
+    "DELETE" : "Delete workspace"
+  },
   "TEST_REPORT": {
     "EXPORT_AS_CSV" : "Export as CSV",
     "MORE_ACTION_BTN": "More actions",
@@ -265,6 +271,7 @@
     "HISTORY_BUILD_BTN": "History Build"
   },
   "TEST_DETAIL": {
+    "DEPENDENCY": "Depedency",
     "DURATION" : "Duration (seconds)",
     "TRACK_AS_LBE": "Tracked as {{value}} issue.",
     "TRACK_AT_LBE": "Tracked at {{value}}",
@@ -358,6 +365,8 @@
     "ASSIGN_TO_OTHERS" : "Assign to others"
   },
   "TEST_RELATION": {
+    "SELECT_DEPENDENCY": "Choose a dependency",
+    "PLACEHOLDER_SEARCH_DEP": "Search for dependency",
     "PLACEHOLDER_ADD_TEAM": "Add new team",
     "PLACEHOLDER_ADD_TAG": "Add new tag",
     "PLACEHOLDER_SEARCH_RELATION" : "Search test relations with UID",

@@ -151,6 +151,7 @@ if (config !== undefined) {
   app.use('/api/assignment', isAuthenticatedMid)
   app.use('/api/tracking', isAuthenticatedMid)
   app.use('/api/search', isAuthenticatedMid)
+  app.use('/api/dependency', isAuthenticatedMid)
 
   app.get('/api/unauthorized', (req, res) => {
     res.status(401)
@@ -178,6 +179,8 @@ if (config !== undefined) {
   const userFav = require('./src/routes/user_favorite')
   const trackingJIRA = require('./src/routes/tracking/jira')
   const searching = require('./src/routes/search/solr')
+  const dependency = require('./src/routes/dependency')
+  const dependencyRelation = require('./src/routes/dependency_relation')
 
   // list of endpoints for readonly page
   const noauth = require('./src/routes/noauth/noauth')
@@ -197,6 +200,8 @@ if (config !== undefined) {
   app.use('/api/user/favorite', userFav)
   app.use('/api/tracking/jira', trackingJIRA)
   app.use('/api/search', searching)
+  app.use('/api/dependency', dependency)
+  app.use('/api/dependency_relation', dependencyRelation)
 
   app.use('/api/noauth', noauth)
 
