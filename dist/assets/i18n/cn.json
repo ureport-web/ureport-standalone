@@ -114,7 +114,9 @@
     "MSB_NO_INVESTIGATED_TEST": "未找到已调查的测试，开始分析？",
     "MSG_PL_SELECT_REQUIRED_FIELD": "请选择必填字段",
     "MSG_DATE_RANGE" : "日期范围",
-    "MSG_DATE_RECURRENCE" : "循环"
+    "MSG_DATE_RECURRENCE" : "循环",
+    "MSG_EXPLORER_ONE_TEST" : "You need to select at least 1 test to use this feature.",
+    "MSG_EXPLORER_TOO_MANY_TESTS" : "There are too many test cases, please use filter to decrease the number."
   },
   "REQUIRED_LBL": {
     "REQ_PRODUCT" : "产品",
@@ -227,6 +229,17 @@
     "TT_CLONE_LBL": "克隆仪表板",
     "TT_D_ACTIONS_LBL": "仪表板操作",
     "TT_W_ACTIONS_LBL": "部件动作"
+  },
+  "WORKSPACE": {
+    "LOAD" : "Choose a workspace.",
+    "ADD_PL_TO_WS": "Add a produclt line to workspace",
+    "ADD_PL_TO_NEW_WS": "Choose a product line for new worksapce",
+    "ADD_WORKSPACE": "Add new workspace",
+    "ADD_PL": "Add a product line",
+    "SAVE" : "Save workspace",
+    "SAVE_AS" : "Save worksapce as",
+    "CLOSE" : "Close workspace",
+    "DELETE" : "Delete workspace"
   },
   "TEST_REPORT": {
     "EXPORT_AS_CSV" : "导出为CSV",

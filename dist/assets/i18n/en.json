@@ -10,6 +10,7 @@
     "PL_PLATFORM": "Platform",
     "PL_PLATFORM_VERSION": "Platform Version",
     "PL_STAGE": "Stage",
+    "TT_DESCRIPTION_LBL": "Description",
     "TT_BUILD": "Build",
     "TT_NAVIGATION": "Open Navigation Menu",
     "TT_GUIDE" : "Guide Tour",
@@ -115,7 +116,9 @@
     "MSB_NO_INVESTIGATED_TEST": "No investigated tests are found, start analyzing now",
     "MSG_PL_SELECT_REQUIRED_FIELD": "Please select required fields",
     "MSG_DATE_RANGE" : "Range",
-    "MSG_DATE_RECURRENCE" : "Recurrence"
+    "MSG_DATE_RECURRENCE" : "Recurrence",
+    "MSG_EXPLORER_ONE_TEST" : "You need to select at least 1 test to use this feature.",
+    "MSG_EXPLORER_TOO_MANY_TESTS" : "There are too many test cases, please use filter to decrease the number."
   },
   "REQUIRED_LBL": {
     "REQ_PRODUCT" : "Please provide a product",
@@ -234,9 +237,14 @@
     "TT_W_ACTIONS_LBL": "Widgets Actions"
   },
   "WORKSPACE": {
-    "LOAD" : "Load workspace",
+    "LOAD" : "Choose a workspace.",
+    "ADD_PL_TO_WS": "Add a produclt line to workspace",
+    "ADD_PL_TO_NEW_WS": "Choose a product line for new worksapce",
+    "ADD_WORKSPACE": "Add new workspace",
+    "ADD_PL": "Add a product line",
     "SAVE" : "Save workspace",
     "SAVE_AS" : "Save worksapce as",
+    "CLOSE" : "Close workspace",
     "DELETE" : "Delete workspace"
   },
   "TEST_REPORT": {
@@ -265,7 +273,7 @@
     "TT_ANALYZE_TEST_STATUS": "Analyzed Tests status scenario",
     "SIG_LBL": "Status Icon Glossary",
     "MSG_MISSING_PRODUCT_LINE" : "* You are missing value in your product line.",
-    "MSG_CHOOSE_PRODUCT_LINE" : "Please choose a product line frist."
+    "MSG_CHOOSE_PRODUCT_LINE" : "Choose a product line."
   },
   "TEST_TOOLBAR": {
     "HISTORY_BUILD_BTN": "History Build"

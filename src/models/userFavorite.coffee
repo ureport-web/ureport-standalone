@@ -70,7 +70,8 @@ userFavoriteSchema = new Schema(
   workspaces: [Schema(
     {	
       name: {
-        type: String
+        type: String,
+        required: [true, 'Name is required']
       },
       description: {
         type: String
