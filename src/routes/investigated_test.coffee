@@ -74,14 +74,24 @@ router.delete '/:id',  (req, res, next) ->
 
 router.post '/total',  (req, res, next) ->
     query = {}
+    if(req.body.filter)
+    # query.uid = {'$regex': req.body.filter}
+        query = {
+            $and : [
+                $or : [ 
+                    { uid: {'$regex': req.body.filter} }, 
+                    { "tracking.track_number": {'$regex': req.body.filter} }, 
+                ]
+            ]
+        }
     if(req.body.product)
         query.product = req.body.product
 
     if(req.body.type)
         query.type = req.body.type
 
-    if(req.body.filter)
-        query.uid = {'$regex': req.body.filter}
+    # if(req.body.filter)
+    #     query.uid = {'$regex': req.body.filter}
     # invTest filter and condition
     InvestigatedTest.find(query)
     .count()
@@ -181,14 +191,23 @@ router.post '/:page/:perPage',  (req, res, next) ->
         return res.json(response)
 
     query = {}
+    # { $or : [{"uid":{'$regex': '496'}}, {"tracking.track_number":{'$regex': '496'}}] }
+    if(req.body.filter)
+        # query.uid = {'$regex': req.body.filter}
+        query = {
+            $and : [
+                $or : [ 
+                    { uid: {'$regex': req.body.filter} }, 
+                    { "tracking.track_number": {'$regex': req.body.filter} }, 
+                ]
+            ]
+        }
+
     if(req.body.product)
         query.product = req.body.product
 
     if(req.body.type)
         query.type = req.body.type
-
-    if(req.body.filter)
-        query.uid = {'$regex': req.body.filter}
 
     pagnition = {
         skip: size * page

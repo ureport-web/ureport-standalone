@@ -274,7 +274,7 @@ router.post '/aggregate/stable', (req, res, next) ->
         res.json {"error": "builds list is mandatory"}
 
 router.post '/aggregate/unstable', (req, res, next) -> 
-    if(req.body.builds) 
+    if(req.body.builds)
         Test.aggregate()
         .match({
             $and : [

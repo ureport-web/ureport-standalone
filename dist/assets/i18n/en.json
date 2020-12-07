@@ -118,7 +118,8 @@
     "MSG_DATE_RANGE" : "Range",
     "MSG_DATE_RECURRENCE" : "Recurrence",
     "MSG_EXPLORER_ONE_TEST" : "You need to select at least 1 test to use this feature.",
-    "MSG_EXPLORER_TOO_MANY_TESTS" : "There are too many test cases, please use filter to decrease the number."
+    "MSG_EXPLORER_TOO_MANY_TESTS" : "There are too many test cases, please use filter to decrease the number.",
+    "MSG_INVESTIGATED_SEARCH" : "Type to search in UID or Issue"
   },
   "REQUIRED_LBL": {
     "REQ_PRODUCT" : "Please provide a product",
