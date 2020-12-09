@@ -57,8 +57,8 @@ router.post '/filter',  (req, res, next) ->
 
   query = {
     $and:[ 
-      { product: req.body.product },
-      { type: req.body.type },
+      { $or: req.body.product },
+      { $or: req.body.type },
       { assign_at: { $gte:  after } }, 
       { state: state }
     ]

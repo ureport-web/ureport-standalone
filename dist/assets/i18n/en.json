@@ -362,7 +362,8 @@
     "COPY_CES_LBL": "CES",
     "EDIT_TEST_RELATION_LBL": "Edit Test Relation",
     "SELECT_ALL": "Select all filtered tests",
-    "UNSELECT_ALL": "Unselect all filtered tests"
+    "UNSELECT_ALL": "Unselect all filtered tests",
+    "TT_MARK_BUILD" : "Go to build"
   },
   "INVESTIGATED_MENU": {
     "RERUN" : "Mark as Rerun Pass",

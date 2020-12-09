@@ -31,13 +31,13 @@ ac.grant('viewer')
     .createAny('comment') #this include comments in build, dashboard, test, assignment
     .createAny('investigate')  #Tested
     .updateAny('investigate')  #Tested
-    .deleteAny('investigate')  #Tested
     .createAny('dependency')
     .updateAny('dependency')
   .grant('admin')
     .extend('operator')
     .deleteAny('build') #Tested
     .deleteAny('dashboard')
+    .deleteAny('investigate')  #Tested
     .createAny('setting') #Tested
     .updateAny('setting') #Tested
     .deleteAny('setting') #Tested
