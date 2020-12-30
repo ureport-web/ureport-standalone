@@ -76,7 +76,8 @@
     "UNSELECT_ALL": "Unselect all",
     "SELECT_ITEM": "Select Item",
     "SELECT_LBL": "Select",
-    "LOADING": "Loading"
+    "LOADING": "Loading",
+    "TT_TOOGLE_PAGINATION": "Toggle table pagination"
   },
   "MODAL": {
     "BUILD_ONDATE" : "* Choose start date if you want build(s) from a single date",
@@ -214,7 +215,8 @@
     "MSG_YOUR_DASHBOARD": "Your Dashboard",
     "MSG_SHARED_DASHBOARD": "Shared dashboards from others",
     "TITLE_LBE": "Dashboards",
-    "TT_ADD_LBL": "Add Dashboard"
+    "TT_ADD_LBL": "Add Dashboard",
+    "TT_GO_BACK_TO_LBL": "Go back to dashboard"
   },
   "BUILD": {
     "VIEW_DASHBOARD_LBL": "View Dashboard",

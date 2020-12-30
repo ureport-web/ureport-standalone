@@ -126,11 +126,18 @@ router.post '/filter',  (req, res, next) ->
             exclude = {}
             InvestigatedTest.buildExcludeFieldQuery(exclude,req.body.exclude)
 
-        query = {
-            product: req.body.product
-            type: req.body.type
-            create_at: { $gte: fromDate }
-        }
+        if(req.body.activeRegEx)
+            query = { $and : [
+                { product: { $regex: req.body.product, $options: 'i'} },
+                { type: { $regex: req.body.type, $options: 'i'} },
+                { create_at: { $gte: new Date(moment().subtract(sinceDay,'day').format()) } }
+            ]}
+        else
+            query = {
+                product: req.body.product
+                type: req.body.type
+                create_at: { $gte: fromDate }
+            }
         # invTest filter and condition
         InvestigatedTest.find(query,exclude)
         .exec((err, invTests) ->

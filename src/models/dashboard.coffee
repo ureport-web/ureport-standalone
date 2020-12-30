@@ -29,6 +29,7 @@ dashboardSchema = new Schema(
 		range: Number,
 		since: String,
 		after: String,
+		query_type: String,
 		date_range: Schema({
 			repeat: String,
 			frequency: Number,
@@ -71,6 +72,7 @@ dashboardSchema = new Schema(
 					range: Number,
 					since: String,
 					after: String,
+					query_type: String,
 					date_range: Schema({
 						repeat: String,
 						frequency: Number,
