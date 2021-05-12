@@ -213,7 +213,7 @@
   "DASHBOARD": {
     "MSG_NO_DASHBOARD": "You don't have any dashboard yet. Click here to create.",
     "MSG_YOUR_DASHBOARD": "Your Dashboard",
-    "MSG_SHARED_DASHBOARD": "Shared dashboards from others",
+    "MSG_SHARED_DASHBOARD": "Shared dashboards",
     "TITLE_LBE": "Dashboards",
     "TT_ADD_LBL": "Add Dashboard",
     "TT_GO_BACK_TO_LBL": "Go back to dashboard"
@@ -240,12 +240,10 @@
     "TT_W_ACTIONS_LBL": "Widgets Actions"
   },
   "WORKSPACE": {
-    "LOAD" : "Choose a workspace.",
-    "ADD_PL_TO_WS": "Add a produclt line to workspace",
-    "ADD_PL_TO_NEW_WS": "Choose a product line for new worksapce",
+    "LOAD" : "Open a workspace.",
+    "ADD_PL_TO_WS": "Add a product line to workspace",
     "ADD_WORKSPACE": "Add new workspace",
-    "ADD_PL": "Add a product line",
-    "SAVE" : "Save workspace",
+    "SAVE" : "Save workspace changes",
     "SAVE_AS" : "Save worksapce as",
     "CLOSE" : "Close workspace",
     "DELETE" : "Delete workspace"
@@ -329,7 +327,7 @@
     "BY_USER_HEADER": "By User",
     "DATE_HEADER": "Date",
     "TACKING_HEADER": "Tracking",
-    "CAUSED_BY_HEADER": "Caused By",
+    "CAUSED_BY_HEADER": "Caused",
     "TIME_HEADER": "Time",
     "FAILURE_HEADER": "Failure",
     "MARKED_AT": "Marked At",
@@ -345,7 +343,7 @@
     "ALWAYS_SKIPL": "Always skip",
     "HIGH_PASS_RATE": "High fail rate",
     "LOW_PASS_RATE": "Low fail rate",
-    "ANALYZE_FROM_SOURCE": "Analyzed from source"
+    "ANALYZE_FROM_SOURCE": "Analyzed from"
   },
   "INVESTIGATED_SLIDER": {
     "MARK_AS_LBL": "Mark as",
@@ -365,7 +363,8 @@
     "EDIT_TEST_RELATION_LBL": "Edit Test Relation",
     "SELECT_ALL": "Select all filtered tests",
     "UNSELECT_ALL": "Unselect all filtered tests",
-    "TT_MARK_BUILD" : "Go to build"
+    "TT_MARK_BUILD" : "Go to build",
+    "IMPACT_TEST" : "Impacted Tests"
   },
   "INVESTIGATED_MENU": {
     "RERUN" : "Mark as Rerun Pass",
@@ -515,7 +514,12 @@
       "TT_STABLE_TESTS" : "Stable tests in recent run",
       "TT_NEW_TESTS" : "New tests appeared in recent run",
       "TT_TEST_DIDNT_RUN" : "Tests didn't run",
-      "TT_TEST_NOT_RUN" : "Not run"
+      "TT_TEST_NOT_RUN" : "No test found"
+    },
+    "SORT_BY": {
+      "BY_UID": "By UID",
+      "BY_NAME": "By Name",
+      "BY_START_DATE": "By Start Date"
     }
   },
   "FAQ": {
@@ -536,7 +540,7 @@
     "QUESTION_T_INV_OUT" : "What is the difference between investigated status and outage status?",
     "ANSWER_T_INV_OUT": "<ul><li>An investigated test will be carried to future and past builds, it will be attached to test case only when the failure reason is the same.</li><li> An outage is only apply to the build it marked at. An outage will <strong>NOT</strong> be carried to future or past builds.</li>",
     "QUESTION_T_CES" : "What is CES?",
-    "ANSWER_CES": "CES stands for Customize Executable Script. ",
+    "ANSWER_CES": "CES stands for Customize Executable Script.<br>It allows user to create customizable commands, scripts, or configurations to run any tests to specific automation framework",
     "QUESTION_TR_RELATION" : "What is Test Relation?",
     "ANSWER_TR_RELATION": "",
     "QUESTION_S_PLS" : "What is Product Line setting?",

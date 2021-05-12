@@ -231,15 +231,13 @@
     "TT_W_ACTIONS_LBL": "部件动作"
   },
   "WORKSPACE": {
-    "LOAD" : "Choose a workspace.",
-    "ADD_PL_TO_WS": "Add a produclt line to workspace",
-    "ADD_PL_TO_NEW_WS": "Choose a product line for new worksapce",
-    "ADD_WORKSPACE": "Add new workspace",
-    "ADD_PL": "Add a product line",
-    "SAVE" : "Save workspace",
-    "SAVE_AS" : "Save worksapce as",
-    "CLOSE" : "Close workspace",
-    "DELETE" : "Delete workspace"
+    "LOAD" : "打开工作区",
+    "ADD_PL_TO_WS": "将产品线添加到当前工作空间",
+    "ADD_WORKSPACE": "添加新的工作区",
+    "SAVE" : "保存工作区",
+    "SAVE_AS" : "将工作区另存为",
+    "CLOSE" : "关闭工作区",
+    "DELETE" : "删除工作区"
   },
   "TEST_REPORT": {
     "EXPORT_AS_CSV" : "导出为CSV",
@@ -505,8 +503,8 @@
   },
   "FAQ": {
     "GENERAL_LBL" : "General",
-    "QUESTION_PL" : "What is a product line?",
-    "ANSWER_API_LBL" : "Please refer to API DOC for more information.",
+    "QUESTION_PL" : "什么是产品线?",
+    "ANSWER_API_LBL" : "有关更多信息，请参考API DOC。",
     "ANSWER_PL_1" : "A product line represent a conceptual combination of 8 variables from the automatoin execution. Among these 8 values, 2 are mandatory, and the other 6 are optional.<br> Let's use an exmaple to explain it. <br> Say we have a web application that we need to run automation regression in the nightly build. We need to run it in three different browsers. (Chrome, Firefox and Safari).<br> We could have 3 potential product lines in this scearnio.",
     "ANSWER_PL_2" : "Once these product line are set, all future executions should keep pushing result under the same product line with different build number from your CI software. <br>To know how to send data to UReport server.",
     "QUESTION_AUTOANALYZE" : "How does auto analyze work?",

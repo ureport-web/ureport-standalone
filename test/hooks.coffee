@@ -50,7 +50,7 @@ before (done) ->
 
     Promise.all([
       Build.create(builds_data),
-      User.create(user_data)
+      User.create(user_data),
       InvestigatedTest.create(investigated_tests_data),
       TestRelation.create(test_relation_data),
       Setting.create(settings_data),

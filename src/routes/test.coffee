@@ -392,4 +392,57 @@ router.post '/aggregate/single/history', (req, res, next) ->
         res.status(404)
         res.json {"error": "uid is mandatory"}
 
+
+router.post '/aggregate/by/investigated', (req, res, next) -> 
+    if(req.body.uid)
+        condition = { 
+            uid : req.body.uid,
+            status:{$ne : "PASS"}
+            # "failure.error_message":"Miniplayer displayed \"Fetching Music\" message after timeout of 60000"
+        }
+        if(req.body.token)
+            condition["failure.token"] = req.body.token
+        if(req.body.error_message)
+            condition["failure.error_message"] = req.body.error_message
+        if(req.body.stack_trace)
+            condition["failure.stack_trace"] = req.body.stack_trace
+        
+        Test.aggregate()
+        .sort({ start_time : -1 })
+        .match(condition)
+        .lookup({
+           from: "builds",
+           localField: "build",
+           foreignField: "_id",
+           as: "build"
+        })
+        .unwind("$build")
+        .project({
+            uid: "$uid",
+            status: "$status",
+            start_time : "$start_time" ,
+            end_time : "$end_time" ,
+            is_rerun: "$is_rerun",
+            failure: "$failure",
+            build: { 
+                _id : "$build._id",
+                product : "$build.product",
+                type : "$build.type",
+                team : "$build.team",
+                browser : "$build.browser",
+                device : "$build.device",
+                version : "$build.version",
+                platform : "$build.platform",
+                platform_version : "$build.platform_version",
+                stage : "$build.stage",
+                build : "$build.build",
+                status: "$build.status",
+                start_time : "$start_time"
+            }
+        })
+        .exec((err, tests) -> res.json tests );
+    else
+        res.status(404)
+        res.json {"error": "uid is mandatory"}
+
 module.exports = router
