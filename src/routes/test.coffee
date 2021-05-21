@@ -334,11 +334,12 @@ router.post '/aggregate/trend', (req, res, next) ->
         })
         .group({
             _id: "$uid",
-            trend: { $push: { 
+            trend: { $push: {
                     build: "$build", 
                     status : "$status",
                     uid : "$uid",
-                    id: "$_id"
+                    id: "$_id",
+                    failure: "$failure"
                 }
             }
         })

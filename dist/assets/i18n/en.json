@@ -274,7 +274,9 @@
     "TT_ANALYZE_TEST_STATUS": "Analyzed Tests status scenario",
     "SIG_LBL": "Status Icon Glossary",
     "MSG_MISSING_PRODUCT_LINE" : "* You are missing value in your product line.",
-    "MSG_CHOOSE_PRODUCT_LINE" : "Choose a product line."
+    "MSG_CHOOSE_PRODUCT_LINE" : "Choose a product line.",
+    "LIST_SETTING_DISPLAY_HISTORY_RESULT" : "Choose a number of displayed past results",
+    "LIST_SETTING_SORT_BY" : "Sort table row by"
   },
   "TEST_TOOLBAR": {
     "HISTORY_BUILD_BTN": "History Build"

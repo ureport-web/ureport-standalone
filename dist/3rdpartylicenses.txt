@@ -87,6 +87,8 @@ THE SOFTWARE.
 
 @angular/material/autocomplete
 
+@angular/material/bottom-sheet
+
 @angular/material/button
 
 @angular/material/card
@@ -105,6 +107,8 @@ THE SOFTWARE.
 
 @angular/material/icon
 
+@angular/material/list
+
 @angular/material/menu
 
 @angular/material/paginator
@@ -118,6 +122,8 @@ THE SOFTWARE.
 @angular/material/sidenav
 
 @angular/material/slide-toggle
+
+@angular/material/slider
 
 @angular/material/snack-bar
 
