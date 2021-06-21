@@ -595,8 +595,29 @@ router.post '/search', (req, res, next) ->
       aggregate_previous_runs: { 
         $addToSet: { 
           id: "$_id",
-          start_time: "$start_time"
+          start_time: "$start_time",
+          status: "$status"
         }
+      }
+  })
+  .project(
+    { 
+      _id: "$_id",
+      product: "$product",
+      type: "$type",
+      version: "$version",
+      browser: "$browser",
+      device: "$device",
+      platform: "$platform",
+      platform_version: "$platform_version",
+      stage: "$stage",
+      build: "$build",
+      start_time: "$start_time",
+      aggregate_last_id: "$aggregate_last_id",
+      aggregate_last_start_time: "$aggregate_last_start_time",
+      status: "$status",
+      aggregate_previous_runs: { 
+        $slice : ["$aggregate_previous_runs", 0, 20]
       }
   })
   .exec((err, builds) -> res.json builds );

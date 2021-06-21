@@ -232,6 +232,7 @@
   },
   "WORKSPACE": {
     "LOAD" : "打开工作区",
+    "LOAD_TO_WORKSPACE" : "加载到工作区",
     "ADD_PL_TO_WS": "将产品线添加到当前工作空间",
     "ADD_WORKSPACE": "添加新的工作区",
     "SAVE" : "保存工作区",

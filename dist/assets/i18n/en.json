@@ -241,6 +241,7 @@
   },
   "WORKSPACE": {
     "LOAD" : "Open a workspace.",
+    "LOAD_TO_WORKSPACE" : "Load into workspace.",
     "ADD_PL_TO_WS": "Add a product line to workspace",
     "ADD_WORKSPACE": "Add new workspace",
     "SAVE" : "Save workspace changes",
