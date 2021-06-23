@@ -220,7 +220,8 @@
   },
   "BUILD": {
     "VIEW_DASHBOARD_LBL": "View Dashboard",
-    "ANALYZE_RUN_LBL": "Analyze Latest Run",
+    "ANALYZE_RUN_LBL": "Analyze Run",
+    "ANALYZE_LATEST_RUN_LBL": "Analyze Latest Run",
     "TT_EXPAND_MENU": "Expand Menu",
     "TT_COLLAPSE_MENU": "Collapse menu",
     "TT_WIDGET_MENU_ADD_LBL": "Add Widget",
@@ -243,7 +244,7 @@
     "LOAD" : "Open a workspace.",
     "LOAD_TO_WORKSPACE" : "Load into workspace.",
     "ADD_PL_TO_WS": "Add a product line to workspace",
-    "ADD_WORKSPACE": "Add new workspace",
+    "ADD_WORKSPACE": "Create a new workspace",
     "SAVE" : "Save workspace changes",
     "SAVE_AS" : "Save worksapce as",
     "CLOSE" : "Close workspace",

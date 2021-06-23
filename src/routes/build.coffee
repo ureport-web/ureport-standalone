@@ -595,6 +595,7 @@ router.post '/search', (req, res, next) ->
       aggregate_previous_runs: { 
         $addToSet: { 
           id: "$_id",
+          build: "$build",
           start_time: "$start_time",
           status: "$status"
         }

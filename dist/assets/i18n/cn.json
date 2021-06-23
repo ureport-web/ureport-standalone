@@ -212,6 +212,7 @@
   "BUILD": {
     "VIEW_DASHBOARD_LBL": "查看仪表板",
     "ANALYZE_RUN_LBL": "分析",
+    "ANALYZE_LATEST_RUN_LBL": "分析最新运行",
     "TT_EXPAND_MENU": "展开菜单",
     "TT_COLLAPSE_MENU": "折叠菜单",
     "TT_WIDGET_MENU_ADD_LBL": "添加部件",
