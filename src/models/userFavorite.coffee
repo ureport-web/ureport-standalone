@@ -78,7 +78,8 @@ userFavoriteSchema = new Schema(
       },
       product_lines: [Schema(
         {	
-          query: Schema.Types.Mixed
+          query: Schema.Types.Mixed,
+          bookmark_build: Schema.Types.Mixed
         }
       )]
     },

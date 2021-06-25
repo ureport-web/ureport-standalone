@@ -252,6 +252,8 @@
     "GROUP_BY_TRACKNUM_BTN": "按编号分组",
     "GROUP_BY_CREATE_DATE_BTN" : "按创建日期分组",
     "GROUP_BY_TYPE_BTN" : "按类型分组",
+    "TT_BOOKMARK_BUILD" : "添加为书签的产品线将始终显示在加载的工作区",
+    "TT_CHOOSE_PL_WHEN_NON_DISTINCT_FOUND_MESSAGE" : "发现了多个产品线。 您可以选择一项或多项以继续。",
     "TT_INFO_BTN": "{{buildToString}} - 作业: {{buildNumber}} - 合格率: {{passRate}}%",
     "TT_INVESTIGATEDLISTDISPLAY" : "作业: {{buildNumber}} - 合格率: {{passRate}}%",
     "TT_ADVANCE_FILTER" : "过滤器",

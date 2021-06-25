@@ -261,6 +261,8 @@
     "GROUP_BY_TRACKNUM_BTN": "Group by track number",
     "GROUP_BY_CREATE_DATE_BTN" : "Group by create date",
     "GROUP_BY_TYPE_BTN" : "Group by type",
+    "TT_CHOOSE_PL_WHEN_NON_DISTINCT_FOUND_MESSAGE" : "Multiple product lines are found. You can choose one or more to continue.",
+    "TT_BOOKMARK_BUILD" : "Bookmark current build with this product line. The bookmarked build will always display when this workspace is loaded",
     "TT_INFO_BTN": "{{buildToString}} - Build: {{buildNumber}} - Pass Rate: {{passRate}}%",
     "TT_INVESTIGATEDLISTDISPLAY" : "Build: {{buildNumber}} - Pass Rate: {{passRate}}%",
     "TT_ADVANCE_FILTER" : "Advance Filter",

@@ -60,6 +60,7 @@ router.put '/:id',  (req, res, next) ->
           return next err
         res.json rs
     else
+      req.body.userid = req.params.id
       userFav = new UserFav(req.body)
       userFav.save (err, rs) ->
         if err

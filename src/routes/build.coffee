@@ -536,12 +536,12 @@ router.post '/search', (req, res, next) ->
   if(req.body.since)
     since = req.body.since
 
-  condition = [
+  conditions = [
     { product: { $regex: req.body.product, $options: 'i'} },
     { type: { $regex: req.body.type, $options: 'i'} },
     { start_time: { $gte: new Date(moment().subtract(since,'day').format()) } }
   ]
-
+  
   if(req.body.version)
     conditions.push({ version: { $regex: req.body.version, $options: 'i'} })
 
@@ -564,13 +564,20 @@ router.post '/search', (req, res, next) ->
     conditions.push({ stage: { $regex: req.body.stage, $options: 'i'} })
 
   Build.aggregate()
-  .match({ $and : condition })
+  .match({ $and : conditions })
   .group(
     { 
       # _id:  "$_id",
       _id:  {
         product:  "$product",
-        type: "$type"
+        type: "$type",
+        version: "$version",
+        team: "$team",
+        browser: "$browser",
+        device: "$device",
+        platform: "$platform",
+        platform_version: "$platform_version",
+        stage: "$stage"
       },
       product: { $last: "$product"},
       type: { $last: "$type"},
@@ -609,6 +616,7 @@ router.post '/search', (req, res, next) ->
       version: "$version",
       browser: "$browser",
       device: "$device",
+      team: "$team",
       platform: "$platform",
       platform_version: "$platform_version",
       stage: "$stage",
