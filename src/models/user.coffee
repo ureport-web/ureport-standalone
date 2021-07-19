@@ -65,7 +65,7 @@ userSchema = new Schema(
             },
             isExpandMenu : {
               type: Boolean,
-              default: false
+              default: true
             },
             isWidgetBarOnHover : {
               type: Boolean,

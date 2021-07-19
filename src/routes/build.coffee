@@ -590,6 +590,8 @@ router.post '/search', (req, res, next) ->
       stage: { $last: "$stage"},
       build: { $last: "$build"},
       start_time: { $last: "$start_time"},
+      environments: {$last: "$environments"},
+      settings: {$last: "$settings"},
       aggregate_last_id: {
         $last : "$_id"
       },
@@ -627,7 +629,9 @@ router.post '/search', (req, res, next) ->
       status: "$status",
       aggregate_previous_runs: { 
         $slice : ["$aggregate_previous_runs", 0, 20]
-      }
+      },
+      environments: "$environments",
+      settings: "$settings"
   })
   .exec((err, builds) -> res.json builds );
 
