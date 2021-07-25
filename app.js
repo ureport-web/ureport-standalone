@@ -147,6 +147,7 @@ if (config !== undefined) {
   app.use('/api/build', isAuthenticatedMid)
   app.use('/api/investigated_test', isAuthenticatedMid)
   app.use('/api/dashboard', isAuthenticatedMid)
+  app.use('/api/dashboard/template', isAuthenticatedMid)
   app.use('/api/setting', isAuthenticatedMid)
   app.use('/api/assignment', isAuthenticatedMid)
   app.use('/api/tracking', isAuthenticatedMid)
@@ -165,6 +166,8 @@ if (config !== undefined) {
    */
   const authenticate = require('./src/routes/authentication')
   const dashboard = require('./src/routes/dashboard')
+  const dashboardTemplate = require('./src/routes/dashboard_template')
+
   const setting = require('./src/routes/setting')
   const systemSetting = require('./src/routes/system_setting')
 
@@ -194,6 +197,7 @@ if (config !== undefined) {
   app.use('/api/investigated_test', investigatedTest)
   app.use('/api/test_relation', testRelation)
   app.use('/api/dashboard', dashboard)
+  app.use('/api/template', dashboardTemplate)
   app.use('/api/assignment', assignment)
   app.use('/api/user', user)
   app.use('/api/user/preference', preference)
@@ -202,7 +206,7 @@ if (config !== undefined) {
   app.use('/api/search', searching)
   app.use('/api/dependency', dependency)
   app.use('/api/dependency_relation', dependencyRelation)
-
+  
   app.use('/api/noauth', noauth)
 
   app.use(function (err, req, res, next) {

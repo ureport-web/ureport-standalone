@@ -2,6 +2,7 @@ AccessControl = require('accesscontrol');
 ac = new AccessControl();
 ac.grant('viewer')
     .readAny('dashboard')
+    .readAny('dashboard_template')
     .readAny('build')
     .readAny('setting')
     .readAny('test')
@@ -34,6 +35,9 @@ ac.grant('viewer')
     .createAny('dependency')
     .updateAny('dependency')
   .grant('admin')
+    .createAny('dashboard_template')
+    .updateOwn('dashboard_template')
+    .deleteOwn('dashboard_template')
     .extend('operator')
     .deleteAny('build') #Tested
     .deleteAny('dashboard')

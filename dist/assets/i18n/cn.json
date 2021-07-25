@@ -76,9 +76,13 @@
     "SELECT_LBL": "选择",
     "LOADING":"读取中"
   },
+  "COMPONENT":{
+    "DASHBOARD" : "仪表板",
+    "DASHBOARD_TEMPALTE": "模板"
+  },
   "MODAL": {
     "BUILD_ONDATE" : "* 选择开始日期",
-    "DASHBOARD_SHARE_LBL" : "共享仪表板",
+    "DASHBOARD_SHARE_LBL" : "共享",
     "DASHBOARD_DEFAULT_LBL" : "使用默认部件",
     "DASHBOARD_INFO_LBL" : "信息",
     "DASHBOARD_CONFIRM_LBL" : "您确定要删除 {{ name }} 吗?",
@@ -86,12 +90,13 @@
     "DO_YOU_WANT_TO_CONTINUE" : "确定继续吗?",
     "MSG_BUILD_PURGE": "你可以把它存档，如果你只想隐藏内部版本。清除操作无法还原。确定继续吗？",
     "MSG_REMOVE_SHARE_DASHBOARD": "您的仪表板将不再对其他人可见。",
+    "MSG_REMOVE_SHARE_TEMPLATE": "此模板将不再可见以在仪表板视图中选择",
     "MSG_USERNAME_CHANGE":"您已经更改了用户名，如果继续，您将在成功更新后注销。"
   },
   "MESSAGE": {
     "MSG_NO_RESULT_FOUND" : "找不到任何作业",
     "MSG_NO_FILTER": "此产品系列中没有要使用的过滤器。请与管理员联系以设置过滤器",
-    "MSG_CHOOSE_RELATION": "选择一种关系。",
+    "MSG_CHOOSE_RELATION": "选择一种关系",
     "MSG_SHOW_LEGEND": "显示图例",
     "MSG_CHOOSE_DIFFERENT_PL": "选择其他产品线。",
     "MSG_CHOOSE_DIFFERENT_PL_HELP": "* 您可以选择默认产品线以外的其他产品线（如果存在默认产品线）",
@@ -115,8 +120,8 @@
     "MSG_PL_SELECT_REQUIRED_FIELD": "请选择必填字段",
     "MSG_DATE_RANGE" : "日期范围",
     "MSG_DATE_RECURRENCE" : "循环",
-    "MSG_EXPLORER_ONE_TEST" : "You need to select at least 1 test to use this feature.",
-    "MSG_EXPLORER_TOO_MANY_TESTS" : "There are too many test cases, please use filter to decrease the number."
+    "MSG_EXPLORER_ONE_TEST" : "您需要至少选择 1 个测试才能使用此功能。",
+    "MSG_EXPLORER_TOO_MANY_TESTS" : "测试用例过多，请使用过滤器减少数量。"
   },
   "REQUIRED_LBL": {
     "REQ_PRODUCT" : "产品",
@@ -207,7 +212,11 @@
     "MSG_YOUR_DASHBOARD": "您的仪表板",
     "MSG_SHARED_DASHBOARD": "其他人共享的仪表板",
     "TITLE_LBE": "仪表板",
-    "TT_ADD_LBL": "添加仪表板"
+    "TT_ADD_LBL": "添加仪表板",
+    "TT_ADD_TEMPLATE_LBL": "添加仪表板",
+    "TT_GO_BACK_TO_LBL": "返回仪表板",
+    "TT_VIEW_WITH_TEMPLATE_LBL": "使用模板",
+    "TT_NO_PUBLISH_TEMPLATE_LBL": "找不到任何已发布的模板"
   },
   "BUILD": {
     "VIEW_DASHBOARD_LBL": "查看仪表板",
@@ -229,7 +238,11 @@
     "TT_DELETE_LBL": "删除仪表板",
     "TT_CLONE_LBL": "克隆仪表板",
     "TT_D_ACTIONS_LBL": "仪表板操作",
-    "TT_W_ACTIONS_LBL": "部件动作"
+    "TT_W_ACTIONS_LBL": "部件动作",
+    "TT_EDIT_TEMPLATE_LBL": "编辑模板",
+    "TT_SHARE_TEMPLATE_LBL": "发布模板",
+    "TT_DELETE_TEMPLATE_LBL": "删除模板",
+    "TT_CLONE_TEMPLATE_LBL": "克隆模板"
   },
   "WORKSPACE": {
     "LOAD" : "打开工作区",
@@ -393,6 +406,7 @@
     "WIDGET_NAME_GROUP_TABLE_LBL": "表格",
     "WIDGET_NAME_GROUP_HEATMAP_LBL": "热图",
     "WIDGET_NAME_GROUP_CARD_LBL" : "卡片",
+    "WIDGET_END_PREVIEW": "Close Preview",
     "WIDGET_NAME": {
       "Builds in Calendar" : "作业日历",
       "Status" : "状态",
@@ -511,17 +525,17 @@
     "ANSWER_API_LBL" : "有关更多信息，请参考API DOC。",
     "ANSWER_PL_1" : "A product line represent a conceptual combination of 8 variables from the automatoin execution. Among these 8 values, 2 are mandatory, and the other 6 are optional.<br> Let's use an exmaple to explain it. <br> Say we have a web application that we need to run automation regression in the nightly build. We need to run it in three different browsers. (Chrome, Firefox and Safari).<br> We could have 3 potential product lines in this scearnio.",
     "ANSWER_PL_2" : "Once these product line are set, all future executions should keep pushing result under the same product line with different build number from your CI software. <br>To know how to send data to UReport server.",
-    "QUESTION_AUTOANALYZE" : "How does auto analyze work?",
+    "QUESTION_AUTOANALYZE" : "自动分析如何工作？",
     "ANSWER_AUTOANALYZE_1" : "Auto analysis is one of the key feature UReport offers. User does not need to setup anything. it will be always turned on.<br> Once you mark one fail test as any issue type, if the marked test case failed in the future for the same reason, the test wll be automatically marked as Investigated <i class='fas fa-microscope c-investigated' ></i>.<br> UReport will search back, by default, 30 days for all investigated issues within the same product line. <br> This day number can be changed in the Settings.<hr> <br><strong>How does it work?</strong><br>When save failed test case through API, there are three fields user can provide: ",
     "ANSWER_AUTOANALYZE_2" : "To allow the auto analysis to work. <u>error_message</u> must be provided. This is the string UReport uses to achieve the auto analysis.<br>To allow a percise auto analysis result, field <u>token</u> is recommended. <br> <u>Then what is token? </u>",
-    "QUESTION_UID" : "What is a UID of a test?",
+    "QUESTION_UID" : "什么是测试的 UID？",
     "QUESTION_D_PL" : "What is the difference between a bind product line dashboard and non-bind product line dashboard?",
     "QUESTION_T_UID" : "What is the difference among investigated test, assign test and pin test?",
     "QUESTION_T_OUT" : "What is the difference between investigated status and outage status?",
-    "QUESTION_T_CES" : "What is CES?",
-    "QUESTION_TR_RELATION" : "What is Test Relation?",
-    "QUESTION_S_PLS" : "What is Product Line setting?",
-    "QUESTION_S_IT" : "What is Issue Type?",
-    "QUESTION_S_RF" : "What is Test Relation Filter? And what is the group filter?"
+    "QUESTION_T_CES" : "什么是CES？",
+    "QUESTION_TR_RELATION" : "什么是测试关系？",
+    "QUESTION_S_PLS" : "什么是产品线设置？",
+    "QUESTION_S_IT" : "什么是问题类型？",
+    "QUESTION_S_RF" : "什么是测试关系过滤器？ 什么是组过滤器？"
   } 
 }

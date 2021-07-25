@@ -53,7 +53,7 @@ router.get '/shared/:userId',  (req, res, next) ->
 router.post '/',  (req, res, next) ->
   if(!req.body.user)
     res.status(400)
-    return res.json {error: "UserID is mandatory"}
+    return res.json {error: " UserID is mandatory "}
 
   if (!AccessControl.canAccessCreateAnyIfOwn(req.user, req.body.user, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
