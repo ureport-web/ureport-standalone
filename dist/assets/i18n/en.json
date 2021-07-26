@@ -94,7 +94,8 @@
     "MSG_BUILD_PURGE": "If you just want to hide the build, you can archive it. The purge action cannot be revert. Are you sure?",
     "MSG_REMOVE_SHARE_DASHBOARD": "This dashboard will no longer be visible to others.",
     "MSG_REMOVE_SHARE_TEMPLATE": "This template will no longer be visible to select in the dashboard view.",
-    "MSG_USERNAME_CHANGE":"You have changed the username, if you proceed, you will be logged out after updating successfully."
+    "MSG_USERNAME_CHANGE":"You have changed the username, if you proceed, you will be logged out after updating successfully.",
+    "MSG_UNSAVED_CHANGES" : "You have unsaved changes. You can save now or cancel to discard the changes."
   },
   "MESSAGE": {
     "MSG_NO_RESULT_FOUND" : "Cannot find any results with given date and range",

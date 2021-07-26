@@ -329,8 +329,9 @@ router.post '/aggregate/trend', (req, res, next) ->
         Test.aggregate()
         .match({
             $and : [
-                { build : {$in : req.body.builds.map((el) -> ObjectId(el) )} },
-                { $or: [ { is_rerun: false }, { is_rerun: null} ]} ]
+                { build : {$in : req.body.builds.map((el) -> ObjectId(el) )} }
+                # { $or: [ { is_rerun: false }, { is_rerun: null} ]} 
+                ]
         })
         .group({
             _id: "$uid",
@@ -339,7 +340,8 @@ router.post '/aggregate/trend', (req, res, next) ->
                     status : "$status",
                     uid : "$uid",
                     id: "$_id",
-                    failure: "$failure"
+                    failure: "$failure",
+                    is_rerun: "$is_rerun"
                 }
             }
         })

@@ -91,7 +91,8 @@
     "MSG_BUILD_PURGE": "你可以把它存档，如果你只想隐藏内部版本。清除操作无法还原。确定继续吗？",
     "MSG_REMOVE_SHARE_DASHBOARD": "您的仪表板将不再对其他人可见。",
     "MSG_REMOVE_SHARE_TEMPLATE": "此模板将不再可见以在仪表板视图中选择",
-    "MSG_USERNAME_CHANGE":"您已经更改了用户名，如果继续，您将在成功更新后注销。"
+    "MSG_USERNAME_CHANGE":"您已经更改了用户名，如果继续，您将在成功更新后注销。",
+    "MSG_UNSAVED_CHANGES" : "You have unsaved changes. You can save now or cancel to discard the changes."
   },
   "MESSAGE": {
     "MSG_NO_RESULT_FOUND" : "找不到任何作业",
