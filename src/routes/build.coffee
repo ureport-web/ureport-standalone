@@ -512,7 +512,7 @@ router.post '/:page/:perPage',  (req, res, next) ->
     if(req.body.sort)
       sort = req.body.sort
     else
-      sort = {create_at: 'desc'}
+      sort = {start_time: 'desc'}
     # invTest filter and condition
     Build.find(query, {}, pagnition)
     .limit(size)

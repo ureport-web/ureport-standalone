@@ -1,7 +1,8 @@
 # UReport
 ### Stand alone server side reporting and analyzing software for local or CI automation.
 [Demo](https://ureport-demo.herokuapp.com/#/)
-Username/password: operator/password
+Username: operator
+Password: password
 
 If you need an admin permission, please contact ureport@outlook.com
 or
@@ -61,6 +62,8 @@ There are two important collections you need to know about for you to send your 
 Test is a collections holds all your tests belongs to a specifc build
 <br>
 Once you deploy the server, you can go to http://your-server:your-port/api-docs/
-
+Or
+You can login with user admin and go to http://your-server:your-port/#/faq
+This page contains basic information about the how UReport works
 <!-- # What to contribute to UI?
 Check out our UI repo -->
