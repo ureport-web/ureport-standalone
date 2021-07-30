@@ -21,6 +21,7 @@
     "TT_CANCEL_LBL" : "取消",
     "TT_CHOOSE_LBL" : "选择",
     "TT_EDIT_LBL" : "编辑",
+    "TT_UPDATE_LBL" : "Update",
     "TT_DELETE_LBL" : "删除",
     "TT_CLONE_LBL" : "复制",
     "TT_STATUS_LBL" : "状态",
@@ -74,7 +75,8 @@
     "UNSELECT_ALL": "取消全选",
     "SELECT_ITEM": "选择项",
     "SELECT_LBL": "选择",
-    "LOADING":"读取中"
+    "LOADING":"读取中",
+    "TT_SUCCESSFULLY": "成功"
   },
   "COMPONENT":{
     "DASHBOARD" : "仪表板",
@@ -83,6 +85,7 @@
   "MODAL": {
     "BUILD_ONDATE" : "* 选择开始日期",
     "DASHBOARD_SHARE_LBL" : "共享",
+    "DASHBOARD_UNSHARE_LBL" : "Share",
     "DASHBOARD_DEFAULT_LBL" : "使用默认部件",
     "DASHBOARD_INFO_LBL" : "信息",
     "DASHBOARD_CONFIRM_LBL" : "您确定要删除 {{ name }} 吗?",
@@ -92,7 +95,7 @@
     "MSG_REMOVE_SHARE_DASHBOARD": "您的仪表板将不再对其他人可见。",
     "MSG_REMOVE_SHARE_TEMPLATE": "此模板将不再可见以在仪表板视图中选择",
     "MSG_USERNAME_CHANGE":"您已经更改了用户名，如果继续，您将在成功更新后注销。",
-    "MSG_UNSAVED_CHANGES" : "You have unsaved changes. You can save now or cancel to discard the changes."
+    "MSG_UNSAVED_CHANGES" : "您有未保存的更改。 您可以立即保存或取消以放弃更改."
   },
   "MESSAGE": {
     "MSG_NO_RESULT_FOUND" : "找不到任何作业",
@@ -122,7 +125,12 @@
     "MSG_DATE_RANGE" : "日期范围",
     "MSG_DATE_RECURRENCE" : "循环",
     "MSG_EXPLORER_ONE_TEST" : "您需要至少选择 1 个测试才能使用此功能。",
-    "MSG_EXPLORER_TOO_MANY_TESTS" : "测试用例过多，请使用过滤器减少数量。"
+    "MSG_EXPLORER_TOO_MANY_TESTS" : "测试用例过多，请使用过滤器减少数量。",
+    "MSG_INVESTIGATED_SEARCH" : "Type to search based on UID or issue number",
+    "MSG_NO_OWNER": "没有权限",
+    "MSG_SELECT_MULTIPLE_TESTS": "至少需要选择 1 个测试才能使用此功能。",
+    "MSG_DEFAULT_PL_SELECTED":"选定的产品线是仪表板中的默认产品线。",
+    "MSG_INVALID_PL_SELECTED":"请提供有效的产品线."
   },
   "REQUIRED_LBL": {
     "REQ_PRODUCT" : "产品",
@@ -217,7 +225,8 @@
     "TT_ADD_TEMPLATE_LBL": "添加仪表板",
     "TT_GO_BACK_TO_LBL": "返回仪表板",
     "TT_VIEW_WITH_TEMPLATE_LBL": "使用模板",
-    "TT_NO_PUBLISH_TEMPLATE_LBL": "找不到任何已发布的模板"
+    "TT_NO_PUBLISH_TEMPLATE_LBL": "找不到任何已发布的模板",
+    "TT_NO_DASHBOARD_FOUND_LBL": "找不到仪表板。"
   },
   "BUILD": {
     "VIEW_DASHBOARD_LBL": "查看仪表板",
@@ -266,8 +275,8 @@
     "GROUP_BY_TRACKNUM_BTN": "按编号分组",
     "GROUP_BY_CREATE_DATE_BTN" : "按创建日期分组",
     "GROUP_BY_TYPE_BTN" : "按类型分组",
-    "TT_BOOKMARK_BUILD" : "添加为书签的产品线将始终显示在加载的工作区",
     "TT_CHOOSE_PL_WHEN_NON_DISTINCT_FOUND_MESSAGE" : "发现了多个产品线。 您可以选择一项或多项以继续。",
+    "TT_BOOKMARK_BUILD" : "使用来自产品通道的书签当前选定的构建。 加载此工作区时，书签构建将始终显示。",
     "TT_INFO_BTN": "{{buildToString}} - 作业: {{buildNumber}} - 合格率: {{passRate}}%",
     "TT_INVESTIGATEDLISTDISPLAY" : "作业: {{buildNumber}} - 合格率: {{passRate}}%",
     "TT_ADVANCE_FILTER" : "过滤器",
@@ -283,7 +292,11 @@
     "TT_ANALYZE_TEST_STATUS": "分析测试状态",
     "SIG_LBL": "状态图标词汇表",
     "MSG_MISSING_PRODUCT_LINE" : "* 您的产品线缺少值。",
-    "MSG_CHOOSE_PRODUCT_LINE" : "请选择一个产品线。"
+    "MSG_CHOOSE_PRODUCT_LINE" : "请选择一个产品线",
+    "MSG_WITH_SAME_FAILURE_LBL" : "{{ testsLength }} 个测试具有与此测试相同的失败消息。",
+    "MSG_WITH_SAME_FAILURE_GLOBAL_LBL" : "{{ testsLength }} 在此产品线中使用相同的失败消息进行测试",
+    "MSG_WITH_NO_SAME_FAILURE_GLOBAL_LBL" : "未找到具有相同失败消息的测试。",
+    "TT_SEARCH_WITH_SAME_FAILURE" : "搜索具有相同失败的测试"
   },
   "TEST_TOOLBAR": {
     "HISTORY_BUILD_BTN": "历史记录"
@@ -405,7 +418,7 @@
     "WIDGET_NAME_GROUP_LINE_LBL": "折线图",
     "WIDGET_NAME_GROUP_BAR_LBL": "条形图",
     "WIDGET_NAME_GROUP_TABLE_LBL": "表格",
-    "WIDGET_NAME_GROUP_HEATMAP_LBL": "热图",
+    "WIDGET_NAME_GROUP_MAP_LBL": "图",
     "WIDGET_NAME_GROUP_CARD_LBL" : "卡片",
     "WIDGET_END_PREVIEW": "Close Preview",
     "WIDGET_NAME": {
@@ -414,13 +427,13 @@
       "Advance Status" : "高级状态",
       "Investigated Test Status" : "正在调查的测试状态",
       "Pass Rate" : "通过率",
-      "Multiple Product Line Pass Rate" : "多个产品线通过率",
+      "Multiple Product Lane Pass Rate" : "多个产品线通过率",
       "Run History" : "运行历史",
       "Status By Filter From Latest Run" : "按最新运行的筛选状态",
       "Unstable Tests List" : "不稳定的测试列表",
       "Stable Tests List" : "稳定测试列表",
       "Most Failed Reasons" : "最多失败的原因",
-      "Multiple Product Line Build Table" : "多个产品线作业表",
+      "Multiple Product Lane Build Table" : "多个产品线作业表",
       "Customizable Status Table" : "可自定义状态表",
       "Status By Filter Heatmap": "测试关系热图",
       "Tests Summary": "测试摘要",

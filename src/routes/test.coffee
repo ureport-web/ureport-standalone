@@ -1,4 +1,5 @@
 express = require('express')
+moment = require('moment')
 router = express.Router()
 # file upload
 multer  = require('multer')
@@ -11,6 +12,8 @@ storage = multer.diskStorage({
 upload = multer({ storage: storage })
 
 Test = require('../models/test')
+getSystemSetting = require('../utils/getSystemSetting')
+
 async = require("async")
 ObjectId = require('mongoose').Types.ObjectId;
 registerAudit = require('../utils/register_audit')
@@ -395,14 +398,26 @@ router.post '/aggregate/single/history', (req, res, next) ->
         res.status(404)
         res.json {"error": "uid is mandatory"}
 
+router.post '/aggregate/by/failure', (req, res, next) ->
+    getSystemSetting(req, "SYSTEM_SETTING", false, (setting) ->
+        # if(req.body.uid)
+        sinceDay = 30
 
-router.post '/aggregate/by/investigated', (req, res, next) -> 
-    if(req.body.uid)
+        if(setting && setting.analysisSinceDay)
+            sinceDay = setting.analysisSinceDay
+
+        if(req.body.since)
+            since = req.body.since
+        else
+            since = moment().subtract(sinceDay,'day').format()
+
         condition = { 
-            uid : req.body.uid,
-            status:{$ne : "PASS"}
-            # "failure.error_message":"Miniplayer displayed \"Fetching Music\" message after timeout of 60000"
+            status:{$ne : "PASS"},
+            start_time: { $gte: new Date(since) }
         }
+        console.log(since)
+        if(req.body.uid)
+            condition["uid"] = req.body.uid
         if(req.body.token)
             condition["failure.token"] = req.body.token
         if(req.body.error_message)
@@ -444,8 +459,9 @@ router.post '/aggregate/by/investigated', (req, res, next) ->
             }
         })
         .exec((err, tests) -> res.json tests );
-    else
-        res.status(404)
-        res.json {"error": "uid is mandatory"}
+    )
+    # else
+    #     res.status(404)
+    #     res.json {"error": "uid is mandatory"}
 
 module.exports = router
