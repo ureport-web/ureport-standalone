@@ -130,7 +130,8 @@
     "MSG_NO_OWNER": "没有权限",
     "MSG_SELECT_MULTIPLE_TESTS": "至少需要选择 1 个测试才能使用此功能。",
     "MSG_DEFAULT_PL_SELECTED":"选定的产品线是仪表板中的默认产品线。",
-    "MSG_INVALID_PL_SELECTED":"请提供有效的产品线."
+    "MSG_INVALID_PL_SELECTED":"请提供有效的产品线.",
+    "MSG_NO_FAILURE_MESSAGE_OR_TRACE_FOUND": "在此测试中找不到任何失败原因或堆栈跟踪以标记为已调查测试."
   },
   "REQUIRED_LBL": {
     "REQ_PRODUCT" : "产品",
@@ -293,9 +294,9 @@
     "SIG_LBL": "状态图标词汇表",
     "MSG_MISSING_PRODUCT_LINE" : "* 您的产品线缺少值。",
     "MSG_CHOOSE_PRODUCT_LINE" : "请选择一个产品线",
-    "MSG_WITH_SAME_FAILURE_LBL" : "{{ testsLength }} 个测试具有与此测试相同的失败消息。",
-    "MSG_WITH_SAME_FAILURE_GLOBAL_LBL" : "{{ testsLength }} 在此产品线中使用相同的失败消息进行测试",
-    "MSG_WITH_NO_SAME_FAILURE_GLOBAL_LBL" : "未找到具有相同失败消息的测试。",
+    "MSG_WITH_SAME_FAILURE_LBL" : "{{ testsLength }} 个测试具有与此测试相同的失败信息。",
+    "MSG_WITH_SAME_FAILURE_GLOBAL_LBL" : "{{ testsLength }} 在此产品线中拥有相同的失败信息的测试",
+    "MSG_WITH_NO_SAME_FAILURE_GLOBAL_LBL" : "未找到具有相同失败信息的测试。",
     "TT_SEARCH_WITH_SAME_FAILURE" : "搜索具有相同失败的测试"
   },
   "TEST_TOOLBAR": {
@@ -338,7 +339,7 @@
     "SETUP_PANEL_LBE": "设置步骤",
     "BODY_PANEL_LBE": "测试步骤",
     "TEARDOWN_PANEL_LBE": "拆解步骤",
-    "STEPS_LBE": "步骤",
+    "STEPS_LBE": "步骤总和",
     "TT_JUMP_TO_FAIL": "“跳至第一个失败步骤。",
     "TT_BACK_TO_FIRST": "返回第一步。"
   },

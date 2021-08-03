@@ -133,7 +133,8 @@
     "MSG_NO_OWNER": "You need to be the owner to perform this action.",
     "MSG_SELECT_MULTIPLE_TESTS": "At least 1 test need to be selected to use this feature.",
     "MSG_DEFAULT_PL_SELECTED":"YThe selected product lane is the default product lane in the dashboard.",
-    "MSG_INVALID_PL_SELECTED":"Please provide a valid product lane."
+    "MSG_INVALID_PL_SELECTED":"Please provide a valid product lane.",
+    "MSG_NO_FAILURE_MESSAGE_OR_TRACE_FOUND": "Cannot find any failure reason or stack trace in this test to mark as investigated test"
   },
   "REQUIRED_LBL": {
     "REQ_PRODUCT" : "Please provide a product",
@@ -304,7 +305,7 @@
     "LIST_SETTING_DISPLAY_HISTORY_RESULT" : "Choose a number of displayed past results",
     "LIST_SETTING_SORT_BY" : "Sort table row by",
     "MSG_WITH_SAME_FAILURE_LBL" : "tests found with the same failure message as this test within the displayed executions",
-    "MSG_WITH_SAME_FAILURE_GLOBAL_LBL" : "tests found with the same failure message in this product lane",
+    "MSG_WITH_SAME_FAILURE_GLOBAL_LBL" : "tests found with the same failure message",
     "MSG_WITH_NO_SAME_FAILURE_GLOBAL_LBL" : "No tests were found with the same failure message",
     "TT_SEARCH_WITH_SAME_FAILURE" : "Search for tests with the same failure"
   },
@@ -323,7 +324,7 @@
     "RERUN_TAB" : "Reruns",
     "DATA_TAB" : "Data",
     "STEPS_TAB" : "Steps",
-    "INFO_TAB" : "Info & Relations",
+    "INFO_TAB" : "Test Information & Relations",
     "INVESTIGATED_TAB" : "Investigation Comments",
     "ASSIGNMENT_TAB" : "Assignment Comments",
     "RUN_HISTORY_TAB" : "Run History",
@@ -349,7 +350,7 @@
     "SETUP_PANEL_LBE": "Setup",
     "BODY_PANEL_LBE": "Test",
     "TEARDOWN_PANEL_LBE": "Teardown",
-    "STEPS_LBE": "Steps",
+    "STEPS_LBE": "step(s) in total",
     "TT_JUMP_TO_FAIL": "Jump to first failure step.",
     "TT_BACK_TO_FIRST": "Go back to first step."
   },
