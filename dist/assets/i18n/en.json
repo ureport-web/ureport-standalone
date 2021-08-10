@@ -454,6 +454,7 @@
       "Customizable Status Table" : "Customizable Status Table",
       "Status By Filter Heatmap": "Test Relation Heatmap",
       "Relation Treemap": "Test Relation Treemap",
+      "Test Status Trendmap": "Test Status Trendmap",
       "Tests Summary": "Tests Summary",
       "Builds Summary": "Builds Summary",
       "Investigated Tests Summary": "Investigated Tests Summary"
@@ -480,7 +481,7 @@
     "RELATIONS_GROUP_BY_BAR": "Display the group by the status of test relations from the lastest execution with the given product lane in a bar chart. To make test relation available, the selected product lane needs to have product lane settings set up.",
     "BUILD_HISTORY_BAR": "Display test status of x number of executions with the given product lane in a bar chart. The number of execution can be selected from the Range option. The default number is 20 executions.",
     "BUILD_HISTORY_GROUP_BAR": "",
-    "TEST_TABLE": "",
+    "TEST_STATUS_TRENDMAP": "",
     "MOSTFAILREASON_TABLE": "A table displays the fail reasons of all non-pass test cases in the latest execution of given product lane",
     "UNSTABLE_TESTS_TABLE": "A table displays the unstable tests and their status trend of x executions with the given product lane. The number of execution can be selected from the Range option. The default number is 20 executions. The high failure rate shows any tests that have more than a 10% failure rate which helps you to quickly identify the unstable tests. The low fail rate shows any test has less than a 10% failure rate which helps you to identify intermittent issues that occur less frequently leading the test to fail.",
     "STABLE_TESTS_TABLE": "A table displays the tests, which have a stable status trend of x executions with the given product lane. The number of execution can be selected from the Range option. The default number is 20 executions. There are three trends: Always pass, Always fail and Always skip.",

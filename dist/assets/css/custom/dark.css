@@ -155,9 +155,9 @@ nav#sidebar.shrinked ul i {
 
 .dashboard-card {
   background: var(--dark);
-  -webkit-box-shadow: 0px 0px 11px 2px rgba(26, 25, 25);
-  -moz-box-shadow: 0px 0px 11px 2px rgba(26, 25, 25);
-  box-shadow: 0px 0px 11px 2px rgb(26, 25, 25);
+  -webkit-box-shadow: 0px 0px 11px 2px rgba(36, 25, 25);
+  -moz-box-shadow: 0px 0px 11px 2px rgba(36, 25, 25);
+  box-shadow: 0px 0px 11px 2px rgb(36, 25, 25);
 }
 
 .show-widget-border {

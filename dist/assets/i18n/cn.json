@@ -437,6 +437,7 @@
       "Multiple Product Lane Build Table" : "多个产品线作业表",
       "Customizable Status Table" : "可自定义状态表",
       "Status By Filter Heatmap": "测试关系热图",
+      "Test Status Trendmap": "Test Status Trendmap",
       "Tests Summary": "测试摘要",
       "Builds Summary": "作业摘要",
       "Investigated Tests Summary": "调查测试摘要"
@@ -462,7 +463,7 @@
     "RELATIONS_GROUP_BY_BAR": "按条形图中给定产品线的最新执行的测试关系状态显示组。 要使测试关系可用，所选产品线需要设置产品线设置。",
     "BUILD_HISTORY_BAR": "在条形图中显示给定产品线的 x 次执行的测试状态。 可以从范围选项中选择执行次数。 默认数量是 20 次执行。",
     "BUILD_HISTORY_GROUP_BAR": "",
-    "TEST_TABLE": "",
+    "TEST_STATUS_TRENDMAP": "",
     "MOSTFAILREASON_TABLE": "一个表格显示了给定产品线最近一次执行中所有未通过测试用例的失败原因",
     "UNSTABLE_TESTS_TABLE": "一个表格显示了给定产品线的 x 次执行的不稳定测试及其状态趋势。 可以从范围选项中选择执行次数。 默认数量是 20 次执行。 高失败率显示任何失败率超过 10% 的测试，这有助于您快速识别不稳定的测试。 低失败率表明任何测试的失败率都低于 10%，这有助于您识别导致测试失败的频率较低的间歇性问题。",
     "STABLE_TESTS_TABLE": "一个表格显示了测试，这些测试在给定的产品线中具有 x 次执行的稳定状态趋势。 可以从范围选项中选择执行次数。 默认数量是 20 次执行。 存在三种趋势：总是通过、总是失败和总是跳过。",
