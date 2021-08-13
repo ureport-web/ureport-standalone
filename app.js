@@ -41,8 +41,7 @@ if (config !== undefined) {
   app = express()
 
   // set static file to dist folder.
-  app.use(express.static(path.join(__dirname, 'dist')))
-  // app.use(express.static(path.join(__dirname, 'public')))
+  app.use(express.static(path.join(__dirname, 'public')))
 
   //API doc
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument,options));
@@ -161,6 +160,7 @@ if (config !== undefined) {
   app.get('/api/authrequired', isAuthenticatedMid, (req, res) => {
     res.send(`You are login`)
   })
+
   /**
    * routing
    */
@@ -218,8 +218,6 @@ if (config !== undefined) {
       error: err
     })
   })
-
-  // app.listen(config.PORT, () => console.log('Using port ' + config.PORT))
 
 } else {
   console.error("Cannot find configuration file, Server will not be started.")
