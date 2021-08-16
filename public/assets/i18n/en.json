@@ -132,7 +132,7 @@
     "MSG_INVESTIGATED_SEARCH" : "Type to search in UID or Issue",
     "MSG_NO_OWNER": "You need to be the owner to perform this action.",
     "MSG_SELECT_MULTIPLE_TESTS": "At least 1 test need to be selected to use this feature.",
-    "MSG_DEFAULT_PL_SELECTED":"YThe selected product lane is the default product lane in the dashboard.",
+    "MSG_DEFAULT_PL_SELECTED":"The product lane is already selected.",
     "MSG_INVALID_PL_SELECTED":"Please provide a valid product lane.",
     "MSG_NO_FAILURE_MESSAGE_OR_TRACE_FOUND": "Cannot find any failure reason or stack trace in this test to mark as investigated test"
   },
@@ -264,7 +264,7 @@
     "TT_CLONE_TEMPLATE_LBL": "Clone Template"
   },
   "WORKSPACE": {
-    "LOAD" : "Open a workspace.",
+    "OPEN_WORKSPACE" : "Toggle workspace.",
     "LOAD_TO_WORKSPACE" : "Load into workspace.",
     "ADD_PL_TO_WS": "Add a product lane to workspace",
     "ADD_WORKSPACE": "Create a new workspace",
@@ -310,7 +310,7 @@
     "TT_SEARCH_WITH_SAME_FAILURE" : "Search for tests with the same failure"
   },
   "TEST_TOOLBAR": {
-    "HISTORY_BUILD_BTN": "History Build"
+    "BUILD_HISTORY": "Build History"
   },
   "TEST_DETAIL": {
     "DEPENDENCY": "Depedency",

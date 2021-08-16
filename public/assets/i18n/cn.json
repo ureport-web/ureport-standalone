@@ -129,7 +129,7 @@
     "MSG_INVESTIGATED_SEARCH" : "Type to search based on UID or issue number",
     "MSG_NO_OWNER": "没有权限",
     "MSG_SELECT_MULTIPLE_TESTS": "至少需要选择 1 个测试才能使用此功能。",
-    "MSG_DEFAULT_PL_SELECTED":"选定的产品线是仪表板中的默认产品线。",
+    "MSG_DEFAULT_PL_SELECTED":"产品线已被选中。",
     "MSG_INVALID_PL_SELECTED":"请提供有效的产品线.",
     "MSG_NO_FAILURE_MESSAGE_OR_TRACE_FOUND": "在此测试中找不到任何失败原因或堆栈跟踪以标记为已调查测试."
   },
@@ -256,7 +256,7 @@
     "TT_CLONE_TEMPLATE_LBL": "克隆模板"
   },
   "WORKSPACE": {
-    "LOAD" : "打开工作区",
+    "OPEN_WORKSPACE" : "打开工作区",
     "LOAD_TO_WORKSPACE" : "加载到工作区",
     "ADD_PL_TO_WS": "将产品线添加到当前工作空间",
     "ADD_WORKSPACE": "添加新的工作区",
@@ -300,7 +300,7 @@
     "TT_SEARCH_WITH_SAME_FAILURE" : "搜索具有相同失败的测试"
   },
   "TEST_TOOLBAR": {
-    "HISTORY_BUILD_BTN": "历史记录"
+    "BUILD_HISTORY": "历史记录"
   },
   "TEST_DETAIL": {
     "DURATION" : "持续时间（秒)",
@@ -421,7 +421,7 @@
     "WIDGET_NAME_GROUP_TABLE_LBL": "表格",
     "WIDGET_NAME_GROUP_MAP_LBL": "图",
     "WIDGET_NAME_GROUP_CARD_LBL" : "卡片",
-    "WIDGET_END_PREVIEW": "Close Preview",
+    "WIDGET_END_PREVIEW": "关闭预览",
     "WIDGET_NAME": {
       "Builds in Calendar" : "作业日历",
       "Status" : "状态",
@@ -437,7 +437,7 @@
       "Multiple Product Lane Build Table" : "多个产品线作业表",
       "Customizable Status Table" : "可自定义状态表",
       "Status By Filter Heatmap": "测试关系热图",
-      "Test Status Trendmap": "Test Status Trendmap",
+      "Test Status Trendmap": "测试状态趋势图",
       "Tests Summary": "测试摘要",
       "Builds Summary": "作业摘要",
       "Investigated Tests Summary": "调查测试摘要"

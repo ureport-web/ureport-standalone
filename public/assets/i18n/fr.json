@@ -27,7 +27,7 @@
     "TT_INVESTIGATEDLISTDISPLAY" : "Version: {{buildNumber}} - Taux de Passe: {{passRate}}%"
   },
   "TEST_TOOLBAR": {
-    "HISTORY_BUILD_BTN": "History Build"
+    "HISTORY_BUILD_BTN": "Build History"
   },
   "TEST_DETAIL": {
     "TRACK_AS_LBE": "Tracked as {{value}} issue.",
