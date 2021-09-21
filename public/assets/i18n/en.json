@@ -182,7 +182,7 @@
     "INVESTIGATED_TEST_LNK": "Investigated Tests",
     "USERS_LNK" : "Users",
     "SETUP_LNK" : "Settings" ,
-    "EXECUTIONREPORT_LNK" : "Execution",
+    "EXECUTIONREPORT_LNK" : "Analyze Run",
     "FAQ_LNK": "FAQ",
     "API_DOC_LNK": "API Doc",
     "LOGOUT_LNK" : "Logout"
@@ -240,6 +240,7 @@
   "BUILD": {
     "VIEW_DASHBOARD_LBL": "View Dashboard",
     "ANALYZE_RUN_LBL": "Analyze Run",
+    "ANALYZE_INVESTIGATED_LBL": "Analyze Investigated",
     "ANALYZE_LATEST_RUN_LBL": "Analyze Latest Run",
     "TT_EXPAND_MENU": "Expand Menu",
     "TT_COLLAPSE_MENU": "Collapse menu",
@@ -264,6 +265,7 @@
     "TT_CLONE_TEMPLATE_LBL": "Clone Template"
   },
   "WORKSPACE": {
+    "CHOOSE_WORKSPACE" : "Choose a workspace.",
     "OPEN_WORKSPACE" : "Toggle workspace.",
     "LOAD_TO_WORKSPACE" : "Load into workspace.",
     "ADD_PL_TO_WS": "Add a product lane to workspace",

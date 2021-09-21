@@ -1,7 +1,4 @@
 require('coffee-script/register')
-// if (process.env.NODE_ENV == undefined) {
-//   process.env.NODE_ENV = "dev"
-// }
 
 config = require('config')
 
@@ -165,6 +162,8 @@ if (config !== undefined) {
    * routing
    */
   const authenticate = require('./src/routes/authentication')
+  const version = require('./src/routes/version')
+
   const dashboard = require('./src/routes/dashboard')
   const dashboardTemplate = require('./src/routes/dashboard_template')
 
@@ -187,7 +186,7 @@ if (config !== undefined) {
 
   // list of endpoints for readonly page
   const noauth = require('./src/routes/noauth/noauth')
-
+  app.use('/api',version)
   app.use('/api', authenticate)
   app.use('/api/setting', setting)
   app.use('/api/system/setting', systemSetting)

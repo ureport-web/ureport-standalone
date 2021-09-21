@@ -256,7 +256,8 @@
     "TT_CLONE_TEMPLATE_LBL": "克隆模板"
   },
   "WORKSPACE": {
-    "OPEN_WORKSPACE" : "打开工作区",
+    "CHOOSE_WORKSPACE" : "打开工作区",
+    "OPEN_WORKSPACE" : "切换工作区",
     "LOAD_TO_WORKSPACE" : "加载到工作区",
     "ADD_PL_TO_WS": "将产品线添加到当前工作空间",
     "ADD_WORKSPACE": "添加新的工作区",

@@ -415,7 +415,6 @@ router.post '/aggregate/by/failure', (req, res, next) ->
             status:{$ne : "PASS"},
             start_time: { $gte: new Date(since) }
         }
-        console.log(since)
         if(req.body.uid)
             condition["uid"] = req.body.uid
         if(req.body.token)
