@@ -87,8 +87,8 @@
   },
   "MODAL": {
     "BUILD_ONDATE" : "* Choose a start date if you want to build(s) from a single date",
-    "DASHBOARD_SHARE_LBL" : "Share",
-    "DASHBOARD_UNSHARE_LBL" : "Unshare",
+    "DASHBOARD_PUBLISH_LBL" : "Publish",
+    "DASHBOARD_UNPUBLISH_LBL" : "Unpublish",
     "DASHBOARD_DEFAULT_LBL" : "Choose from template as default widgets",
     "DASHBOARD_INFO_LBL" : "Information",
     "DASHBOARD_CONFIRM_LBL" : "Are you sure you want to delete {{ name }} ?",
@@ -178,11 +178,12 @@
   "NAVIGATION": {
     "DASHBOARD_LNK": "Dashboard",
     "BUILDS_LNK" : "Builds",
+    "INVESTIGATED_ANALYSIS_LNK": "Investigated Analysis",
     "TEST_RELATIONS_LNK" : "Test Relations",
     "INVESTIGATED_TEST_LNK": "Investigated Tests",
     "USERS_LNK" : "Users",
     "SETUP_LNK" : "Settings" ,
-    "EXECUTIONREPORT_LNK" : "Analyze Run",
+    "EXECUTIONREPORT_LNK" : "Run Analysis",
     "FAQ_LNK": "FAQ",
     "API_DOC_LNK": "API Doc",
     "LOGOUT_LNK" : "Logout"
@@ -252,9 +253,10 @@
     "TT_SETTINGS_LBL": "Settings",
     "TT_SWITCH_LBL": "Switch Dashboard",
     "TT_DEFAULT_LBL": "Default Dashboard",
-    "TT_SHARED_LBL": "Shared Dashboard",
+    "TT_SHARED_LBL": "Published Dashboard",
     "TT_EDIT_LBL": "Edit Dashboard Info",
-    "TT_SHARE_LBL": "Share Dashboard",
+    "TT_PUBLISH_LBL": "Publish Dashboard",
+    "TT_SHARE_LBL": "Share Link",
     "TT_DELETE_LBL": "Delete Dashboard",
     "TT_CLONE_LBL": "Clone Dashboard",
     "TT_D_ACTIONS_LBL": "Dashboard Actions",
@@ -304,8 +306,9 @@
     "SIG_LBL": "Status Icon Glossary",
     "MSG_MISSING_PRODUCT_LINE" : "* You are missing value in your product lane.",
     "MSG_CHOOSE_PRODUCT_LINE" : "Choose a product lane.",
-    "LIST_SETTING_DISPLAY_HISTORY_RESULT" : "Choose a number of displayed past results",
+    "LIST_SETTING_DISPLAY_HISTORY_RESULT" : "Number of past results to display",
     "LIST_SETTING_SORT_BY" : "Sort table row by",
+    "LIST_SETTING_FULL_TEST_NAME" : "Display full test case name",
     "MSG_WITH_SAME_FAILURE_LBL" : "tests found with the same failure message as this test within the displayed executions",
     "MSG_WITH_SAME_FAILURE_GLOBAL_LBL" : "tests found with the same failure message",
     "MSG_WITH_NO_SAME_FAILURE_GLOBAL_LBL" : "No tests were found with the same failure message",
@@ -400,6 +403,12 @@
     "UNSELECT_ALL": "Unselect all filtered tests",
     "TT_MARK_BUILD" : "Go to build",
     "IMPACT_TEST" : "Impacted Tests"
+  },
+  "INVESTIGATED_ANALYSIS": {
+    "TITLE": "Investigated test activities from product lane ",
+    "MSG_NO_AUTO_ANALYZE" : "Cannot find any auto analyzed issues",
+    "MSG_NO_NEW_ANALYZE": "Cannot find any newly analyzed issues",
+    "TAB_NAME_LIST_VIEW" : "Builds"
   },
   "INVESTIGATED_MENU": {
     "RERUN" : "Mark as Rerun Pass",
