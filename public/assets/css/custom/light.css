@@ -38,7 +38,7 @@ nav#sidebar li {
 }
 
 nav#sidebar li a {
-  padding: 18px 20px;
+  padding: 14px 20px;
   display: block;
   font-weight: 600;
 }
@@ -57,8 +57,10 @@ nav#sidebar li a i {
   -webkit-transition: all 0.3s;
   transition: all 0.3s;
   padding-right: 20px;
-  border-right: 1px solid #454649;
-  font-size: 20px;
+  /* border-right: 1px solid #454649; */
+  font-size: 20px;  
+  max-width: 40px;
+  min-width: 40px;
 }
 
 nav#sidebar li::before {
