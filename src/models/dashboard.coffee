@@ -14,7 +14,6 @@ dashboardSchema = new Schema(
 	},
 	description: String,
 	is_public:  { type: Boolean, default: false },
-	is_default_widget:  { type: Boolean, default: false },
 	default_template:  Schema.Types.ObjectId,
 	created_at: { type: Date, default: Date.now },
 	query: Schema({
