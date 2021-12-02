@@ -107,4 +107,16 @@ module.exports = {
       else
         res.should.have.status expectStatus
         cb(res)
+
+  endBatch : (server, cookies, id, expectStatus, cb) ->
+    req = chai.request(server).post(endpoint + "/status/calculate/" + id)
+    req.cookies = cookies;
+    req.send()
+    .end (err,res) ->
+      if err
+        err.should.have.status expectStatus
+        cb(err.response)
+      else
+        res.should.have.status expectStatus
+        cb(res)
 }

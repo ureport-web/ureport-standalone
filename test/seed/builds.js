@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 var moment = require('moment')
+mongoose = require('mongoose')
+ObjectId = mongoose.Types.ObjectId;
+
 var builds = [{ 'owner': 'JI',
 'device': 'Windows 7',
 'type': 'API',
@@ -261,6 +264,33 @@ var builds = [{ 'owner': 'JI',
     'type': 'UI',
     'product': 'uReport',
     'team': 'Team2',
+    'build': '4',
+    'version': '2.1',
+    'is_archive': false,
+    'start_time': moment().subtract(16, 'days').format(),
+    'end_time': moment().subtract(16, 'days').add(3, 'hour').format(),
+    'browser': 'chrome'
+  },
+  , { 
+    _id: new ObjectId("6156f5ad744820091c9305b0"),
+    status: { total: 10, pass: 4, fail: 3, skip:3, warning: 0},
+    'owner': 'JI',
+    'device': 'Windows 7',
+    'type': 'END_BATCH_TEST',
+    'product': 'uReport',
+    'build': '4',
+    'version': '2.1',
+    'is_archive': false,
+    'start_time': moment().subtract(16, 'days').format(),
+    'end_time': moment().subtract(16, 'days').add(3, 'hour').format(),
+    'browser': 'chrome'
+  }, { 
+    _id: new ObjectId("6156f5ad744820091c9305b1"),
+    status: { total: 1, pass: 0, fail: 1, skip:0, warning: 0},
+    'owner': 'JI',
+    'device': 'Windows 7',
+    'type': 'END_BATCH_TEST',
+    'product': 'uReport',
     'build': '4',
     'version': '2.1',
     'is_archive': false,

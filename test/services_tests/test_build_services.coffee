@@ -712,3 +712,47 @@ describe 'User can perform action on builds collection ', ->
                 done()
         )
         return
+
+    describe 'end batch', ->
+        it 'should calculate tests status for build info', (done) ->
+            buildId = "6156f5ad744820091c9305b0"
+            # check build before update
+            build.findById(server, cookies, buildId, 200,
+                (res) ->
+                    res.body.status.total.should.be.equal 10
+                    res.body.status.skip.should.be.equal 3
+                    res.body.status.fail.should.be.equal 3
+                    res.body.status.pass.should.be.equal 4
+                    
+                    build.endBatch(server,cookies,buildId,
+                        200,
+                        (res) ->
+                            res.body.total.should.equal 21
+                            res.body.skip.should.equal 7
+                            res.body.fail.should.equal 7
+                            res.body.pass.should.equal 7
+                            # check build after update
+                            build.findById(server, cookies, buildId, 200,
+                                (res) ->
+                                    res.body.should.be.an 'Object'
+                                    res.body.status.total.should.be.equal 21
+                                    res.body.status.skip.should.be.equal 7
+                                    res.body.status.fail.should.be.equal 7
+                                    res.body.status.pass.should.be.equal 7
+                                    done()
+                            )
+                    )
+            )
+            
+            
+            return
+
+        it 'should return message for build has no tests', (done) ->
+            build.endBatch(server,cookies,
+                "6156f5ad744820091c9305b2",
+                200,
+                (res) ->
+                    res.body.message.should.equal "Cannot find any tests with build id 6156f5ad744820091c9305b2"
+                    done()
+            )
+            return

@@ -23,6 +23,7 @@ dashboards_data = require('./seed/dashboards')
 
 Test = require('../src/models/test')
 tests_data = require('./seed/tests')
+batch_data = require('./seed/batch')
 
 InvestigatedTest = require('../src/models/investigated_test')
 investigated_tests_data = require('./seed/investigated_tests')
@@ -72,6 +73,7 @@ before (done) ->
 
             Promise.all([
               Test.create(tests_data),
+              Test.create(batch_data),
               Dashboard.create(dashboards_data)
             ]).then( ->
               console.log "===== Finish DB setup ====="

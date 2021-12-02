@@ -243,7 +243,7 @@
             "description": "",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/MutltiTests"
+              "$ref": "#/definitions/MultiTests"
             }
           }
         ],
@@ -448,12 +448,42 @@
         }
       }
     },
-    "/build/status/{buildId}": {
+    "/build/status/calculate/{buildId}": {
       "post": {
         "tags": [
           "build"
         ],
-        "summary": "Update status of existing build using its id.",
+        "summary": "Caculate or recalculate build status based on the current stored tests using build id",
+        "description": " <ul> <li> Users can call this endpoint to calculate the status of execution based on the current existing tests in the database. Users can call this job at the end of the whole automation execution or at any point where a calculated status is needed. </li>\n <li> The calculation will consider normal and rerun tests</li>\n <li> Unlike build/status/{buildId} endpoint, it will overwrite the previous status result and update with the latest status reflected by the tests stored in the database at the time</li</ul>\n",
+        "operationId": "endBuild",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "buildId",
+            "in": "path",
+            "description": "ID of build",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "xxx is mandatory"
+          }
+        }
+      }
+    },
+    "/build/status/{buildId}": {
+      "put": {
+        "tags": [
+          "build"
+        ],
+        "summary": "Update status of existing build using build id.",
         "operationId": "updateStatus",
         "consumes": [
           "application/json"
@@ -864,7 +894,7 @@
         }
       }
     },
-    "MutltiTests": {
+    "MultiTests": {
       "type": "object",
       "properties": {
         "tests": {
@@ -879,6 +909,7 @@
       "type": "object",
       "required": [
         "uid",
+        "build",
         "name",
         "status"
       ],
@@ -927,7 +958,7 @@
         },
         "info": {
           "type": "object",
-          "description": "Despite of four predefined parameter, all value in info can be any value user wants to store. These value will be displayed in the test detail panel in the execution page.",
+          "description": "Despite of four predefined parameter, all value in info can be any value user wants to store. These value will be displayed in the test detail panel in the analyze execution page.",
           "properties": {
             "description": {
               "type": "string"
@@ -936,10 +967,12 @@
               "type": "string"
             },
             "file": {
-              "type": "string"
+              "type": "string",
+              "description": "(Optional) The file name of the test script (file extension can be included)"
             },
             "path": {
-              "type": "string"
+              "type": "string",
+              "description": "(Optional) The relative path of the test script"
             }
           }
         },

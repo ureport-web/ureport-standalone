@@ -25,8 +25,8 @@ describe 'User can perform action on assignment collection', ->
     describe 'filter assignemnt', ->
         it 'should find all assignments with given time', (done) ->
             payload = {
-                'product' : 'ProductA',
-                'type' : 'API',
+                'product' : [{ product: 'ProductA'}],
+                'type' : [{ type: 'API'}],
                 'after': moment().subtract(60, 'days').format()
             }
             assignment.filter(server,cookies,
@@ -41,8 +41,8 @@ describe 'User can perform action on assignment collection', ->
 
         it 'should find all new assignment with current time', (done) ->
             payload = {
-                'product' : 'ProductA',
-                'type' : 'API',
+                'product' : [{ product: 'ProductA'}],
+                'type' : [{ type: 'API'}],
             }
             assignment.filter(server,cookies,
                 payload,
