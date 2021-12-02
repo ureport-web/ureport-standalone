@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "There are only two endpoints that are needed to push data POST /build and POST /test/multi ",
+    "description": "",
     "x-explorer-enabled": false,
     "version": "1.0.0",
     "title": "UReport API",
@@ -331,7 +331,7 @@
           "testRelation"
         ],
         "summary": "Create test relation",
-        "description": "<strong>How to add custom relation field.</strong><br>\nUReport allows you to add any relations other than those predefined.\nSimply the key:value pair as the content of customs field\nFor example, you want label as multiple value and severity as single value. You can provide the following payload\n<code><pre> \ncustoms: { \n  label: ['regression','smoke']\n  severity: 'Blocker'\n}\n</pre></cod3>\"\n",
+        "description": "<strong>How to add custom relation field.</strong><br>\nUReport allows you to add any relations other than those predefined.<br>Simply the key:value pair as the content of customs field. For example, you want label as multiple value and severity as single value.User can provide the following payload<br><code> <pre> \n    customs: {  \n      label: ['regression','smoke']\n      severity: 'Blocker'\n    } </pre> </code>\n",
         "operationId": "createTestRelation",
         "consumes": [
           "application/json"
@@ -422,7 +422,7 @@
           "build"
         ],
         "summary": "Add a new build or update exist build with provided value.",
-        "description": " <ul> <li> If a build already exists, and the status is present in the payload. Status will be added to the existing value instead of overwrite.</li> <li> If a build already exists, and key client is present in the payload. Envrionments and settings will be set to as the value of key client inside environments and settings </li> </ul>\n",
+        "description": "<ul> <li> If a build already exists, and the status is present in the payload. Status will be added to the existing value instead of overwrite.</li> <li> If a build already exists, and key client is present in the payload. Envrionments and settings will be set to as the value of key client inside environments and settings </li> </ul>\n",
         "operationId": "addBuild",
         "consumes": [
           "application/json"
@@ -454,7 +454,7 @@
           "build"
         ],
         "summary": "Caculate or recalculate build status based on the current stored tests using build id",
-        "description": " <ul> <li> Users can call this endpoint to calculate the status of execution based on the current existing tests in the database. Users can call this job at the end of the whole automation execution or at any point where a calculated status is needed. </li>\n <li> The calculation will consider normal and rerun tests</li>\n <li> Unlike build/status/{buildId} endpoint, it will overwrite the previous status result and update with the latest status reflected by the tests stored in the database at the time</li</ul>\n",
+        "description": "<ul> <li> Users can call this endpoint to calculate the status of execution based on the current existing tests in the database. Users can call this job at the end of the whole automation execution or at any point where a calculated status is needed. </li> <li> The calculation will consider normal and rerun tests</li> <li> Unlike build/status/{buildId} endpoint, it will overwrite the previous status result and update with the latest status reflected by the tests stored in the database at the time</li</ul>",
         "operationId": "endBuild",
         "consumes": [
           "application/json"
@@ -469,11 +469,27 @@
             "description": "ID of build",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "ID of build",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "is_update_build_status": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "set to True if you want to update the build status"
+                }
+              }
+            }
           }
         ],
         "responses": {
-          "400": {
-            "description": "xxx is mandatory"
+          "404": {
+            "description": "build is not found"
           }
         }
       }
@@ -915,13 +931,19 @@
       ],
       "properties": {
         "uid": {
-          "type": "string"
+          "type": "string",
+          "example": "11120 or test.login.component",
+          "description": "The UID repesents a uniq id of the test script/case. It is essential that automation developers make sure that the id is mapped to 1 test case, otherwise, it will impact the auto analysis. The UID can be a unique number extracted from the test management tools such as TestRail, or it could be a string that unique enough to represent the test's intention (test name can be used as UID as well)."
         },
         "build": {
-          "type": "string"
+          "type": "string",
+          "example": "6156f5ad744820091c9305b1",
+          "description": "ID of the build. A ID will be returned in the paylaod when creating a build"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "example": "test.login.componet or testMyDashboardCreation",
+          "description": "Name of the test script."
         },
         "status": {
           "type": "string",
@@ -929,10 +951,12 @@
             "PASS",
             "FAIL",
             "SKIP"
-          ]
+          ],
+          "description": "The status of test run. Note no special status in case of rerun. If a test is a rerun, the is_rerun field needs to be set to True, but the status will still be PASS, FAIL, or SKIP. UReport will take care of the status and display it as rerun from the UI."
         },
         "start_time": {
           "type": "string",
+          "default": "Current date and time when record is created in DB",
           "format": "date-time"
         },
         "end_time": {
@@ -941,20 +965,28 @@
         },
         "failure": {
           "type": "object",
+          "default": null,
           "properties": {
             "token": {
-              "type": "string"
+              "type": "string",
+              "example": "9:27:53:18:56:18:82:70",
+              "description": "What is token? well, it can be anything as long as it is unique to represent the problem. What does that mean and why do we need token?\\n First, token is optional if the failure message is clear enough to distinguish among problems happens to the test case in the past. The token is there for the sake of ambiguious error message such as expected false to equal true, You could have a test case has many assertions at different places in the code generate such failure message, or for dymaic value in the assertion such as date. The token is there to indentify the exact failure location which usually used the line number extracted from stack trace. In the give example, these numbers represent the line number provided in the example of the stack trace below. This way, even the same error message from the different line of the test code, UReport will know it is not the same failure."
             },
             "error_message": {
-              "type": "string"
+              "type": "string",
+              "example": "expected false to equal true"
             },
             "stack_trace": {
-              "type": "string"
+              "type": "string",
+              "example": "AssertionError: expected false to equal true at Function.expectTrue (Asserter.ts:9:27) at Context.<anonymous> (test.ts:53:18) at Context.executeSync (index.js:56:18) at index.js:82:70"
             }
           }
         },
         "is_rerun": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": false,
+          "example": true,
+          "description": "If set to true, UReport will consider this test as a rerun of previously existing test in the same build."
         },
         "info": {
           "type": "object",
@@ -999,9 +1031,11 @@
               },
               "attachment": {
                 "type": "object",
+                "description": "UReport only supports base64 screenshot at the moment (if you need other format, please contact us)",
                 "properties": {
                   "screenshot": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "If Selenium or Appium is used to generate the screenshot, its value can be directly put in the payload since it is already in base64 format"
                   },
                   "type": {
                     "type": "string",
@@ -1037,9 +1071,11 @@
               },
               "attachment": {
                 "type": "object",
+                "description": "UReport only supports base64 screenshot at the moment (if you need other format, please contact us)",
                 "properties": {
                   "screenshot": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "If Selenium or Appium is used to generate the screenshot, its value can be directly put in the payload since it is already in base64 format"
                   },
                   "type": {
                     "type": "string",
@@ -1075,9 +1111,11 @@
               },
               "attachment": {
                 "type": "object",
+                "description": "UReport only supports base64 screenshot at the moment (if you need other format, please contact us)",
                 "properties": {
                   "screenshot": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "If Selenium or Appium is used to generate the screenshot, its value can be directly put in the payload since it is already in base64 format"
                   },
                   "type": {
                     "type": "string",
@@ -1165,23 +1203,28 @@
       "properties": {
         "product": {
           "type": "string",
-          "example": "Reporting"
+          "example": "Reporting",
+          "description": "The proudct name of the software."
         },
         "type": {
           "type": "string",
-          "example": "API"
-        },
-        "version": {
-          "type": "string",
-          "example": "1.0.0"
-        },
-        "team": {
-          "type": "string",
-          "example": "Team Alpha"
+          "example": "API or UI or Regression or Smoke",
+          "description": "The type of the automation."
         },
         "build": {
           "type": "integer",
-          "example": 100
+          "example": 100,
+          "description": "The mandatory field indicate the build number of the execution. Please note that build number is not version/release number of the software. A software could have a version or release that triggers multiple builds"
+        },
+        "version": {
+          "type": "string",
+          "example": "1.0.0",
+          "description": "The version/release number of the application"
+        },
+        "team": {
+          "type": "string",
+          "example": "Team Alpha or Integration Team",
+          "description": "The team name of the automation executions belongs to."
         },
         "browser": {
           "type": "string",
@@ -1192,22 +1235,26 @@
             "Safari",
             "Opera",
             "IE",
-            "Internet Explorer"
+            "Internet Explorer",
+            "Electron"
           ],
           "example": "Chrome",
-          "description": "browser is case sensitive for filtering. for example, chrome and Chrome are treated differently to the search engine"
+          "description": "browser is case sensitive for filtering. for example, chrome and Chrome are treated differently to the search engine. (This is only applicable to Web testing involve browser)"
         },
         "device": {
           "type": "string",
-          "example": "Windows VM"
+          "example": "Windows VM or Pixel 2",
+          "description": "the hardware where the automation executed"
         },
         "platform": {
           "type": "string",
-          "example": "iOS"
+          "example": "iOS or Windows",
+          "description": "the software platform where the automation is executed. could be the OS system or machine type"
         },
         "platfomr_version": {
           "type": "string",
-          "example": "13.0.4"
+          "example": "13.0.4 or 10",
+          "description": "a platform version if platform is provided"
         },
         "start_time": {
           "type": "string",
@@ -1218,12 +1265,14 @@
           "format": "date-time"
         },
         "owner": {
-          "type": "string"
+          "type": "string",
+          "description": "owner of the execution",
+          "example": "admin"
         },
         "is_archive": {
           "type": "boolean",
           "example": "false",
-          "description": "Only set this value when you don't want the build to be seen"
+          "description": "Only set this value when you don't want the build to be used in history runs. (Admin can still see acrhived build)"
         },
         "status": {
           "type": "object",
@@ -1249,7 +1298,12 @@
           "properties": {
             "default": {
               "type": "object",
-              "description": "could be anything you want to save as envrionment"
+              "description": "could be anything you want to save as envrionment",
+              "example": {
+                "baseUrl": "http:localhost",
+                "timeout": 6000,
+                "isRetryFailure": false
+              }
             }
           }
         },
@@ -1259,7 +1313,12 @@
           "properties": {
             "default": {
               "type": "object",
-              "description": "could be anything you want to save as envrionment"
+              "description": "could be anything you want to save as setting",
+              "example": {
+                "baseUrl": "http:localhost",
+                "timeout": 6000,
+                "isRetryFailure": false
+              }
             }
           }
         },

@@ -170,7 +170,12 @@ router.put '/status/:id',  (req, res, next) ->
 router.post '/status/calculate/:id',  (req, res, next) ->
   if (!AccessControl.canAccessUpdateAny(req.user.role,component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
-  
+
+  if(req.body.is_update_build_status == undefined)
+    isUpdateBuild = true
+  else
+    isUpdateBuild = req.body.is_update_build_status
+
   Test.aggregate()
   .match({ $and : [ { build : {$in : [ObjectId(req.params.id)]} }] })
   .sort({ start_time: 1 })
@@ -189,24 +194,30 @@ router.post '/status/calculate/:id',  (req, res, next) ->
         (err) ->
           if err
             next err
-          # overwrite build status
-          Build.findOne({_id: req.params.id}).
-          exec((err, foundBuild) ->
-            if(err)
-              return next err
 
-            if(foundBuild)
-              foundBuild.status = rs
-              foundBuild.save((err, sbuild) ->
-                if(err)
-                  return next err
-                res.json rs
-              )
-            else
-              res.json {message: "Cannot find build id " + req.params.id}
-          )
+          if(isUpdateBuild == true)
+            # overwrite build status
+            Build.findOne({_id: req.params.id}).
+            exec((err, foundBuild) ->
+              if(err)
+                return next err
+
+              if(foundBuild)
+                foundBuild.status = rs
+                foundBuild.save((err, sbuild) ->
+                  if(err)
+                    return next err
+                  res.json rs
+                )
+              else
+                res.status(404)
+                res.json {message: "Cannot find build id " + req.params.id}
+            )
+          else
+            res.json rs
       )
     else
+      res.status(404)
       res.json {message: "Cannot find any tests with build id " + req.params.id}
   );
 
