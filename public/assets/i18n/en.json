@@ -414,7 +414,7 @@
     "RERUN" : "Mark as Rerun Pass",
     "ISSUE" : "Mark as Issue",
     "OUTAGE" : "Mark as Outage",
-    "RESET_MARKED" : "Reset Marked Test",
+    "RESET_MARKED" : "Remove Marked Test",
     "RESET_RERUN" : "Remove Rerun Pass",
     "ASSIGN_TO_ME" : "Assign to me",
     "ASSIGN_TO_OTHERS" : "Assign to others"

@@ -778,7 +778,7 @@ describe 'User can perform action on builds collection ', ->
 
         it 'should return message for build has no tests', (done) ->
             build.endBatch(server,cookies, "6156f5ad744820091c9305b2", {}
-                200,
+                404,
                 (res) ->
                     res.body.message.should.equal "Cannot find any tests with build id 6156f5ad744820091c9305b2"
                     done()
