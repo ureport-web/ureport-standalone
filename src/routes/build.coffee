@@ -204,10 +204,11 @@ router.post '/status/calculate/:id',  (req, res, next) ->
 
               if(foundBuild)
                 foundBuild.status = rs
+                foundBuild.end_time = Date.now()
                 foundBuild.save((err, sbuild) ->
                   if(err)
                     return next err
-                  res.json rs
+                  res.json { status: rs, end_time: foundBuild.end_time}
                 )
               else
                 res.status(404)
