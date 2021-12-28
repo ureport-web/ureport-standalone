@@ -727,10 +727,11 @@ describe 'User can perform action on builds collection ', ->
                     build.endBatch(server,cookies,buildId, {is_update_build_status: false}
                         200,
                         (res) ->
-                            res.body.total.should.equal 21
-                            res.body.skip.should.equal 7
-                            res.body.fail.should.equal 7
-                            res.body.pass.should.equal 7
+                            console.log(res.body)
+                            res.body.status.total.should.equal 21
+                            res.body.status.skip.should.equal 7
+                            res.body.status.fail.should.equal 7
+                            res.body.status.pass.should.equal 7
                             # check build after update
                             build.findById(server, cookies, buildId, 200,
                                 (res) ->
@@ -758,10 +759,10 @@ describe 'User can perform action on builds collection ', ->
                     build.endBatch(server,cookies,buildId, {}
                         200,
                         (res) ->
-                            res.body.total.should.equal 21
-                            res.body.skip.should.equal 7
-                            res.body.fail.should.equal 7
-                            res.body.pass.should.equal 7
+                            res.body.status.total.should.equal 21
+                            res.body.status.skip.should.equal 7
+                            res.body.status.fail.should.equal 7
+                            res.body.status.pass.should.equal 7
                             # check build after update
                             build.findById(server, cookies, buildId, 200,
                                 (res) ->
@@ -775,12 +776,42 @@ describe 'User can perform action on builds collection ', ->
                     )
             )
             return
-
+        it 'should calculate tests status and set pass to 0 if not found', (done) ->
+            buildId = "6156f5ad744820091c9305b2"
+            # check build before update
+            build.findById(server, cookies, buildId, 200,
+                (res) ->
+                    res.body.status.total.should.be.equal 0
+                    res.body.status.skip.should.be.equal 0
+                    res.body.status.fail.should.be.equal 0
+                    res.body.status.pass.should.be.equal 0
+                    
+                    build.endBatch(server,cookies,buildId, {}
+                        200,
+                        (res) ->
+                            console.log(res.body)
+                            res.body.status.total.should.equal 1
+                            res.body.status.skip.should.equal 1
+                            res.body.status.pass.should.equal 0
+                            res.body.status.fail.should.equal 0
+                            # check build after update
+                            build.findById(server, cookies, buildId, 200,
+                                (res) ->
+                                    res.body.should.be.an 'Object'
+                                    res.body.status.total.should.be.equal 1
+                                    res.body.status.skip.should.be.equal 1
+                                    res.body.status.pass.should.be.equal 0
+                                    res.body.status.fail.should.be.equal 0
+                                    done()
+                            )
+                    )
+            )
+            return
         it 'should return message for build has no tests', (done) ->
-            build.endBatch(server,cookies, "6156f5ad744820091c9305b2", {}
+            build.endBatch(server,cookies, "6156f5ad744820091c9305b3", {}
                 404,
                 (res) ->
-                    res.body.message.should.equal "Cannot find any tests with build id 6156f5ad744820091c9305b2"
+                    res.body.message.should.equal "Cannot find any tests with build id 6156f5ad744820091c9305b3"
                     done()
             )
             return

@@ -841,5 +841,23 @@ var batchTests = [{
     'description': 'this is the very first basic test',
     'group': 'Integration;Smoke Test'
     }
+},
+{
+    build: "6156f5ad744820091c9305b2",
+  'uid': '165443',
+  'name': 'test some basic function 43',
+  'start_time': moment().subtract(1, 'days').add(1,"hour").add(5,"minute").format(),
+  'end_time': moment().subtract(1, 'days').add(1,"hour").add(5,"minute").format(),
+  'status': 'SKIP',
+  'failure': {
+    'reason': 'java.lang.AssertionError: expected [434] but found [200]',
+    'stackTrace': 'this is a stack trace',
+    'token': '{89=[91], 82=[], 67=[]}'
+  },
+  'is_rerun': true,
+  'info': {
+    'description': 'this is the very first basic test',
+    'group': 'Integration;Smoke Test'
+    }
 }]
 module.exports = batchTests

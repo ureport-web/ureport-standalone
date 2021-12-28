@@ -203,6 +203,14 @@ router.post '/status/calculate/:id',  (req, res, next) ->
                 return next err
 
               if(foundBuild)
+                # set defualt status to 0
+                if(rs.pass == undefined)
+                  rs.pass = 0
+                if(rs.fail == undefined)
+                  rs.fail = 0
+                if(rs.skip == undefined)
+                  rs.skip = 0
+
                 foundBuild.status = rs
                 foundBuild.end_time = Date.now()
                 foundBuild.save((err, sbuild) ->
@@ -215,7 +223,7 @@ router.post '/status/calculate/:id',  (req, res, next) ->
                 res.json {message: "Cannot find build id " + req.params.id}
             )
           else
-            res.json rs
+            res.json { status: rs, end_time: Date.now()}
       )
     else
       res.status(404)

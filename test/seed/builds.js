@@ -297,6 +297,18 @@ var builds = [{ 'owner': 'JI',
     'start_time': moment().subtract(16, 'days').format(),
     'end_time': moment().subtract(16, 'days').add(3, 'hour').format(),
     'browser': 'chrome'
+  }, { 
+    _id: new ObjectId("6156f5ad744820091c9305b2"),
+    'owner': 'JI',
+    'device': 'Windows 7',
+    'type': 'END_BATCH_TEST',
+    'product': 'uReport',
+    'build': '4',
+    'version': '2.1',
+    'is_archive': false,
+    'start_time': moment().subtract(16, 'days').format(),
+    'end_time': moment().subtract(16, 'days').add(3, 'hour').format(),
+    'browser': 'chrome'
   }
 ]
 module.exports = builds
