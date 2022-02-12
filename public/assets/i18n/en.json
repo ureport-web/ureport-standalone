@@ -1,5 +1,6 @@
 {
   "GENERAL":{
+    "TT_TESTS": "Tests",
     "PL_PRODUCT": "Product",
     "PL_TYPE": "Automation Type",
     "TT_RANGE_LBL" : "Range",
@@ -51,6 +52,7 @@
     "END_TIME_LBL": "End Time",
     "TT_TIME_LBL" : "Time",
     "COMPONENT_LBL": "Component",
+    "CUSTOM_RELATION_LBL": "Custom Relatoin",
     "TEAM_TIME_LBL": "Teams",
     "BUILD_NUMBER_LBL": "Build Number",
     "TAGS_TIME_LBL": "Tags",

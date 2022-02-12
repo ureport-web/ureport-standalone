@@ -462,4 +462,33 @@ router.post '/setting/filter',  (req, res, next) ->
     res.json cases
   );
 
+router.post '/test/aggregate/trend', (req, res, next) -> 
+  if(req.body.builds) 
+      Test.aggregate()
+      .match({
+          $and : [
+              { build : {$in : req.body.builds.map((el) -> ObjectId(el) )} }
+              # { $or: [ { is_rerun: false }, { is_rerun: null} ]} 
+              ]
+      })
+      .group({
+          _id: "$uid",
+          trend: { $push: {
+                  build: "$build", 
+                  status : "$status",
+                  uid : "$uid",
+                  id: "$_id",
+                  failure: "$failure",
+                  is_rerun: "$is_rerun"
+              }
+          }
+      })
+      .project({
+          trend : "$trend"
+      })
+      .exec((err, tests) -> res.json tests );
+  else
+      res.status(404)
+      res.json {"error": "builds list is mandatory"}
+
 module.exports = router

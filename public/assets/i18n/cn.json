@@ -49,6 +49,7 @@
     "END_TIME_LBL": "结束时间",
     "TT_TIME_LBL" : "时间",
     "COMPONENT_LBL": "组件",
+    "CUSTOM_RELATION_LBL": "自定义关系",
     "TEAM_TIME_LBL": "团队",
     "TAGS_TIME_LBL": "标签",
     "BUILD_NUMBER_LBL": "内部版本号",
