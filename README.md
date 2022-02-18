@@ -18,7 +18,7 @@ Download and set up your own environment.
 4. Run `npm install`
 5. Go to config folder, change DBHost and PORT if it is different from the given one
     + If you need to deploy it as prod, please modify the file **production.json**
-6. Run `npm install --global CoffeeScript's
+6. Run `npm install --global coffee-script`
 7. Run `coffee initialization.dev.coffee ` to initialize the dev database 
     + the script will create an admin user, system setting, and dashboard templates
 8. Run `npm start` to start the server
