@@ -328,3 +328,18 @@ ngx-guided-tour .tour-step h2.tour-title {
 .white-font {
   color: #fff !important
 }
+
+/*
+* ==========================================================
+*     test-explorer
+* ==========================================================
+*/
+
+.test-explorer {
+  background: var(--light);
+}
+
+.test-explorer-detail {
+  overflow-y: hidden;
+}
+

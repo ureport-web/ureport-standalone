@@ -429,3 +429,19 @@ ngx-guided-tour .tour-step .tour-buttons .next-button:hover {
 ngx-guided-tour .tour-step h2.tour-title {
   font-size: 20px !important;
 }  
+
+
+/*
+* ==========================================================
+*     test-explorer
+* ==========================================================
+*/
+
+.test-explorer {
+  background: var(--dark);
+}
+
+.test-explorer-detail {
+  overflow-y: hidden;
+}
+
