@@ -177,9 +177,9 @@ nav#sidebar.shrinked ul i {
 
 .investigated-analysis-card {
   background: var(--dark);
-  -webkit-box-shadow: 2px 5px 3px 5px rgb(36, 25, 25);
-  -moz-box-shadow: 2px 5px 3px 5px rgb(36, 25, 25);
-  box-shadow: 2px 5px 3px 5px rgb(36, 25, 25);
+  -webkit-box-shadow: 2px 5px 3px 2px rgb(36, 25, 25);
+  -moz-box-shadow: 2px 5px 3px 2px rgb(36, 25, 25);
+  box-shadow: 2px 5px 3px 2px rgb(36, 25, 25);
 }
 
 .investigated-analysis-graph-card {
