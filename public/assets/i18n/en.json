@@ -311,6 +311,7 @@
     "LIST_SETTING_DISPLAY_HISTORY_RESULT" : "Number of past results to display",
     "LIST_SETTING_SORT_BY" : "Sort table row by",
     "LIST_SETTING_FULL_TEST_NAME" : "Display full test case name",
+    "LIST_SETTING_DISPLAY_ATTRIBUTE" : "Select a test attribute to display in table",
     "MSG_WITH_SAME_FAILURE_LBL" : "tests found with the same failure message as this test within the displayed executions",
     "MSG_WITH_SAME_FAILURE_GLOBAL_LBL" : "tests found with the same failure message",
     "MSG_WITH_NO_SAME_FAILURE_GLOBAL_LBL" : "No tests were found with the same failure message",
@@ -574,6 +575,14 @@
       "BY_UID": "By UID",
       "BY_NAME": "By Name",
       "BY_START_DATE": "By Start Date"
+    },
+    "ATTRIBUTE": {
+      "START_TIME" : "Start Time",
+      "DURATION" : "Duration",
+      "FILE" : "Test File",
+      "PATH" : "Test Path",
+      "DESCRIPTION" : "Description",
+      "FAILURE" : "Failure Message"
     }
   },
   "FAQ": {
