@@ -351,11 +351,11 @@ router.post '/filter',  (req, res, next) ->
   # since = moment("2010-01-01").format()
   if(req.body.since)
     since = moment(req.body.since).format()  
-    conditions.push({ start_time: { $gte: since }})
+    conditions.push({ start_time: { $gt: since }})
 
   if(req.body.after)
     after = moment(req.body.after).format()  
-    conditions.push({ start_time: { $lte: after }})
+    conditions.push({ start_time: { $lt: after }})
 
   if(req.body.version)
     conditions.push({ $or : req.body.version })
