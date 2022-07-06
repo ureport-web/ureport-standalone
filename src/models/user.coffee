@@ -74,6 +74,7 @@ userSchema = new Schema(
           }, {_id: false}),
       report: Schema(
           {
+            generalConfig: Schema.Types.Mixed,
             assignmentRI : {
               type: Number,
               default: 30
