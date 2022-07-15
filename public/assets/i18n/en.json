@@ -58,6 +58,7 @@
     "TAGS_TIME_LBL": "Tags",
     "ADD_NEW_BTN": "Add New",
     "APPLY_CHANGES_BTN":"Apply Changes",
+    "APPLY_BTN":"Apply",
     "TT_COPY_TO_CLIPBOARD": "Copy to clipboard",
     "TT_PASS_RATE": "Pass Rate",
     "TT_FAIL_RATE": "Fail Rate",
@@ -81,7 +82,9 @@
     "SELECT_LBL": "Select",
     "LOADING": "Loading",
     "TT_TOOGLE_PAGINATION": "Toggle table pagination",
-    "TT_SUCCESSFULLY": "successfully"
+    "TT_SUCCESSFULLY": "successfully",
+    "DIRECTION_HORIZONTAL": "Horizontal",
+    "DIRECTION_VERTICAL": "Vertical"
   },
   "COMPONENT":{
     "DASHBOARD" : "Dashboard",
@@ -169,11 +172,10 @@
     "MORE_BTN" : "More Details"
   },
   "PREFERENCE":{
-    "APPLY_BTN" : "Apply",
     "TITLE_LBL" : "Preferences",
     "DEFAULT_STATUS_FILTER_LBL" : "Status",
     "DEFAULT_STATUS_FILTER_LBL_SUBTITLE" : "Default Status filter when page loaded",
-    "ASSIGNMENT_INTERVAL_LBL" : "Assignement Refresh interval",
+    "ASSIGNMENT_INTERVAL_LBL" : "Assignment Refresh interval",
     "ASSIGNMENT_INTERVAL_LBL_SUBTITLE" : "Time interval for pulling server for new test assignments",
     "SEARCH_STEP_LBL" : "Show search box and status filter in Test Steps"
   },
@@ -302,6 +304,7 @@
     "TT_TABLE_VIEW" : "Table View",
     "TT_TREE_VIEW" : "Tree View",
     "TT_TREND_VIEW" : "Trend View",
+    "TT_TIME_LINE_VIEW" : "Timeline View",
     "TT_OPEN_SEARCH" : "Open Search",
     "TT_MOST_FAILURE" : "Most Failure Message in current build",
     "TT_ANALYZE_TEST_STATUS": "Analyzed Tests status scenario",
@@ -614,5 +617,29 @@
     "ANSWER_S_IT_2": "If no product lane setting is defined, two default Issue Type will be available to select for Mark as Investigated and Mark as Outage. They are <u>Defect</u> and <u>Automation Issue</u>",
     "QUESTION_S_RF" : "What is Test Relation Filter? And what is the group filter?",
     "ANSWER_S_RF": ""
-  } 
+  },
+  "TEST_REPORT_SETTING":{
+    "EXPORT_SELECTED_COLUMNS_LBL":"Selected Columns",
+    "EXPORT_SELECT_COLUMNS_LBL":"Select Export Columns",
+    "FAILURE_MESSAGE":"Failure message", 
+    "DESCRIPTION":"Description",
+    "FILE":"File location", 
+    "START_TIME":"Start Time",
+    "BY_UID":"By UID",
+    "BY_NAME":"By Name",
+    "BY_START_DATE":"By Start Time",
+    "ASCENDING": "ascending",
+    "DECENDING": "descending",
+    "EXPORT" : {
+      "UID": "UID", 
+      "NAME":"Name",
+      "START_TIME": "Start Time", 
+      "END_TIME": "End Time",
+      "FAILURE_REASON":"Failure Reason",
+      "COMPONENT":"Components",
+      "TAGS":"Tags",
+      "TEAMS":"Teams",
+      "STATUS":"Status"
+    }
+  }
 }

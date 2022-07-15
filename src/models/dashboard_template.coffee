@@ -32,6 +32,7 @@ dashboardTemplateSchema = new Schema(
 				legendEnabled: Boolean,
 				xaixs: String, # mainly for line chart/bar chart
 				customTableConfig: Schema.Types.Mixed, # mainly for line chart/bar chart
+				chartConfig: Schema.Types.Mixed,
 				type: String, # Widget type
 				pattern: Schema({
 					groupByRelation: Schema.Types.Mixed,

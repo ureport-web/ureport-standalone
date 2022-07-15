@@ -55,6 +55,7 @@
     "BUILD_NUMBER_LBL": "内部版本号",
     "ADD_NEW_BTN": "添加新内容",
     "APPLY_CHANGES_BTN":"应用更改",
+    "APPLY_BTN":"应用",
     "TT_COPY_TO_CLIPBOARD": "复制到剪贴板",
     "TT_PASS_RATE": "通过率",
     "TT_FAIL_RATE": "失败率",
@@ -77,7 +78,9 @@
     "SELECT_ITEM": "选择项",
     "SELECT_LBL": "选择",
     "LOADING":"读取中",
-    "TT_SUCCESSFULLY": "成功"
+    "TT_SUCCESSFULLY": "成功",
+    "DIRECTION_HORIZONTAL": "水平图",
+    "DIRECTION_VERTICAL": "垂直图"
   },
   "COMPONENT":{
     "DASHBOARD" : "仪表板",
@@ -165,7 +168,6 @@
     "MORE_BTN" : "更多详细信息"
   },
   "PREFERENCE":{
-    "APPLY_BTN" : "应用",
     "TITLE_LBL" : "首选项",
     "DEFAULT_STATUS_FILTER_LBL" : "状态",
     "DEFAULT_STATUS_FILTER_LBL_SUBTITLE" : "页面加载时的默认状态过滤",
@@ -221,10 +223,11 @@
   "DASHBOARD": {
     "MSG_NO_DASHBOARD": "您还没有任何仪表板。请单击此处创建。",
     "MSG_YOUR_DASHBOARD": "您的仪表板",
+    "MSG_TEMPLATE": "添加仪表模板",
     "MSG_SHARED_DASHBOARD": "其他人共享的仪表板",
     "TITLE_LBE": "仪表板",
     "TT_ADD_LBL": "添加仪表板",
-    "TT_ADD_TEMPLATE_LBL": "添加仪表板",
+    "TT_ADD_TEMPLATE_LBL": "添加模板",
     "TT_GO_BACK_TO_LBL": "返回仪表板",
     "TT_VIEW_WITH_TEMPLATE_LBL": "使用模板",
     "TT_NO_PUBLISH_TEMPLATE_LBL": "找不到任何已发布的模板",
@@ -291,6 +294,7 @@
     "TT_TABLE_VIEW" : "表格图",
     "TT_TREE_VIEW" : "树图",
     "TT_TREND_VIEW" : "趋势图",
+    "TT_TIME_LINE_VIEW" : "时间线视图",
     "TT_OPEN_SEARCH" : "打开搜索",
     "TT_MOST_FAILURE" : "当前故障最多",
     "TT_ANALYZE_TEST_STATUS": "分析测试状态",
@@ -570,5 +574,16 @@
     "QUESTION_S_PLS" : "什么是产品线设置？",
     "QUESTION_S_IT" : "什么是问题类型？",
     "QUESTION_S_RF" : "什么是测试关系过滤器？ 什么是组过滤器？"
-  } 
+  },
+  "TEST_REPORT_SETTING":{
+    "FAILURE_MESSAGE":"Failure message", 
+    "DESCRIPTION":"Description",
+    "FILE":"File location", 
+    "START_TIME":"Start Time",
+    "BY_UID":"By UID",
+    "BY_NAME":"By Name",
+    "BY_START_DATE":"By Start Time",
+    "ASCENDING": "ascending",
+    "DECENDING": "decending"
+  }
 }
