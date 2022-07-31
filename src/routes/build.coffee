@@ -216,7 +216,10 @@ router.post '/status/calculate/:id',  (req, res, next) ->
                 foundBuild.save((err, sbuild) ->
                   if(err)
                     return next err
-                  res.json { status: rs, end_time: foundBuild.end_time}
+                  res.json { 
+                    status: rs, 
+                    end_time: foundBuild.end_time
+                  }
                 )
               else
                 res.status(404)
@@ -599,6 +602,10 @@ router.post '/search', (req, res, next) ->
   if(req.body.since)
     since = req.body.since
 
+  range = -20
+  if(req.body.range)
+    range = (-req.body.range)
+
   conditions = [
     { product: { $regex: req.body.product, $options: 'i'} },
     { type: { $regex: req.body.type, $options: 'i'} },
@@ -665,7 +672,7 @@ router.post '/search', (req, res, next) ->
         $last: "$status"
       },
       aggregate_previous_runs: { 
-        $addToSet: { 
+        $push: { 
           id: "$_id",
           build: "$build",
           start_time: "$start_time",
@@ -691,7 +698,7 @@ router.post '/search', (req, res, next) ->
       aggregate_last_start_time: "$aggregate_last_start_time",
       status: "$status",
       aggregate_previous_runs: { 
-        $slice : ["$aggregate_previous_runs", 0, 20]
+        $slice : ["$aggregate_previous_runs", range]
       },
       environments: "$environments",
       settings: "$settings"
