@@ -91,6 +91,7 @@ dashboardSchema = new Schema(
 				}, {_id: false})
 			}, {_id: false})
 	],
+	config: Schema.Types.Mixed,
 	comments: Schema.Types.Mixed
 )
 

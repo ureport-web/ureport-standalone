@@ -154,7 +154,6 @@ router.put '/status/:id',  (req, res, next) ->
   exec((err, build) ->
     if err
       next err
-
     if build
       #perform update
       Build.updateStatus(build, req.body)
@@ -232,6 +231,44 @@ router.post '/status/calculate/:id',  (req, res, next) ->
       res.status(404)
       res.json {message: "Cannot find any tests with build id " + req.params.id}
   );
+
+router.post '/status/latest',  (req, res, next) ->
+  if (!AccessControl.canAccessUpdateAny(req.user.role,component))
+    return res.status(403).json({"error": "You don't have permission to perform this action"})
+
+  query = req.body.query
+  Build.aggregate()
+  .match({ $or : query })
+  .group(
+    { 
+      _id:  {
+        product:  "$product",
+        type: "$type",
+        version: "$version",
+        team: "$team",
+        browser: "$browser",
+        device: "$device",
+        platform: "$platform",
+        platform_version: "$platform_version",
+        stage: "$stage"
+      },
+      product: { $last: "$product"},
+      type: { $last: "$type"},
+      build: { $last: "$build"},
+      status: { $last: "$status"},
+      start_time: { $last: "$start_time"}
+  })
+  .exec((err, cols) ->
+    if err
+      next err
+
+    if(cols != undefined && cols.length > 0)
+      res.json cols
+    else
+      res.status(404)
+      res.json { message: 'Cannot find' }  
+  );
+  # res.json req.body
 
 router.post '/comment/:id',  (req, res, next) ->
   Build.findOne({_id: req.params.id}).
