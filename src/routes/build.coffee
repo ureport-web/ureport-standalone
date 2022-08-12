@@ -177,7 +177,6 @@ router.post '/status/calculate/:id',  (req, res, next) ->
 
   Test.aggregate()
   .match({ $and : [ { build : {$in : [ObjectId(req.params.id)]} }] })
-  .sort({ start_time: 1 })
   .group({ _id: "$uid", total: { $sum: 1 }, status: { $last: "$status" } })
   .group({ _id: "$status",total: { $sum:1 } })
   .exec((err, cols) ->

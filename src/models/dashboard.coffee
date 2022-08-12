@@ -105,6 +105,8 @@ dashboardSchema.statics.update = (dashboard, payload) ->
 			dashboard.is_public = payload.is_public
 		if(payload.query)
 			dashboard.query = payload.query
+		if(payload.config)
+			dashboard.config = payload.config
 
 dashboardSchema.statics.addWidget = (dashboard, payload) ->
 	if(payload)
