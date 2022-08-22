@@ -491,6 +491,73 @@ router.get '/entity/:product/:type/:since/recommend',  (req, res, next) ->
     res.json recommends
   );
 
+router.post '/entity/recommend',  (req, res, next) ->
+  if(!req.body.product)
+    res.status(400)
+    return res.json {error: "Product is mandatory"}
+
+  if(!req.body.type)
+    res.status(400)
+    return res.json {error: "Type is mandatory"}
+
+  since = req.body.since || 300
+  query = {
+    product: req.body.product, 
+    type: req.body.type, 
+    start_time: { $gte: new Date(moment().subtract(since,'day').format()) }
+  }
+
+  if(req.body.version)
+    query.version = { $regex: req.body.version, $options: 'i'}
+
+  if(req.body.team)
+    query.team = { $regex: req.body.team, $options: 'i'}
+
+  if(req.body.browser)
+    query.browser = { $regex: req.body.browser, $options: 'i'}
+
+  if(req.body.device)
+    query.device = { $regex: req.body.device, $options: 'i'}
+  
+  if(req.body.platform)
+    query.platform = { $regex: req.body.platform, $options: 'i'}
+  
+  if(req.body.platform_version)
+    query.platform_version = { $regex: req.body.platform_version, $options: 'i'}
+
+  if(req.body.stage)
+    query.stage = { $regex: req.body.stage, $options: 'i'}
+
+  Build.aggregate() 
+  .match(query)
+  .group({
+    _id: {
+      $concat: ['$product', '_', '$type']
+    }, 
+    recommends: {
+      $addToSet: {
+        product: '$product',
+        type: '$type',
+        team: '$team',
+        version: '$version', 
+        browser: '$browser', 
+        device: '$device', 
+        platform: '$platform', 
+        platform_version: '$platform_version',
+        stage: '$stage'
+      }
+    }
+  })
+  .exec((err, recommends) ->
+    if(recommends[0] != undefined)
+      rs = recommends[0]
+      if(rs.recommends != undefined)
+        rs.total = rs.recommends.length
+    else
+      rs = recommends
+    res.json rs
+  );
+
 router.post '/entity/others',  (req, res, next) ->
   if(!req.body.product)
     res.status(400)

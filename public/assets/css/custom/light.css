@@ -343,3 +343,6 @@ ngx-guided-tour .tour-step h2.tour-title {
   overflow-y: hidden;
 }
 
+.step-description {
+  color: #939ba2;
+}

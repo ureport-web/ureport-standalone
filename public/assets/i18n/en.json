@@ -303,6 +303,7 @@
     "TT_PIN_TEST_FILTER": "Show/Hide my pinned tests",
     "TT_TABLE_VIEW" : "Table View",
     "TT_TREE_VIEW" : "Tree View",
+    "TT_GROUP_BY_VIEW" : "Group By View",
     "TT_TREND_VIEW" : "Trend View",
     "TT_TIME_LINE_VIEW" : "Timeline View",
     "TT_OPEN_SEARCH" : "Open Search",
