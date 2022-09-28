@@ -54,6 +54,10 @@ settingSchema.index({product: 1, type: 1}, {unique: true});
 
 settingSchema.statics.update = (setting, payload) ->
 	if(payload)
+		if(payload.product)
+			setting.product = payload.product
+		if(payload.type)
+			setting.type = payload.type
 		if(payload.description)
 			setting.description = payload.description
 		if(payload.issue_type)
