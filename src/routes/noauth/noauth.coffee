@@ -86,6 +86,10 @@ router.post '/build/search', (req, res, next) ->
   if(req.body.since)
     since = req.body.since
 
+  range = -20
+  if(req.body.range)
+    range = (-req.body.range)
+
   condition = [
     { product: { $regex: req.body.product, $options: 'i'} },
     { type: { $regex: req.body.type, $options: 'i'} },
@@ -120,7 +124,14 @@ router.post '/build/search', (req, res, next) ->
       # _id:  "$_id",
       _id:  {
         product:  "$product",
-        type: "$type"
+        type: "$type",
+        version: "$version",
+        team: "$team",
+        browser: "$browser",
+        device: "$device",
+        platform: "$platform",
+        platform_version: "$platform_version",
+        stage: "$stage"
       },
       product: { $last: "$product"},
       type: { $last: "$type"},
@@ -133,6 +144,8 @@ router.post '/build/search', (req, res, next) ->
       stage: { $last: "$stage"},
       build: { $last: "$build"},
       start_time: { $last: "$start_time"},
+      environments: {$last: "$environments"},
+      settings: {$last: "$settings"},
       aggregate_last_id: {
         $last : "$_id"
       },
@@ -143,11 +156,36 @@ router.post '/build/search', (req, res, next) ->
         $last: "$status"
       },
       aggregate_previous_runs: { 
-        $addToSet: { 
+        $push: { 
           id: "$_id",
-          start_time: "$start_time"
+          build: "$build",
+          start_time: "$start_time",
+          status: "$status"
         }
       }
+  })
+  .project(
+    { 
+      _id: "$_id",
+      product: "$product",
+      type: "$type",
+      version: "$version",
+      browser: "$browser",
+      device: "$device",
+      team: "$team",
+      platform: "$platform",
+      platform_version: "$platform_version",
+      stage: "$stage",
+      build: "$build",
+      start_time: "$start_time",
+      aggregate_last_id: "$aggregate_last_id",
+      aggregate_last_start_time: "$aggregate_last_start_time",
+      status: "$status",
+      aggregate_previous_runs: { 
+        $slice : ["$aggregate_previous_runs", range]
+      },
+      environments: "$environments",
+      settings: "$settings"
   })
   .exec((err, builds) -> res.json builds );
 
