@@ -99,4 +99,27 @@ router.post '/filter',  (req, res, next) ->
     res.json cases
   );
 
+router.post '/share/with',  (req, res, next) ->
+  if(!req.body.product)
+    res.status(400)
+    return res.json {error: "Product is mandatory"}
+
+  if(!req.body.type)
+    res.status(400)
+    return res.json {error: "Type is mandatory"}
+  
+  conditions = []
+  conditions.push({ "share_with.product" : req.body.product })
+  conditions.push({ "share_with.type" : req.body.type })
+  query = {
+    $and : conditions
+  }
+  Setting.aggregate().
+  match({ $and : conditions }).
+  limit(1).
+  exec((err, cases) ->
+    if(err)
+      return next(err)
+    res.json cases
+  );
 module.exports = router
