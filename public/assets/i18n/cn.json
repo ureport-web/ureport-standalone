@@ -554,6 +554,20 @@
       "TT_NEW_TESTS" : "新测试",
       "TT_TEST_DIDNT_RUN" : "未运行测试",
       "TT_TEST_NOT_RUN" : "未运行"
+    },
+    "SORT_BY": {
+      "BY_UID": "By UID",
+      "BY_NAME": "By Name",
+      "BY_START_DATE": "By Start Date"
+    },
+    "ATTRIBUTE": {
+      "START_TIME" : "开始时间",
+      "DURATION" : "运行时长",
+      "FILE" : "文件名",
+      "PATH" : "路径",
+      "DESCRIPTION" : "描述",
+      "FAILURE" : "失败信息",
+      "PRODUCT_LANE" : "产品线"
     }
   },
   "FAQ": {

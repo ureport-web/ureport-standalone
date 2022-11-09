@@ -41,10 +41,16 @@ router.post '/filter',  (req, res, next) ->
         res.status(400)
         return res.json {error: "Type is mandatory"}
 
-    query = {
-      product: req.body.product
-      type: req.body.type
-    }
+    if(req.body.activeRegEx)
+        query = { $and : [
+            { product: { $regex: req.body.product, $options: 'i'} },
+            { type: { $regex: req.body.type, $options: 'i'} }
+        ]}
+    else
+        query = {
+            product: req.body.product
+            type: req.body.type
+        }
 
     #build exclude doc
     if(req.body.exclude)

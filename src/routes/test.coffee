@@ -213,8 +213,23 @@ router.post '/steps/:id',  (req, res, next) ->
         res.json test
     else
       res.status(404)
-      res.json {"error": "Cannot find Build with id " + req.params.id}
+      res.json {"error": "Cannot find Test with id " + req.params.id}
   );
+
+router.post '/find/test/:id',  (req, res, next) ->
+    if (!AccessControl.canAccessCreateAny(req.user.role,component))
+        return res.status(403).json({"error": "You don't have permission to perform this action"})
+    Test.findOne({_id: req.params.id}).
+    exec((err, test) ->
+        if err
+            next err
+
+        if test
+            res.json test
+        else
+            res.status(404)
+            res.json {"error": "Cannot find Test with id " + req.params.id}
+    );
 
 # this endpoint will only give back the trend for tests that either always pass or fail or skip
 router.post '/aggregate/stable', (req, res, next) -> 
@@ -428,10 +443,10 @@ router.post '/aggregate/by/failure', (req, res, next) ->
         .sort({ start_time : -1 })
         .match(condition)
         .lookup({
-           from: "builds",
-           localField: "build",
-           foreignField: "_id",
-           as: "build"
+            from: "builds",
+            localField: "build",
+            foreignField: "_id",
+            as: "build"
         })
         .unwind("$build")
         .project({
