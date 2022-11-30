@@ -30,7 +30,10 @@ invTestSchema = new Schema(
 		time: Date,
 		message: String,
 		isDeleted: { type: Boolean, default: false }
-	}, {_id: true})]
+	}, {_id: true})],
+	configuration: Schema({
+		similarity: Schema.Types.Mixed
+	}, {_id: false})
 )
 
 invTestSchema.statics.buildExcludeFieldQuery = (rs, payload) ->

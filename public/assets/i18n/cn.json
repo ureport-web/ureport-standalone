@@ -427,6 +427,8 @@
     "TT_X_AXIS_DATE": "显示开始日期为x轴标签",
     "PLACEHOLDER_WIDGET_NAME": "部件名称",
     "PLACEHOLDER_SELECT_WIDGET": "选择部件",
+    "PLACEHOLDER_DECOR_TITLE": "Title",
+    "PLACEHOLDER_DECOR_DESC": "Description",
     "TT_SHOW_TABLE_VIEW": "显示表",
     "TT_SHOT_GRAPH_VIEW": "显示曲线图",
     "TT_BUIDS_IN_CALENDAR": "日历中作业",
@@ -456,7 +458,8 @@
       "Test Status Trendmap": "测试状态趋势图",
       "Tests Summary": "测试摘要",
       "Builds Summary": "作业摘要",
-      "Investigated Tests Summary": "调查测试摘要"
+      "Investigated Tests Summary": "调查测试摘要",
+      "Title Separator": "Title Separator"
     }
   },
   "USER_PROFILE": {

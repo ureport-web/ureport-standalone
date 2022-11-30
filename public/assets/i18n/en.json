@@ -447,6 +447,8 @@
     "TT_X_AXIS_DATE": "Show x-axis label in date",
     "PLACEHOLDER_WIDGET_NAME": "Widget Name",
     "PLACEHOLDER_SELECT_WIDGET": "Select Widget",
+    "PLACEHOLDER_DECOR_TITLE": "Title",
+    "PLACEHOLDER_DECOR_DESC": "Description",
     "TT_SHOW_TABLE_VIEW": "Show Table View",
     "TT_SHOT_GRAPH_VIEW": "Show Graph View",
     "TT_BUIDS_IN_CALENDAR": "Builds in Calendar",
@@ -457,6 +459,7 @@
     "WIDGET_NAME_GROUP_TABLE_LBL": "Table",
     "WIDGET_NAME_GROUP_MAP_LBL": "Map",
     "WIDGET_NAME_GROUP_CARD_LBL" : "Card",
+    "WIDGET_NAME_GROUP_DECOR_LBL" : "Decorative",
     "WIDGET_END_PREVIEW": "Close Preview",
     "WIDGET_NAME": {
       "Builds in Calendar" : "Builds in Calendar",
@@ -477,7 +480,8 @@
       "Test Status Trendmap": "Test Status Trendmap",
       "Tests Summary": "Tests Summary",
       "Builds Summary": "Builds Summary",
-      "Investigated Tests Summary": "Investigated Tests Summary"
+      "Investigated Tests Summary": "Investigated Tests Summary",
+      "Title Separator": "Title Separator"
     }
   },
   "USER_PROFILE": {
