@@ -58,6 +58,7 @@ dashboardSchema = new Schema(
 				xaixs: String, # mainly for line chart/bar chart
 				customTableConfig: Schema.Types.Mixed, # mainly customize table
 				chartConfig: Schema.Types.Mixed,
+				decorConfig: Schema.Types.Mixed,
 				type: String,
 				multi_query: Schema.Types.Mixed, # used by multiple product line
 				product_line_query: Schema({
