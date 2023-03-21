@@ -86,7 +86,9 @@
     "TT_TOOGLE_PAGINATION": "Toggle table pagination",
     "TT_SUCCESSFULLY": "successfully",
     "DIRECTION_HORIZONTAL": "Horizontal",
-    "DIRECTION_VERTICAL": "Vertical"
+    "DIRECTION_VERTICAL": "Vertical",
+    "TT_CONFIG_LBL" : "Configurations",
+    "TT_SIMILARITY_LBL" : "Similarity in failure message"
   },
   "COMPONENT":{
     "DASHBOARD" : "Dashboard",
