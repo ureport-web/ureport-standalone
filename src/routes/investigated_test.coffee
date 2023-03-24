@@ -57,9 +57,10 @@ router.post '/multi',  (req, res, next) ->
           res.json invTests
     );
 
-router.delete '/:id',  (req, res, next) ->
-    if (!AccessControl.canAccessDeleteAny(req.user.role,component))
-        return res.status(403).json({"error": "You don't have permission to perform this action"})
+router.delete '/:id/:user',  (req, res, next) ->
+    if(req.user.role != 'admin')
+        if (!AccessControl.canAccessDeleteAnyIfOwn(req.user, req.params.user, component))
+            return res.status(403).json({"error": "You don't have permission to perform this action"})
 
     InvestigatedTest.findOneAndRemove({_id: req.params.id}).
     exec((err, invTest) ->

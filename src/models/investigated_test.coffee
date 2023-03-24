@@ -18,6 +18,9 @@ invTestSchema = new Schema(
 		required: "Please provide a type for a test.",
 		trim: true
   	},
+	user: {
+		type: Schema.Types.ObjectId
+	},
 	create_at: { type: Date, default: Date.now },
 	caused_by: { type: String, default: "DEFECT" },
 	tracking: Schema.Types.Mixed,

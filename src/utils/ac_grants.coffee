@@ -32,6 +32,7 @@ ac.grant('viewer')
     .createAny('comment') #this include comments in build, dashboard, test, assignment
     .createAny('investigate')  #Tested
     .updateAny('investigate')  #Tested
+    .deleteOwn('investigate')
     .createAny('dependency')
     .updateAny('dependency')
   .grant('admin')
