@@ -21,12 +21,12 @@ invTestSchema = new Schema(
 	user: {
 		type: Schema.Types.ObjectId
 	},
+	customize_state: Schema.Types.Mixed,
 	create_at: { type: Date, default: Date.now },
 	caused_by: { type: String, default: "DEFECT" },
 	tracking: Schema.Types.Mixed,
 	failure: Schema.Types.Mixed,
 	origin: Schema.Types.Mixed,
-	# comments: Schema.Types.Mixed,
 	comments: [Schema({
 		userId: Schema.Types.ObjectId,
 		user: String,
