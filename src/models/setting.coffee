@@ -45,6 +45,23 @@ settingSchema = new Schema(
 					}
 				}, 
 				{_id: true}
+			)],
+			customize_state: [Schema(
+				{	
+					label: {
+						type: String
+					},
+					key: {
+						type: String
+					},
+					color: {
+						type: String
+					},
+					ttl: {
+						type: Number
+					}
+				}, 
+				{_id: true}
 			)]
 		}, 
 		{_id: false}

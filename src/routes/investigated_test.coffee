@@ -102,6 +102,16 @@ router.post '/total',  (req, res, next) ->
         res.json count
     );
 
+router.get '/customize/state/total/:id',  (req, res, next) ->
+    InvestigatedTest.aggregate()
+    .match({ "customize_state._id": req.params.id })
+    .count('total')
+    .exec((err, count) ->
+        if err
+            return next(err)
+        res.json count
+    );
+
 router.post '/filter',  (req, res, next) ->
     if(!req.body.product)
         res.status(400)
