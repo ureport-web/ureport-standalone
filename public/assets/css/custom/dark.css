@@ -453,3 +453,11 @@ ngx-guided-tour .tour-step h2.tour-title {
   color: #bcc1c5;
 }
 
+
+.customize_attributes {
+  color:#565b60 !important
+}
+
+.customize_attributes span:hover {
+  color: #69f0ae;
+}

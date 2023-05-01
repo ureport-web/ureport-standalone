@@ -350,3 +350,11 @@ ngx-guided-tour .tour-step h2.tour-title {
 .step-description {
   color: #939ba2;
 }
+
+.customize_attributes {
+  color:#c2c6c9 !important
+}
+
+.customize_attributes span:hover {
+  color: #da1e40;
+}

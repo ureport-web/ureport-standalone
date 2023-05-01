@@ -88,7 +88,8 @@
     "DIRECTION_HORIZONTAL": "Horizontal",
     "DIRECTION_VERTICAL": "Vertical",
     "TT_CONFIG_LBL" : "Configurations",
-    "TT_SIMILARITY_LBL" : "Similarity in failure message"
+    "TT_SIMILARITY_LBL" : "Similarity in failure message",
+    "TT_TTL_LBL": "TTL (Time to live)"
   },
   "COMPONENT":{
     "DASHBOARD" : "Dashboard",
@@ -107,7 +108,8 @@
     "MSG_REMOVE_SHARE_DASHBOARD": "This dashboard will no longer be visible to others.",
     "MSG_REMOVE_SHARE_TEMPLATE": "This template will no longer be visible to select in the dashboard view.",
     "MSG_USERNAME_CHANGE":"You have changed the username, if you proceed, you will be logged out after updating successfully.",
-    "MSG_UNSAVED_CHANGES" : "You have unsaved changes. You can save now or cancel to discard the changes."
+    "MSG_UNSAVED_CHANGES" : "You have unsaved changes. You can save now or cancel to discard the changes.",
+    "MSG_DELETE_CUSTOMIZE_STATE_LBL" : "Found {{ total }} investigated tests linked to the customize state, are you sure you want to delete?"
   },
   "MESSAGE": {
     "MSG_NO_RESULT_FOUND" : "Cannot find any results with given date and range",
@@ -143,7 +145,7 @@
     "MSG_SELECT_MULTIPLE_TESTS": "At least 1 test need to be selected to use this feature.",
     "MSG_DEFAULT_PL_SELECTED":"The product lane is already selected.",
     "MSG_INVALID_PL_SELECTED":"Please provide a valid product lane.",
-    "MSG_NO_FAILURE_MESSAGE_OR_TRACE_FOUND": "Cannot find any failure reason or stack trace in this test to mark as investigated test"
+    "MSG_NO_FAILURE_MESSAGE_OR_TRACE_FOUND": "Cannot find any failure message"
   },
   "REQUIRED_LBL": {
     "REQ_PRODUCT" : "Please provide a product",
@@ -152,7 +154,8 @@
     "REQ_COMPONENT" : "Please provide a component name",
     "REQ_FILE_NAME" : "File name the test belongs to",
     "REQ_FILE_PATH" : "File path location",
-    "HINT_LETTER" : "Please only use letter or space."
+    "HINT_LETTER" : "Please only use letter or space.",
+    "HINT_NUMBER" : "Please only use number."
   },
   "COMMENT":{
     "TT_POST_LBL" : "Post",
@@ -211,8 +214,10 @@
     "FIELD_SETUP": "Field Setups",
     "FIELD_SETUP_LBL": "Show/Hide field",
     "INVESTIGATED_SETUP":"Investigated Test Setup",
-    "INVESTIGATED_SETUP_SIPL_TITLE":"Define shared investigated tests.",
-    "INVESTIGATED_SETUP_SIPL_MSG":"You can define and include another product lane's investigated tests in the auto-analysis engine.",
+    "INVESTIGATED_SETUP_SPL_TITLE":"Define shared investigated tests.",
+    "INVESTIGATED_SETUP_SPL_MSG":"You can define and include another product lane's investigated tests in the auto-analysis engine.",
+    "INVESTIGATED_SETUP_CUSTOMIZE_STATE_TITLE":"Define Customize state",
+    "INVESTIGATED_SETUP_CUSTOMIZE_STATE_MSG":"You can define different state for the failed test status before it can be determined as known issues",
     "TT_INVESTIGATED_SETUP_SPL_LINK":"The Current product lane will also search investigated tests from the chosen product and type",
     "DRAG_AND_DROP_ISSUE_TYPE": "Drag suggested Issue Type and Drop to Display Issue Type",
     "DISPLAY_ISSUE_TYPE": "Display Issue Type",
@@ -293,9 +298,10 @@
     "PINN_TEST_BTN": "Pin/Unpin test",
     "TT_PIN_TEST_AT": "Pinned at {{date}}",
     "ASSIGNED_TO_ME" : "Assigned to me",
-    "GROUP_BY_TRACKNUM_BTN": "Group by track number",
-    "GROUP_BY_CREATE_DATE_BTN" : "Group by create date",
-    "GROUP_BY_TYPE_BTN" : "Group by type",
+    "GROUP_BY_TRACKNUM_BTN": "By track number",
+    "GROUP_BY_CREATE_DATE_BTN" : "By create date",
+    "GROUP_BY_TYPE_BTN" : "By type",
+    "GROUP_BY_CUSTOMIZE_STATE_BTN" : "By customize state",
     "TT_CHOOSE_PL_WHEN_NON_DISTINCT_FOUND_MESSAGE" : "Multiple product lanes are found. You can choose one or more to continue.",
     "TT_BOOKMARK_BUILD" : "Bookmark current selected build. The bookmarked build will always display when this workspace is loaded.",
     "TT_INFO_BTN": "{{buildToString}} - Build: {{buildNumber}} - Pass Rate: {{passRate}}%",
@@ -319,6 +325,12 @@
     "LIST_SETTING_DISPLAY_HISTORY_RESULT" : "Number of past results to display",
     "LIST_SETTING_SORT_BY" : "Sort table row by",
     "LIST_SETTING_FULL_TEST_NAME" : "Display full test case name",
+    "LIST_SETTING_START_TIME" : "Display start time",
+    "LIST_SETTING_BROWSER_INFO" : "Display browser",
+    "LIST_SETTING_DEVICE_INFO" : "Display device",
+    "LIST_SETTING_TEST_FILE" : "Display test file",
+    "LIST_SETTING_DURATION" : "Display run duration",
+    "LIST_SETTING_RELATION" : "Display relation",
     "LIST_SETTING_DISPLAY_ATTRIBUTE" : "Select a test attribute to display in table",
     "MSG_WITH_SAME_FAILURE_LBL" : "tests found with the same failure message as this test within the displayed executions",
     "MSG_WITH_SAME_FAILURE_GLOBAL_LBL" : "tests found with the same failure message",
