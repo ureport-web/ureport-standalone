@@ -27,7 +27,7 @@ buildSchema = new Schema(
   	},
 	browser: {
 		type: String,
-		validate: /(electron|edge|firefox|chrome|safari|opera|internet\s?explorer|IE)/i,
+		validate: /(electron|edge|firefox|chrome|chromium|safari|opera|internet\s?explorer|IE)/i,
 		trim: true
   	},
 	device: {
