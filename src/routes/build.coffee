@@ -5,6 +5,7 @@ moment = require('moment');
 Build = require('../models/build')
 Test = require('../models/test')
 ObjectId = require('mongoose').Types.ObjectId;
+ISODate = require('mongoose').Types.ISODate;
 async = require("async")
 
 registerAudit = require('../utils/register_audit')
@@ -631,6 +632,89 @@ router.post '/total',  (req, res, next) ->
       res.json count
     );
 
+# purge
+router.post '/purge/calculate',  (req, res, next) ->
+    if(!req.body.product)
+      res.status(400)
+      return res.json {error: "Product is mandatory"}
+
+    if(!req.body.type)
+      res.status(400)
+      return res.json {error: "Type is mandatory"}
+    
+    query = {}
+    if(req.body.product)
+      query.product = req.body.product
+
+    if(req.body.type)
+      query.type = req.body.type
+  
+    if(req.body.version)
+      query.version = req.body.version
+
+    if(req.body.team)
+      query.team = req.body.team
+
+    if(req.body.browser)
+      query.browser = req.body.browser
+
+    if(req.body.device)
+      query.device = req.body.device
+    
+    if(req.body.platform)
+      query.platform = req.body.platform
+    
+    if(req.body.platform_version)
+      query.platform_version = req.body.platform_version
+
+    if(req.body.stage)
+      query.stage = req.body.stage
+      
+    if(req.body.afterDate)
+      afterDate = moment(req.body.afterDate).format()
+      query.start_time = {
+        '$gt': new Date(afterDate)
+      }
+    
+    Build.aggregate()
+      .match(query)
+      .lookup({
+        from: "tests",
+        localField: "_id",
+        foreignField: "build",
+        as: "total_tests",
+        pipeline: [
+          { $project: { _id: 1 } },
+          { $count: 'number'},
+        ]
+      })
+      .unwind("$total_tests")
+      .project(
+        { 
+          start_time: "$start_time",
+          total_tests: "$total_tests.number"
+        }
+      )
+      .exec((err, builds) -> res.json builds );
+
+router.post '/purge',  (req, res, next) ->
+  if (!AccessControl.canAccessDeleteAny(req.user.role,component))
+    return res.status(403).json({"error": "You don't have permission to perform this action"})
+
+  Build.deleteMany({_id : {$in : req.body.builds}}).
+  exec((err, rsBuild) ->
+    if err
+      next err
+    # console.log(req.body.builds)
+    Test.deleteMany({ build : { $in : req.body.builds } }).
+    exec((err, rs) ->
+      if err
+        next err
+      res.json rs
+    );
+  );
+
+# page
 router.post '/:page/:perPage',  (req, res, next) ->
     if (!req.params.perPage)
       size = 10
@@ -674,8 +758,14 @@ router.post '/:page/:perPage',  (req, res, next) ->
     if(req.body.stage)
       query.stage = req.body.stage
 
+    if(req.body.afterDate)
+      afterDate = moment(req.body.afterDate).format()
+      query.start_time = {
+        '$gt': new Date(afterDate)
+      }
+
     pagnition = {
-        skip: size * page
+      skip: size * page
     }
 
     if(req.body.sort)
@@ -815,5 +905,6 @@ router.post '/search', (req, res, next) ->
       settings: "$settings"
   })
   .exec((err, builds) -> res.json builds );
+
 
 module.exports = router

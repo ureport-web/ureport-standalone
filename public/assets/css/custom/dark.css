@@ -5,7 +5,7 @@
 */
 nav#sidebar {
   height: 100%;
-  background: var(--dark);
+  background: var(--bs-dark);
   color: #6a6c70;
   border-right: 1px solid #34373d;
   overflow-x: hidden;
@@ -45,8 +45,8 @@ nav#sidebar li a {
 }
 
 nav#sidebar li a:hover {
-  background: var(--primary);
-  color: var(--light);
+  background: var(--bs-primary);
+  color: var(--bs-light);
 }
 
 nav#sidebar li a:hover i {
@@ -81,8 +81,8 @@ nav#sidebar li.active::before {
 }
 
 nav#sidebar li.active > a {
-  background: var(--primary);
-  color: var(--light);
+  background: var(--bs-primary);
+  color: var(--bs-light);
 }
 
 nav#sidebar li.active i {
@@ -94,8 +94,8 @@ nav#sidebar li.active::before {
 }
 
 nav#sidebar li.active > a {
-  background:var(--primary);
-  color: var(--light);
+  background:var(--bs-primary);
+  color: var(--bs-light);
 }
 
 nav#sidebar li.active i {
@@ -143,27 +143,28 @@ nav#sidebar.shrinked ul i {
 *     Dashboard
 * ==========================================================
 */
+
 .dashboard-board {
-  background: var(--dark);
+  background: var(--bs-dark);
   overflow-y: hidden;
 }
 
 .dashboard-aggreated-detail-card {
-  background: var(--dark);
+  background: var(--bs-dark);
   -webkit-box-shadow: 0px 0px 11px 2px rgba(26, 25, 25);
   -moz-box-shadow: 0px 0px 11px 2px rgba(26, 25, 25);
   box-shadow: 0px 0px 11px 2px rgba(26, 25, 25);
 }
 
 .dashboard-card {
-  background: var(--dark);
+  background: var(--bs-dark);
   -webkit-box-shadow: 0px 0px 11px 2px rgba(36, 25, 25);
   -moz-box-shadow: 0px 0px 11px 2px rgba(36, 25, 25);
   box-shadow: 0px 0px 11px 2px rgb(36, 25, 25);
 }
 
 .dashboard-card-decor {
-  background: var(--dark);
+  background: var(--bs-dark);
 }
 
 .show-widget-border {
@@ -180,14 +181,14 @@ nav#sidebar.shrinked ul i {
 }
 
 .investigated-analysis-card {
-  background: var(--dark);
+  background: var(--bs-dark);
   -webkit-box-shadow: 2px 5px 3px 2px rgb(36, 25, 25);
   -moz-box-shadow: 2px 5px 3px 2px rgb(36, 25, 25);
   box-shadow: 2px 5px 3px 2px rgb(36, 25, 25);
 }
 
 .investigated-analysis-graph-card {
-  background: var(--dark);
+  background: var(--bs-dark);
   -webkit-box-shadow: 1px 1x 3px 2px rgb(36, 25, 25);
   -moz-box-shadow: 1px 1px 3px 2px rgb(36, 25, 25);
   box-shadow: 1px 1px 3px 2px rgb(36, 25, 25);
@@ -198,6 +199,10 @@ nav#sidebar.shrinked ul i {
 *     Main
 * ==========================================================
 */
+
+.app-list:hover {
+  color: var(--bs-white) !important;
+}
 
 .border-blue{
   border-color: #007bff !important
@@ -442,7 +447,7 @@ ngx-guided-tour .tour-step h2.tour-title {
 */
 
 .test-explorer {
-  background: var(--dark);
+  background: var(--bs-dark);
 }
 
 .test-explorer-detail {
@@ -460,4 +465,15 @@ ngx-guided-tour .tour-step h2.tour-title {
 
 .customize_attributes span:hover {
   color: #69f0ae;
+}
+
+/**
+Checked button style override
+**/
+
+.btn-group>.btn-check:checked+.btn {
+  background-image: linear-gradient(#313539,#34393d 10%,#373b40);
+}
+#test-explorer.table{
+  --bs-table-accent-bg: rgba(255, 255, 255, 0) !important;
 }
