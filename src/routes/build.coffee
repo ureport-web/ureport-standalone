@@ -419,7 +419,7 @@ router.post '/filter',  (req, res, next) ->
     conditions.push({ $or : req.body.stage })
 
   query = {
-      $and : conditions
+    $and : conditions
   }
 
   Build.find(query).
@@ -624,6 +624,12 @@ router.post '/total',  (req, res, next) ->
     if(req.body.type)
         query.type = req.body.type
 
+    if(req.body.untilDate)
+      untilDate = moment(req.body.untilDate).format()
+      query.start_time = {
+        '$lt': new Date(untilDate)
+      }
+
     Build.find(query)
     .count()
     .exec((err, count) ->
@@ -670,10 +676,10 @@ router.post '/purge/calculate',  (req, res, next) ->
     if(req.body.stage)
       query.stage = req.body.stage
       
-    if(req.body.afterDate)
-      afterDate = moment(req.body.afterDate).format()
+    if(req.body.untilDate)
+      untilDate = moment(req.body.untilDate).format()
       query.start_time = {
-        '$gt': new Date(afterDate)
+        '$lt': new Date(untilDate)
       }
     
     Build.aggregate()
@@ -758,10 +764,10 @@ router.post '/:page/:perPage',  (req, res, next) ->
     if(req.body.stage)
       query.stage = req.body.stage
 
-    if(req.body.afterDate)
-      afterDate = moment(req.body.afterDate).format()
+    if(req.body.untilDate)
+      untilDate = moment(req.body.untilDate).format()
       query.start_time = {
-        '$gt': new Date(afterDate)
+        '$lt': new Date(untilDate)
       }
 
     pagnition = {
