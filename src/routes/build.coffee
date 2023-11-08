@@ -619,10 +619,10 @@ router.post '/entity/others',  (req, res, next) ->
 router.post '/total',  (req, res, next) ->
     query = {}
     if(req.body.product)
-        query.product = req.body.product
+      query.product = req.body.product
 
     if(req.body.type)
-        query.type = req.body.type
+      query.type = req.body.type
 
     if(req.body.version)
       query.version = req.body.version
@@ -702,27 +702,26 @@ router.post '/purge/calculate',  (req, res, next) ->
       query.start_time = {
         '$lt': new Date(untilDate)
       }
-    
+
     Build.aggregate()
       .match(query)
       .lookup({
         from: "tests",
         localField: "_id",
         foreignField: "build",
-        as: "total_tests",
-        pipeline: [
-          { $project: { _id: 1 } },
-          { $count: 'number'},
-        ]
+        as: "total_tests"
       })
-      .unwind("$total_tests")
-      .project(
-        { 
-          start_time: "$start_time",
-          total_tests: "$total_tests.number"
-        }
-      )
-      .exec((err, builds) -> res.json builds );
+      .project({ 
+        total_tests: { $size: "$total_tests" }
+      })
+      .exec((err, builds) ->
+        if err
+          next err
+        if(builds)
+          res.json builds
+        else
+          res.json {error: "cannot find any builds"}
+      );
 
 router.post '/purge',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role,component))
