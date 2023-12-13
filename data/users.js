@@ -15,13 +15,23 @@ users = [{
             isWidgetBarOnHover : true
         },
         report: {
-            "assignmentRI": 30,
-            "displaySelfAN": false,
-            "displaySearchAndFilterBoxInStep": true
+            assignmentRI: 30,
+            displaySelfAN: false,
+            displaySearchAndFilterBoxInStep: true,
+            generalConfig: {
+                TABLE_IS_DISPLAY_START_TIME: true,
+                TABLE_IS_DISPLAY_FILE: true,
+                TABLE_IS_DISPLAY_RELATION: true,
+                TABLE_IS_DISPLAY_DURATION: true,
+                TABLE_IS_DISPLAY_BROWSER: false,
+                TABLE_IS_DISPLAY_DEVICE: false,
+                TABLE_IS_DISPLAY_FULL_TEST_NAME: false
+            }
         }
     },
     role : "admin",
-    position : ""
+    position : "",
+    displayname: "admin"
 }]
 
 module.exports = users
