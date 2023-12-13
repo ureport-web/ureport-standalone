@@ -862,9 +862,9 @@ router.post '/search', (req, res, next) ->
 
   Build.aggregate()
   .match(query)
+  .sort({start_time: 1})
   .group(
     { 
-      # _id:  "$_id",
       _id:  {
         product:  "$product",
         type: "$type",
