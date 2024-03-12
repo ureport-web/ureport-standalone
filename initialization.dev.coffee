@@ -7,11 +7,12 @@ Promise = require("bluebird")
 
 User = require('./src/models/user')
 DashboardTemplate = require('./src/models/dashboard_template')
-Setting = require("./src/models/system_setting")
+SystemSetting = require("./src/models/system_setting")
 
 users = require('./data/users')
 templates = require('./data/templates')
-settings = require('./data/settings')
+system_settings = require('./data/system_settings')
+
 mongoose = require('mongoose')
 mongoose.connect(config.DBHost, {
     useNewUrlParser: true
@@ -22,7 +23,7 @@ mongoose.set('useCreateIndex', true);
 Promise.all([
   User.create(users),
   DashboardTemplate.create(templates),
-  Setting.create(settings)
+  SystemSetting.create(system_settings)
 ]).then( (values) ->
   process.exit();
 ).catch((err) ->

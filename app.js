@@ -84,7 +84,7 @@ if (config !== undefined) {
   app.use(bodyParser.urlencoded({
     parameterLimit: 100000,
     limit: '50mb',
-    extended: false
+    extended: true
   }))
   /*
    * loging

@@ -23,6 +23,7 @@
     "TT_EDIT_LBL" : "编辑",
     "TT_UPDATE_LBL" : "Update",
     "TT_DELETE_LBL" : "删除",
+    "TT_BULK_DELETE_LBL" : "批量删除",
     "TT_CLONE_LBL" : "复制",
     "TT_STATUS_LBL" : "状态",
     "TT_BACK_LBL" : "返回",
@@ -84,7 +85,7 @@
   },
   "COMPONENT":{
     "DASHBOARD" : "仪表板",
-    "DASHBOARD_TEMPALTE": "模板"
+    "DASHBOARD_TEMPLATE": "模板"
   },
   "MODAL": {
     "BUILD_ONDATE" : "* 选择开始日期",

@@ -297,7 +297,8 @@ router.post '/aggregate/unstable', (req, res, next) ->
         .match({
             $and : [
                 { build : {$in : req.body.builds.map((el) -> ObjectId(el) )} },
-                { $or: [ { is_rerun: false }, { is_rerun: null} ]} ]
+                { $or: [ { is_rerun: false }, { is_rerun: null} ]} 
+            ]
         })
         .group({
             _id: "$uid",

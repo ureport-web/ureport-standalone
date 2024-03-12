@@ -25,6 +25,7 @@
     "TT_EDIT_LBL" : "Edit",
     "TT_UPDATE_LBL" : "Update",
     "TT_DELETE_LBL" : "Delete",
+    "TT_BULK_DELETE_LBL" : "Bulk Delete",
     "TT_CLONE_LBL" : "Clone",
     "TT_CANCEL_LBL" : "Cancel",
     "TT_STATUS_LBL" : "Status",
@@ -70,7 +71,7 @@
     "TT_RANGE_SELECT_VALUE_90": "Last 90 builds",
     "TT_REPEATS": "Repeats",
     "TT_EVERY": "Every",
-    "TT_OCCURANCE": "Occurance",
+    "TT_OCCURANCE": "Occurrence",
     "TT_STEP_1": "Step 1",
     "TT_STEP_2": "Step 2",
     "TT_STEP_3": "Step 3",
@@ -93,7 +94,7 @@
   },
   "COMPONENT":{
     "DASHBOARD" : "Dashboard",
-    "DASHBOARD_TEMPALTE": "Template"
+    "DASHBOARD_TEMPLATE": "Template"
   },
   "MODAL": {
     "BUILD_ONDATE" : "* Choose a start date if you want to build(s) from a single date",
@@ -105,6 +106,7 @@
     "COMPARE_TITLE" : "Compare current build with other product lanes",
     "DO_YOU_WANT_TO_CONTINUE" : "Do you want to continue?",
     "MSG_BUILD_PURGE": "If you just want to hide the build, you can archive it. The purge action cannot be revert. Are you sure?",
+    "MSG_BULK_BUILD_PURGE": "This action will delete {{ builds }} builds and {{ tests }} tests! The purge action cannot be revert, Are you sure?",
     "MSG_REMOVE_SHARE_DASHBOARD": "This dashboard will no longer be visible to others.",
     "MSG_REMOVE_SHARE_TEMPLATE": "This template will no longer be visible to select in the dashboard view.",
     "MSG_USERNAME_CHANGE":"You have changed the username, if you proceed, you will be logged out after updating successfully.",
@@ -121,9 +123,9 @@
     "MSG_CHOOSE_CONFIG": "Choose one or more product lanes.",
     "MSG_CHOOSE_CONFIG_HELP": "* A multiple product lane graph allows you to compare stats across different product lanes or different configurations in the same product lane.",
     "MSG_NO_PERMISSION" : "You don't have permission to view the content.",
-    "MSG_INVALID_EMAIL" : "Pleaes provide a valid Email",
+    "MSG_INVALID_EMAIL" : "Please provide a valid Email",
     "MSG_INVALID_INPUT" : "Input does not match provided pattern",
-    "MSG_PROVIDE_VALID" : "Pleaes provide a valid",
+    "MSG_PROVIDE_VALID" : "Please provide a valid",
     "MSG_IS_REQUIRED" : "is required",
     "MSG_NO_TEST" : "No tests found based on current filter",
     "MSG_VALID_TRACKING_NUMBER" : "Please enter a valid tracking number",
@@ -286,7 +288,7 @@
     "ADD_PL_TO_WS": "Add a product lane",
     "ADD_WORKSPACE": "Create a new workspace",
     "SAVE" : "Save workspace changes",
-    "SAVE_AS" : "Save worksapce as",
+    "SAVE_AS" : "Save workspace as",
     "CLOSE" : "Close workspace",
     "DELETE" : "Delete workspace"
   },
@@ -341,7 +343,7 @@
     "BUILD_HISTORY": "Build History"
   },
   "TEST_DETAIL": {
-    "DEPENDENCY": "Depedency",
+    "DEPENDENCY": "Dependency",
     "DURATION" : "Duration (seconds)",
     "TRACK_AS_LBE": "Tracked as {{value}} issue.",
     "TRACK_AT_LBE": "Tracked at {{value}}",
@@ -516,7 +518,7 @@
     "INVESTIGATED_TEST_STATUS_PIE": "Display the latest execution investigated status with the given product lane in a pie chart",
     "PASSRATE_LINE": "Display the pass rate of x number of executions with the given product lane in a line chart. The number of execution can be selected from the Range option. The default number is 20 executions.",
     "MPL_PASSRATE_LINE": "Display multiple pass rates of x number of executions with the given product lanes in a line chart. The number of execution can be selected from the Range option. The default number is 20 executions.",
-    "RELATIONS_GROUP_BY_BAR": "Display the group by the status of test relations from the lastest execution with the given product lane in a bar chart. To make test relation available, the selected product lane needs to have product lane settings set up.",
+    "RELATIONS_GROUP_BY_BAR": "Display the group by the status of test relations from the latest execution with the given product lane in a bar chart. To make test relation available, the selected product lane needs to have product lane settings set up.",
     "BUILD_HISTORY_BAR": "Display test status of x number of executions with the given product lane in a bar chart. The number of execution can be selected from the Range option. The default number is 20 executions.",
     "BUILD_HISTORY_GROUP_BAR": "",
     "TEST_STATUS_TRENDMAP": "",
@@ -576,7 +578,7 @@
       "PREVIEW_BTN" : "Preview Builds"
     },
     "BUTTON_GROUP_STATUS": {
-      "TT_RERUN" : "Rerun (rerun number is not calucalted in the total number of tests executed)",
+      "TT_RERUN" : "Rerun (rerun number is not calculated in the total number of tests executed)",
       "TT_RERUN_LBL" : "Rerun ",
       "TT_TOTAL" : "Total",
       "TT_PASS" : "Pass",
@@ -618,9 +620,9 @@
     "ANSWER_PL_2" : "All fields are free text, you can provide any suitable text for your organization. To make distinctions between each build, a build number must be provided through the payload <br> Once these product lanes are set, all future executions should keep pushing results under the same product lane with different build numbers from your CI software. <br> To know how to send data to the UReport server.",
     "QUESTION_AUTOANALYZE" : "How does auto analyze work?",
     "ANSWER_AUTOANALYZE_1" : "Auto analysis is one of the key feature UReport offers. User does not need to setup anything. it is on by default and cannot be turn off.<br> When user mark a fail test as an issue, if the marked test case failed in the future for the same reason, UReport will automatically mark the test as Investigated and indicate with the symbol <i class='fas fa-microscope c-investigated' ></i>.<br> UReport will search back, by default, 30 days for all investigated issues within the same Product and Automation Type. <br> This day number can be changed in the Settings.<hr> <br><strong>How does it work?</strong><br>When save failed test case through API, there are three fields user can provide: ",
-    "ANSWER_AUTOANALYZE_2" : "To allow the auto analysis to work. <u>error_message</u> must be provided. This is the field UReport uses during the auto analysis process.<br>To allow a more percise result, field <u>token</u> is recommended. Because a error message might contain dynamic value that varies from execution to execution. <br> <br> <u>What is token then? </u><br> A token is a string field that is totally up to the user to set. <br> Most commonly, if you are using any testing framework with a programming language, it won't be very hard to generate a string of number based on the line number of the failure from the stack trace. <br> Such sequential number can be used as your unique token. If the error message contains dynamic value such as date, providing the token will make the auto-analysis more accureate.<br><br><u> Note: UReport does not genreate the token, it is up to the user to provide the value</u><br> <ul><li>When field <u>token</u> is present, <u>token</u> will be used for auto-analysis</li><li>When only field <u>error_message</u> is present, <u>error_message</u> will be used for auto-analysis</li><li>When only field <u>stack_trace</u> is present, <u>stack_trace</u> will be used for auto-analysis</li><li>The precedence of the fileds is:  token > error_message > stack_trace </li><li>When all three fileds are missing from a fail test, false will be return for all analysis.</li></ul>",
+    "ANSWER_AUTOANALYZE_2" : "To allow the auto analysis to work. <u>error_message</u> must be provided. This is the field UReport uses during the auto analysis process.<br>To allow a more precise result, field <u>token</u> is recommended. Because a error message might contain dynamic value that varies from execution to execution. <br> <br> <u>What is token then? </u><br> A token is a string field that is totally up to the user to set. <br> Most commonly, if you are using any testing framework with a programming language, it won't be very hard to generate a string of number based on the line number of the failure from the stack trace. <br> Such sequential number can be used as your unique token. If the error message contains dynamic value such as date, providing the token will make the auto-analysis more accurate.<br><br><u> Note: UReport does not generate the token, it is up to the user to provide the value</u><br> <ul><li>When field <u>token</u> is present, <u>token</u> will be used for auto-analysis</li><li>When only field <u>error_message</u> is present, <u>error_message</u> will be used for auto-analysis</li><li>When only field <u>stack_trace</u> is present, <u>stack_trace</u> will be used for auto-analysis</li><li>The precedence of the fields is:  token > error_message > stack_trace </li><li>When all three fields are missing from a fail test, false will be return for all analysis.</li></ul>",
     "QUESTION_UID" : "What is a UID from the test?",
-    "ANSWER_UID": "UID stands for unique ID. It could be a number or string or the combination of both. The point is to have such unique ID mapped to each of the automated test. <br> To make the auto anaylsis work, UReport need to have a way to identify the uniqueness of each test, by providing a unique id when sending test run results to the UReport server, it will enable UReport to perform auto-analysis normally.<br> You will find this UID field everywhere when using API. <br> If your orgnization is using any testing management tool such as TestRail, PractiTest or HP ALM, you won't have trouble finding a unique number associated with any test you creat. You can use this id to link with your automation run and then send this info to the UReport server.<br> Even if your orgnization does not use any test management tool, you can still assign some unique string or number to your automated tests. You just need to make sure they don't change after it is decided.",
+    "ANSWER_UID": "UID stands for unique ID. It could be a number or string or the combination of both. The point is to have such unique ID mapped to each of the automated test. <br> To make the auto analysis work, UReport need to have a way to identify the uniqueness of each test, by providing a unique id when sending test run results to the UReport server, it will enable UReport to perform auto-analysis normally.<br> You will find this UID field everywhere when using API. <br> If your organization is using any testing management tool such as TestRail, PractiTest or HP ALM, you won't have trouble finding a unique number associated with any test you create. You can use this id to link with your automation run and then send this info to the UReport server.<br> Even if your organization does not use any test management tool, you can still assign some unique string or number to your automated tests. You just need to make sure they don't change after it is decided.",
     "QUESTION_D_PL" : "What is the difference between a bind product lane dashboard and non-bind product lane dashboard?",
     "ANSWER_D_PL": "",
     "QUESTION_T_INV_ASS_PIN" : "What is the difference between investigated test, assigned test, and pinned test?",
