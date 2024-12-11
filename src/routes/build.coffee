@@ -540,7 +540,7 @@ router.post '/entity/others',  (req, res, next) ->
     return res.json {error: "Type is mandatory"}
 
   key = 'entity'
-    condition = { product : req.body.product, type: req.body.type}
+  condition = { product : req.body.product, type: req.body.type}
   
   if(req.body.team)
     condition['team'] = req.body.team
