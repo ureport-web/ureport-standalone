@@ -602,6 +602,6 @@
     "BY_NAME":"By Name",
     "BY_START_DATE":"By Start Time",
     "ASCENDING": "ascending",
-    "DECENDING": "decending"
+    "DESCENDING": "DESCENDING"
   }
 }

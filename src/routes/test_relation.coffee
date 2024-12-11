@@ -71,7 +71,11 @@ router.post '/',  (req, res, next) ->
     if(req.body._id != undefined)
         condition = { _id: new ObjectId(req.body._id) }
     else
-        condition = { uid: 'ureport-does-not-exist' }
+        if(req.body.uid != undefined)
+            condition = { uid: req.body.uid }
+        else
+            condition = { uid: 'ureport-does-not-exist' }
+
 
     TestRelation.findOneAndUpdate(condition, req.body,
         {
