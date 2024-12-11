@@ -463,35 +463,6 @@ router.get '/entity/producttype',  (req, res, next) ->
         res.json rs
   )
 
-router.get '/entity/:product/:type/:since/recommend',  (req, res, next) ->
-  Build.aggregate() 
-  .match({ 
-    product: req.params.product, 
-    type: req.params.type, 
-    start_time: { $gte: new Date(moment().subtract(req.params.since,'day').format()) }
-  })
-  .group({
-    _id: {
-      $concat: ['$product', '_', '$type']
-    }, 
-    types: {
-      $addToSet: {
-        product: '$product',
-        type: '$type',
-        team: '$team',
-        version: '$version', 
-        browser: '$browser', 
-        device: '$device', 
-        platform: '$platform', 
-        platform_version: '$platform_version',
-        stage: '$stage'
-      }
-    }
-  })
-  .exec((err, recommends) ->
-    res.json recommends
-  );
-
 router.post '/entity/recommend',  (req, res, next) ->
   if(!req.body.product)
     res.status(400)
@@ -569,10 +540,27 @@ router.post '/entity/others',  (req, res, next) ->
     return res.json {error: "Type is mandatory"}
 
   key = 'entity'
+    condition = { product : req.body.product, type: req.body.type}
+  
+  if(req.body.team)
+    condition['team'] = req.body.team
+  if(req.body.version)
+    condition['version'] = req.body.version
+  if(req.body.device)
+    condition['device'] = req.body.device
+  if(req.body.browser)
+    condition['browser'] = req.body.browser
+  if(req.body.platform)
+    condition['platform'] = req.body.platform
+  if(req.body.platform_version)
+    condition['platform_version'] = req.body.platform_version
+  if(req.body.stage)
+    condition['stage'] = req.body.stage
+
   entities = ['version','device','team', 'browser', 'platform', 'platform_version', 'stage']
   async.map(entities,
     (item, callback) ->
-        Build.distinct(item, {product : req.body.product, type: req.body.type}).
+        Build.distinct(item, condition).
         exec((err, entity) ->
             _t = {}
             _t[item] = entity
@@ -582,39 +570,8 @@ router.post '/entity/others',  (req, res, next) ->
         if err
           return next(err) 
         res.json rs
-        # req.app.locals.commonCache.set(key, rs)
-        # .then( (result) ->
-        #     next(result.err) if result.err
-        #     res.json rs
-        # )
   )
-  # req.app.locals.commonCache.get(key)
-  # .then( (crs)->
-  #   next(err) if crs.err
-  #   if crs.value[key] == undefined || req.query.isforce == 'true'
-  #     async.map(entities,
-  #         (item, callback) ->
-  #             Build.distinct(item).
-  #             exec((err, entity) ->
-  #                 _t = {}
-  #                 _t[item] = entity
-  #                 callback(err,_t)
-  #             )
-  #         (err,rs) ->
-  #             next(err) if err
-  #             req.app.locals.commonCache.set(key, rs)
-  #             .then( (result) ->
-  #                 next(result.err) if result.err
-  #                 res.json rs
-  #             )
-  #     )
-  #   else
-  #     req.app.locals.commonCache.getStats()
-  #     .then( (rs) ->
-  #         next(rs.err) if rs.err
-  #         res.json crs.value[key]
-  #     )
-  # )
+  
 
 router.post '/total',  (req, res, next) ->
     query = {}

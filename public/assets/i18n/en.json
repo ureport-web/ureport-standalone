@@ -257,7 +257,7 @@
     "VIEW_DASHBOARD_LBL": "View Dashboard",
     "ANALYZE_RUN_LBL": "Analyze Run",
     "ANALYZE_INVESTIGATED_LBL": "Analyze Investigated",
-    "ANALYZE_LATEST_RUN_LBL": "Analyze Latest Run",
+    "ANALYZE_LATEST_RUN_LBL": "Analyze Latest",
     "TT_EXPAND_MENU": "Expand Menu",
     "TT_COLLAPSE_MENU": "Collapse menu",
     "TT_WIDGET_MENU_ADD_LBL": "Add Widget",
@@ -653,7 +653,7 @@
     "BY_NAME":"By Name",
     "BY_START_DATE":"By Start Time",
     "ASCENDING": "ascending",
-    "DECENDING": "descending",
+    "DESCENDING": "descending",
     "EXPORT" : {
       "UID": "UID", 
       "NAME":"Name",
