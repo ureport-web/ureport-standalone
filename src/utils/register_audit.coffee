@@ -16,8 +16,6 @@ module.exports = (req, res, audit_type, action) ->
         audit.save((err, rs) ->
             if(err)
                 console.log("cannot create audit", err)
-            else
-                console.log("create audit")
             return
         );
 
