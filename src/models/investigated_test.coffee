@@ -35,7 +35,8 @@ invTestSchema = new Schema(
 		isDeleted: { type: Boolean, default: false }
 	}, {_id: true})],
 	configuration: Schema({
-		similarity: Schema.Types.Mixed
+		similarity: Schema.Types.Mixed,
+		compare_by: String
 	}, {_id: false})
 )
 
