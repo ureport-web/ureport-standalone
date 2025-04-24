@@ -74,13 +74,14 @@ router.post '/build/filter',  (req, res, next) ->
   );
 
 router.post '/build/search', (req, res, next) ->
-  if(!req.body.product)
-    res.status(400)
-    return res.json {error: "Product is mandatory"}
+  if(!req.body.specificQueries)
+    if(!req.body.product)
+      res.status(400)
+      return res.json {error: "Product is mandatory"}
 
-  if(!req.body.type)
-    res.status(400)
-    return res.json {error: "Type is mandatory"}
+    if(!req.body.type)
+      res.status(400)
+      return res.json {error: "Type is mandatory"}
 
   since = 90
   if(req.body.since)
@@ -90,35 +91,43 @@ router.post '/build/search', (req, res, next) ->
   if(req.body.range)
     range = (-req.body.range)
 
-  condition = [
-    { product: { $regex: req.body.product, $options: 'i'} },
-    { type: { $regex: req.body.type, $options: 'i'} },
-    { start_time: { $gte: new Date(moment().subtract(since,'day').format()) } }
-  ]
+  query = {}
 
-  if(req.body.version)
-    conditions.push({ version: { $regex: req.body.version, $options: 'i'} })
+  if(req.body.specificQueries)
+    query = { $or : req.body.specificQueries }
+  else
+    conditions = [
+      { product: { $regex: req.body.product, $options: 'i'} },
+      { type: { $regex: req.body.type, $options: 'i'} },
+      { start_time: { $gte: new Date(moment().subtract(since,'day').format()) } }
+    ]
+    
+    if(req.body.version)
+      conditions.push({ version: { $regex: req.body.version, $options: 'i'} })
 
-  if(req.body.team)
-    conditions.push({ team: { $regex: req.body.team, $options: 'i'} })
+    if(req.body.team)
+      conditions.push({ team: { $regex: req.body.team, $options: 'i'} })
 
-  if(req.body.browser)
-    conditions.push({ browser: { $regex: req.body.browser, $options: 'i'} })
+    if(req.body.browser)
+      conditions.push({ browser: { $regex: req.body.browser, $options: 'i'} })
 
-  if(req.body.device)
-    conditions.push({ device: { $regex: req.body.device, $options: 'i'} })
-  
-  if(req.body.platform)
-    conditions.push({ platform: { $regex: req.body.platform, $options: 'i'} })
-  
-  if(req.body.platform_version)
-    conditions.push({ platform_version: { $regex: req.body.platform_version, $options: 'i'} })
+    if(req.body.device)
+      conditions.push({ device: { $regex: req.body.device, $options: 'i'} })
+    
+    if(req.body.platform)
+      conditions.push({ platform: { $regex: req.body.platform, $options: 'i'} })
+    
+    if(req.body.platform_version)
+      conditions.push({ platform_version: { $regex: req.body.platform_version, $options: 'i'} })
 
-  if(req.body.stage)
-    conditions.push({ stage: { $regex: req.body.stage, $options: 'i'} })
+    if(req.body.stage)
+      conditions.push({ stage: { $regex: req.body.stage, $options: 'i'} })
+
+    query = { $and : conditions }
 
   Build.aggregate()
-  .match({ $and : condition })
+  .sort({start_time:1})
+  .match(query)
   .group(
     { 
       # _id:  "$_id",
@@ -157,7 +166,7 @@ router.post '/build/search', (req, res, next) ->
       },
       aggregate_previous_runs: { 
         $push: { 
-          id: "$_id",
+          _id: "$_id",
           build: "$build",
           start_time: "$start_time",
           status: "$status"

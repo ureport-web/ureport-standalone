@@ -23,7 +23,7 @@ invTestSchema = new Schema(
 	},
 	customize_state: Schema.Types.Mixed,
 	create_at: { type: Date, default: Date.now },
-	caused_by: { type: String, default: "DEFECT" },
+	caused_by: { type: String, default: "Defect" },
 	tracking: Schema.Types.Mixed,
 	failure: Schema.Types.Mixed,
 	origin: Schema.Types.Mixed,

@@ -53,7 +53,7 @@ describe 'User can ', ->
                     res.body.product.should.equal 'GreatProject'
                     res.body.type.should.equal 'API'
                     res.body.failure.message.should.equal 'some message'
-                    res.body.caused_by.should.equal 'DEFECT'
+                    res.body.caused_by.should.equal 'Defect'
                     done()
             )
             

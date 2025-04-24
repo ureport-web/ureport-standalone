@@ -102,13 +102,22 @@ router.post '/status/:id',  (req, res, next) ->
 #  get history of a test based on UID
 router.post '/history/:uid',  (req, res, next) ->
     limit = 5
+    include=['start_time','end_time','status','failure','is_rerun','build']
     if(req.body.limit)
         limit = req.body.limit
+    
+    if(req.body.include && req.body.include instanceof Array)
+        include = req.body.include
+    else
+        if(req.body.include.toLowerCase() == 'all')
+            include = []
+        else
+            include = [req.body.include]
 
     Test.find({
         uid: req.params.uid,
         start_time: { $lte: req.body.before }
-    }).
+    }, include).
     sort({"start_time": -1}).
     limit(limit).
     exec((err, test) ->
@@ -297,8 +306,7 @@ router.post '/aggregate/unstable', (req, res, next) ->
         .match({
             $and : [
                 { build : {$in : req.body.builds.map((el) -> ObjectId(el) )} },
-                { $or: [ { is_rerun: false }, { is_rerun: null} ]} 
-            ]
+                { $or: [ { is_rerun: false }, { is_rerun: null} ]} ]
         })
         .group({
             _id: "$uid",
