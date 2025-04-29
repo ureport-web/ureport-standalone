@@ -1,6 +1,6 @@
 # UReport
 ### Stand-alone server-side reporting and analyzing software for local or CI automation.
-[Demo](https://ureport-demo.herokuapp.com/#/)
+[Demo](https://ureport-demo-4c5583a31b42.herokuapp.com/)
 
 If you want to explorer more features in an admin model, please contact ureport@outlook.com
 or

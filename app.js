@@ -95,6 +95,9 @@ if (config !== undefined) {
   const logDirectory = path.join(__dirname, 'log')
   // ensure log directory exists
   fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory)
+  const errorLogStream = fs.createWriteStream(path.join(__dirname, "log/error.log"), { flags: "a" });
+  morgan.token("error-message", (req, res) => res.locals.errorMessage || "No Error");
+  morgan.token("detail", (req, res) => res.locals.detail || "No Detail");
 
   app.use(morgan('dev', {
     skip: function (req, res) {
@@ -208,13 +211,18 @@ if (config !== undefined) {
   
   app.use('/api/noauth', noauth)
 
+  //error handling
   app.use(function (err, req, res, next) {
+    res.locals.errorMessage = err.message; // Attach error message to response locals
+    res.locals.detail = JSON.stringify(err); // Attach error message to response locals
+    morgan(":method :url :status :error-message :detail", { stream: errorLogStream })(req, res, () => {});
+
     if (res.headersSent) {
       return next(err)
     }
-    console.log("Internal Error:",err)
-    res.status(500).json({
-      error: err
+    res.status(err.status || 500).json({
+      error: err.message,
+      detail: err
     })
   })
 

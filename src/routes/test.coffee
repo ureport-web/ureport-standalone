@@ -65,6 +65,7 @@ router.post '/multi', (req, res, next) ->
     try 
       Test.insertMany(req.body.tests,{ ordered: isOrdered }, (err, tests) ->
         if(err)
+            err.status = 500
             return next(err)
         state = "Success"
         if(req.body.tests.length != tests.length)

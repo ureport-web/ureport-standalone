@@ -540,7 +540,7 @@ router.post '/entity/others',  (req, res, next) ->
     return res.json {error: "Type is mandatory"}
 
   key = 'entity'
-    condition = { product : req.body.product, type: req.body.type}
+  condition = { product : req.body.product, type: req.body.type}
   
   if(req.body.team)
     condition['team'] = req.body.team
@@ -775,10 +775,6 @@ router.post '/search', (req, res, next) ->
       res.status(400)
       return res.json {error: "Type is mandatory"}
 
-  since = 90
-  if(req.body.since)
-    since = req.body.since
-
   range = -20
   if(req.body.range)
     range = (-req.body.range)
@@ -790,10 +786,12 @@ router.post '/search', (req, res, next) ->
   else
     conditions = [
       { product: { $regex: req.body.product, $options: 'i'} },
-      { type: { $regex: req.body.type, $options: 'i'} },
-      { start_time: { $gte: new Date(moment().subtract(since,'day').format()) } }
+      { type: { $regex: req.body.type, $options: 'i'} }
     ]
-    
+
+    if(req.body.since)
+      conditions.push({ start_time: { $gte: new Date(moment().subtract(req.body.since,'day').format()) } })
+  
     if(req.body.version)
       conditions.push({ version: { $regex: req.body.version, $options: 'i'} })
 
