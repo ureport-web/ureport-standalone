@@ -9,9 +9,9 @@ User = require('./src/models/user')
 DashboardTemplate = require('./src/models/dashboard_template')
 SystemSetting = require("./src/models/system_setting")
 
-users = require('./data/users')
-templates = require('./data/templates')
-system_settings = require('./data/system_settings')
+users = require('./data/sample/seeds/users')
+templates = require('./data/sample/seeds/templates')
+system_settings = require('./data/sample/seeds/system_settings')
 
 mongoose = require('mongoose')
 mongoose.connect(config.DBHost, {

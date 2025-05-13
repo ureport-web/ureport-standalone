@@ -1,5 +1,6 @@
 
-var dashboards = [{
+var dashboards = [
+  {
     "is_public": false,
     "widgets": [
       {
@@ -34,7 +35,7 @@ var dashboards = [{
             "device": "Desktop",
             "platform": "Windows",
             "platform_version": "10",
-            "stage": "dev"
+            "stage": "QA Stage"
           },
           {
             "is_archive": false,
@@ -46,7 +47,19 @@ var dashboards = [{
             "device": "Desktop",
             "platform": "Windows",
             "platform_version": "10",
-            "stage": "dev"
+            "stage": "QA Stage"
+          },
+          {
+            "is_archive": false,
+            "product": "uReport",
+            "type": "UI Regression",
+            "range": 20,
+            "browser": "Edge",
+            "team": "Team A",
+            "device": "Desktop",
+            "platform": "Windows",
+            "platform_version": "10",
+            "stage": "QA Stage"
           }
         ],
         "product_line_query": {
@@ -67,7 +80,7 @@ var dashboards = [{
             "10"
           ],
           "stage": [
-            "dev"
+            "QA Stage"
           ],
           "product": "uReport",
           "type": "UI Regression",
@@ -109,7 +122,7 @@ var dashboards = [{
             "device": "Desktop",
             "platform": "Windows",
             "platform_version": "10",
-            "stage": "dev"
+            "stage": "QA Stage"
           },
           {
             "is_archive": false,
@@ -121,7 +134,7 @@ var dashboards = [{
             "device": "Desktop",
             "platform": "Windows",
             "platform_version": "10",
-            "stage": "dev"
+            "stage": "QA Stage"
           }
         ],
         "product_line_query": {
@@ -182,7 +195,7 @@ var dashboards = [{
             "device": "Pixel 7 Pro",
             "platform": "Android",
             "platform_version": "14.0",
-            "stage": "dev"
+            "stage": "QA Stage"
           },
           {
             "is_archive": false,
@@ -194,7 +207,7 @@ var dashboards = [{
             "device": "iPad",
             "platform": "iOS",
             "platform_version": "16",
-            "stage": "dev"
+            "stage": "QA Stage"
           }
         ],
         "product_line_query": {
@@ -203,7 +216,7 @@ var dashboards = [{
           ],
           "version": [],
           "browser": [
-            "Chrome"
+            "Safari"
           ],
           "device": [
             "iPhone"
@@ -215,7 +228,7 @@ var dashboards = [{
             "16"
           ],
           "stage": [
-            "dev"
+            "QA Stage"
           ],
           "product": "uReport",
           "type": "UI Regression",
@@ -267,7 +280,7 @@ var dashboards = [{
             "10"
           ],
           "stage": [
-            "dev"
+            "QA Stage"
           ],
           "product": "uReport",
           "type": "UI Regression",
@@ -315,7 +328,7 @@ var dashboards = [{
             "10"
           ],
           "stage": [
-            "dev"
+            "QA Stage"
           ],
           "product": "uReport",
           "type": "UI Regression",
@@ -364,7 +377,7 @@ var dashboards = [{
             "10"
           ],
           "stage": [
-            "dev"
+            "QA Stage"
           ],
           "product": "uReport",
           "type": "UI Regression",
@@ -431,7 +444,7 @@ var dashboards = [{
             "device": "Desktop",
             "platform": "Windows",
             "platform_version": "10",
-            "stage": "dev"
+            "stage": "QA Stage"
           },
           {
             "is_archive": false,
@@ -443,7 +456,7 @@ var dashboards = [{
             "device": "Desktop",
             "platform": "Windows",
             "platform_version": "10",
-            "stage": "dev"
+            "stage": "QA Stage"
           },
           {
             "is_archive": false,
@@ -455,7 +468,7 @@ var dashboards = [{
             "device": "iPad",
             "platform": "iOS",
             "platform_version": "16",
-            "stage": "dev"
+            "stage": "QA Stage"
           },
           {
             "is_archive": false,
@@ -467,19 +480,31 @@ var dashboards = [{
             "device": "Pixel 7 Pro",
             "platform": "Android",
             "platform_version": "14.0",
-            "stage": "dev"
+            "stage": "QA Stage"
           },
           {
             "is_archive": false,
             "product": "uReport",
             "type": "UI Regression",
             "range": 20,
-            "browser": "Chrome",
+            "browser": "Safari",
             "team": "Team A",
             "device": "iPhone",
             "platform": "iOS",
             "platform_version": "16",
-            "stage": "dev"
+            "stage": "QA Stage"
+          },
+          {
+            "is_archive": false,
+            "product": "uReport",
+            "type": "UI Regression",
+            "range": 20,
+            "browser": "Edge",
+            "team": "Team A",
+            "device": "Desktop",
+            "platform": "Windows",
+            "platform_version": "10",
+            "stage": "QA Stage"
           }
         ],
         "chartConfig": {
@@ -592,13 +617,9 @@ var dashboards = [{
     "default_template": null,
     "user": {
       "$oid": "608f72cfbde204263332366a"
-    },
-    "created_at": {
-      "$date": "2023-12-11T20:03:49.565Z"
-    },
-    "__v": 0
-},
-{
+    }
+  },
+  {
     "is_public": false,
     "widgets": [
       {
@@ -632,7 +653,6 @@ var dashboards = [{
           ],
           "version": [],
           "browser": [
-            "Chrome"
           ],
           "device": [
             "Desktop"
@@ -647,7 +667,7 @@ var dashboards = [{
             "dev"
           ],
           "product": "uReport",
-          "type": "UI Regression",
+          "type": "API Regression",
           "range": 1000,
           "date_range": {
             "start_date": "2023-10-09",
@@ -687,7 +707,6 @@ var dashboards = [{
           ],
           "version": [],
           "browser": [
-            "Chrome"
           ],
           "device": [
             "Desktop"
@@ -702,7 +721,7 @@ var dashboards = [{
             "dev"
           ],
           "product": "uReport",
-          "type": "UI Regression",
+          "type": "API Regression",
           "range": 1000,
           "date_range": {
             "start_date": "2023-10-09",
@@ -743,7 +762,6 @@ var dashboards = [{
           ],
           "version": [],
           "browser": [
-            "Chrome"
           ],
           "device": [
             "Desktop"
@@ -758,7 +776,7 @@ var dashboards = [{
             "dev"
           ],
           "product": "uReport",
-          "type": "UI Regression",
+          "type": "API Regression",
           "range": 1000,
           "date_range": {
             "start_date": "2023-10-09",
@@ -799,7 +817,6 @@ var dashboards = [{
           ],
           "version": [],
           "browser": [
-            "Chrome"
           ],
           "device": [
             "Desktop"
@@ -814,7 +831,7 @@ var dashboards = [{
             "dev"
           ],
           "product": "uReport",
-          "type": "UI Regression",
+          "type": "API Regression",
           "range": 1000,
           "date_range": {
             "start_date": "2023-10-09",
@@ -860,11 +877,198 @@ var dashboards = [{
     "default_template": null,
     "user": {
       "$oid": "608f72cfbde204263332366a"
-    },
-    "created_at": {
-      "$date": "2023-12-11T21:06:28.967Z"
-    },
-    "__v": 0
-  }]
+    }
+  },
+  {
+    "is_public": false,
+    "widgets": [
+      {
+        "name": "Advance Status",
+        "cols": 5,
+        "rows": 1,
+        "y": 1,
+        "x": 0,
+        "minItemCols": 3,
+        "type": "STATUS_PIE_ADVANCE",
+        "pattern": {
+          "status": {
+            "all": true,
+            "rerun": false,
+            "pass": false,
+            "fail": false,
+            "skip": false,
+            "ki": false
+          },
+          "groupByRelation": "components"
+        },
+        "chartConfig": {
+          "aggregationEnabled": false
+        }
+      },
+      {
+        "name": "Investigated Test Status",
+        "cols": 10,
+        "rows": 1,
+        "y": 0,
+        "x": 0,
+        "minItemCols": 3,
+        "type": "INVESTIGATED_TEST_STATUS_PIE",
+        "pattern": {
+          "status": {
+            "all": true,
+            "rerun": false,
+            "pass": false,
+            "fail": false,
+            "skip": false,
+            "ki": false
+          },
+          "groupByRelation": "components"
+        },
+        "chartConfig": {
+          "aggregationEnabled": false
+        }
+      },
+      {
+        "name": "Pass Rate",
+        "cols": 5,
+        "rows": 2,
+        "y": 2,
+        "x": 0,
+        "minItemCols": 3,
+        "minItemRows": 2,
+        "type": "PASSRATE_LINE",
+        "pattern": {
+          "status": {
+            "all": true,
+            "rerun": false,
+            "pass": false,
+            "fail": false,
+            "skip": false,
+            "ki": false
+          },
+          "groupByRelation": "components"
+        },
+        "chartConfig": {
+          "customize_axis": "Build Number"
+        }
+      },
+      {
+        "name": "Run History",
+        "cols": 5,
+        "rows": 3,
+        "y": 1,
+        "x": 5,
+        "minItemCols": 3,
+        "minItemRows": 2,
+        "type": "BUILD_HISTORY_BAR",
+        "pattern": {
+          "status": {
+            "all": true,
+            "rerun": false,
+            "pass": false,
+            "fail": false,
+            "skip": false,
+            "ki": false
+          },
+          "groupByRelation": "components"
+        },
+        "chartConfig": {
+          "customize_axis": "Build Number",
+          "direction": "Horizontal",
+          "aggregationEnabled": false
+        }
+      },
+      {
+        "name": "Unstable Tests List",
+        "cols": 3,
+        "rows": 2,
+        "y": 4,
+        "x": 0,
+        "minItemCols": 3,
+        "minItemRows": 2,
+        "type": "UNSTABLE_TESTS_TABLE",
+        "pattern": {
+          "status": {
+            "all": true,
+            "rerun": false,
+            "pass": false,
+            "fail": false,
+            "skip": false,
+            "ki": false
+          },
+          "groupByRelation": "components"
+        },
+        "chartConfig": {
+          "aggregationEnabled": false
+        }
+      },
+      {
+        "name": "Stable Tests List",
+        "cols": 4,
+        "rows": 2,
+        "y": 4,
+        "x": 3,
+        "minItemCols": 3,
+        "minItemRows": 2,
+        "type": "STABLE_TESTS_TABLE",
+        "pattern": {
+          "status": {
+            "all": true,
+            "rerun": false,
+            "pass": false,
+            "fail": false,
+            "skip": false,
+            "ki": false
+          },
+          "groupByRelation": "components"
+        },
+        "chartConfig": {
+          "aggregationEnabled": false
+        }
+      },
+      {
+        "name": "Most Failed Reasons",
+        "cols": 3,
+        "rows": 2,
+        "y": 4,
+        "x": 7,
+        "minItemCols": 3,
+        "minItemRows": 2,
+        "type": "MOST_FAILREASON_TABLE",
+        "pattern": {
+          "status": {
+            "all": true,
+            "rerun": false,
+            "pass": false,
+            "fail": false,
+            "skip": false,
+            "ki": false
+          },
+          "groupByRelation": "components"
+        },
+        "chartConfig": {
+          "aggregationEnabled": false
+        }
+      }
+    ],
+    "name": "Team B Product Lane",
+    "description": "",
+    "default_template": null,
+    "query": {
+      "product": "uReport",
+      "type": "API Regression",
+      "team": "Team B",
+      "version": "",
+      "device": "Desktop",
+      "platform": "Windows",
+      "platform_version": "10",
+      "stage": "dev",
+      "range": 20,
+      "after": "",
+      "since": "",
+      "query_type": "FILTER"
+    }
+  }
+]
 
 module.exports = dashboards

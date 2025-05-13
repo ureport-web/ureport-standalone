@@ -3,7 +3,8 @@ let moment = require('moment')
 let mongoose = require('mongoose')
 ObjectId = mongoose.Types.ObjectId;
 const product = "uReport"
-const type = "UI Regression"
+const ui_type = "UI Regression"
+const api_type = "API Regression"
 
 const failuresMsg = [
   "expected false to equal true", 
@@ -42,10 +43,10 @@ function randomInteger(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function createTests(build, date, totalTests=30, failPercent = 30, testNamePrefix="1111"){
+function createTests(build, date, totalTests=30, failPercent = 30, info=undefined, testNamePrefix="1111"){
   /**
    * Test fail with the same reason
-   * Test fail with similiar reason
+   * Test fail with similar reason
    * Test fail with different reason completely
    * Test skip
    */
@@ -58,7 +59,8 @@ function createTests(build, date, totalTests=30, failPercent = 30, testNamePrefi
     let start_time = date.add(accumulateTime,'minutes').format()
     accumulateTime += randomInteger(6,8)
     let end_time = date.add(accumulateTime,'minutes').format()
-
+    let uid = testNamePrefix.toString() + (i < 10 ? '0'+i : i)
+    let name = "Test case name"+ testNamePrefix.toString() + (i < 10 ? '0'+i : i)
     if(i<=failureNumber){
       let stat = 'FAIL'
       // make the first failure is always the test fail with the same reason
@@ -90,13 +92,14 @@ function createTests(build, date, totalTests=30, failPercent = 30, testNamePrefi
       }
 
       tests.push({
-        uid: `${testNamePrefix}${i < 10 ? '0'+i : i}`,
+        uid,
         build,
-        name: `Test case name ${testNamePrefix}${i < 10 ? '0'+i : i}`,
+        name,
         runType: 0,
         status: stat,
         start_time,
         end_time,
+        info: info ? info : {},
         failure: {
           error_message,
           stack_trace
@@ -104,13 +107,14 @@ function createTests(build, date, totalTests=30, failPercent = 30, testNamePrefi
       })
     }else{
       tests.push({
-        uid: `${testNamePrefix}${i < 10 ? '0'+i : i}`,
+        uid,
         build,
-        name: `Test case name ${testNamePrefix}${i < 10 ? '0'+i : i}`,
+        name,
         runType: 0,
         status: "PASS",
         start_time,
         end_time,
+        info: info ? info : {}
       })
       status.pass += 1
     }
@@ -124,7 +128,7 @@ function createRelation(teams, components, customs, tags, totalTests = 30, testN
     let comp = components[randomInteger(0,2)]
     relations.push({
       product,
-      type,
+      type: ui_type,
       uid: `${testNamePrefix}${i < 10 ? '0'+i : i}`,
       components: [{ name: comp}],
       customs,
@@ -190,7 +194,7 @@ function createInvestigatedTests(){
     tracking: {
       track_number: "JIRA-100"
     },
-    type: "UI Regression",
+    type: ui_type,
     user: "608f72cfbde204263332366a"
   })
   investigatedTests.push({
@@ -242,11 +246,11 @@ function createInvestigatedTests(){
     origin: {
       "build": firstBuildIdTeamB
     },
-    product: "uReport",
+    product,
     tracking: {
       track_number: "JIRA-001"
     },
-    type: "UI Regression",
+    type: api_type,
     user: "608f72cfbde204263332366a"
   })
   investigatedTests.push({
@@ -266,11 +270,11 @@ function createInvestigatedTests(){
     origin: {
       "build": firstBuildIdTeamB
     },
-    product: "uReport",
+    product,
     tracking: {
       track_number: "JIRA-002"
     },
-    type: "UI Regression",
+    type: api_type,
     user: "608f72cfbde204263332366a"
   })
 }
@@ -284,11 +288,12 @@ for (let i = 0; i < 30; i++) {
     firstBuildIdTeamA = id1
   }
   
-  let status1 = createTests(id1,moment().subtract(i, 'days'),30, randomInteger(20,30))
+  let status1 = createTests(id1,moment().subtract(i, 'days'),30, randomInteger(20,30), {browser: "Chrome", device:"Desktop"})
+   // Team A on Desktop Windows 10 Dev
   rs.push({
     _id: id1,
     product,
-    type,
+    type: ui_type,
     team: "Team A",
     browser: "Chrome",
     device: "Desktop",
@@ -310,17 +315,17 @@ for (let i = 0; i < 30; i++) {
   // Team A on Desktop Windows 10 Stage
   let start_time2 = moment().subtract(i, 'days')
   let id2 = new ObjectId()
-  let status2 = createTests(id2,moment().subtract(i, 'days'),30, randomInteger(10,20))
+  let status2 = createTests(id2,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Chrome", device:"Desktop"})
   rs.push({
     _id: id2,
     product,
-    type,
+    type: ui_type,
     team: "Team A",
     browser: "Chrome",
     device: "Desktop",
     platform: "Windows",
     platform_version:"10",
-    stage: "stage",
+    stage: "QA Stage",
     build: 500 - i,
     start_time: start_time2.format(),
 	  end_time: start_time2.add(randomInteger(6,8),'hours').format(),
@@ -333,20 +338,20 @@ for (let i = 0; i < 30; i++) {
     }]
   })
   
-  // Team A on desktop windows 10 Firefox
+  // Team A on desktop windows 10 Firefox stage
   let start_time4 = moment().subtract(i, 'days')
   let id4 = new ObjectId()
-  let status4 = createTests(id4,moment().subtract(i, 'days'),30, randomInteger(10,20))
+  let status4 = createTests(id4,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Firefox", device:"Desktop"})
   rs.push({
     _id: id4,
     product,
-    type,
+    type: ui_type,
     team: "Team A",
     browser: "Firefox",
     device: "Desktop",
     platform: "Windows",
     platform_version:"10",
-    stage: "dev",
+    stage: "QA Stage",
     build: 2000 - i,
     start_time: start_time4.format(),
 	  end_time: start_time4.add(randomInteger(6,8),'hours').format(),
@@ -357,17 +362,17 @@ for (let i = 0; i < 30; i++) {
   // Team A on desktop windows 10 Safari
   let start_time5 = moment().subtract(i, 'days')
   let id5 = new ObjectId()
-  let status5 = createTests(id5,moment().subtract(i, 'days'),30, randomInteger(10,20))
+  let status5 = createTests(id5,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Safari", device:"Desktop"})
   rs.push({
     _id: id5,
     product,
-    type,
+    type: ui_type,
     team: "Team A",
     browser: "Safari",
     device: "Desktop",
     platform: "Windows",
     platform_version:"10",
-    stage: "dev",
+    stage: "QA Stage",
     build: 3200 - i,
     start_time: start_time5.format(),
 	  end_time: start_time5.add(randomInteger(6,8),'hours').format(),
@@ -378,17 +383,17 @@ for (let i = 0; i < 30; i++) {
   // Team A on iPad MacOs 12.0.0 Chrome
   let start_time6 = moment().subtract(i, 'days')
   let id6 = new ObjectId()
-  let status6 = createTests(id6,moment().subtract(i, 'days'),30, randomInteger(10,20))
+  let status6 = createTests(id6,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Chrome", device:"iPad"})
   rs.push({
     _id: id6,
     product,
-    type,
+    type: ui_type,
     team: "Team A",
     browser: "Chrome",
     device: "iPad",
     platform: "iOS",
     platform_version:"16",
-    stage: "dev",
+    stage: "QA Stage",
     build: 700 - i,
     start_time: start_time6.format(),
 	  end_time: start_time6.add(randomInteger(6,8),'hours').format(),
@@ -396,20 +401,20 @@ for (let i = 0; i < 30; i++) {
     status: status6
   })
   
-  // Team A on iPhone MacOs 12.0.0 Chrome
+  // Team A on iPhone MacOs 12.0.0 Safari
   let start_time7 = moment().subtract(i, 'days')
   let id7 = new ObjectId()
-  let status7 = createTests(id7,moment().subtract(i, 'days'),30, randomInteger(10,20))
+  let status7 = createTests(id7,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Safari", device:"iPhone"})
   rs.push({
     _id: id7,
     product,
-    type,
+    type: ui_type,
     team: "Team A",
-    browser: "Chrome",
+    browser: "Safari",
     device: "iPhone",
     platform: "iOS",
     platform_version:"16",
-    stage: "dev",
+    stage: "QA Stage",
     build: 100 - i,
     start_time: start_time7.format(),
 	  end_time: start_time7.add(randomInteger(6,8),'hours').format(),
@@ -420,22 +425,43 @@ for (let i = 0; i < 30; i++) {
   // Team A on pixel Android 14.0 Chrome
   let start_time8 = moment().subtract(i, 'days')
   let id8 = new ObjectId()
-  let status8 = createTests(id8,moment().subtract(i, 'days'),30, randomInteger(10,20))
+  let status8 = createTests(id8,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Chrome", device:"Pixel"})
   rs.push({
     _id: id8,
     product,
-    type,
+    type: ui_type,
     team: "Team A",
     browser: "Chrome",
     device: "Pixel 7 Pro",
     platform: "Android",
     platform_version:"14.0",
-    stage: "dev",
+    stage: "QA Stage",
     build: 100 - i,
     start_time: start_time8.format(),
 	  end_time: start_time8.add(randomInteger(6,8),'hours').format(),
 	  owner: "jenkins_admin",
     status: status8
+  })
+
+  // Team A on desktop windows 10 Edge
+  let start_time9 = moment().subtract(i, 'days')
+  let id9 = new ObjectId()
+  let status9 = createTests(id9,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Edge", device:"Desktop"})
+  rs.push({
+    _id: id9,
+    product,
+    type: ui_type,
+    team: "Team A",
+    browser: "Edge",
+    device: "Desktop",
+    platform: "Windows",
+    platform_version:"10",
+    stage: "QA Stage",
+    build: 3200 - i,
+    start_time: start_time9.format(),
+    end_time: start_time9.add(randomInteger(6,8),'hours').format(),
+    owner: "jenkins_admin",
+    status: status9
   })
 }
 
@@ -447,13 +473,12 @@ for (let i = 0; i < 60; i++) {
   if(i==0){
     firstBuildIdTeamB = id3
   }
-  let status3 = createTests(id3,moment().subtract(i, 'days'),300, randomInteger(2,5), "2222")
+  let status3 = createTests(id3,moment().subtract(i, 'days'),300, randomInteger(2,5), undefined, "2222")
   rs.push({
     _id: id3,
     product,
-    type,
+    type: api_type,
     team: "Team B",
-    browser: "Chrome",
     device: "Desktop",
     platform: "Windows",
     platform_version:"10",
