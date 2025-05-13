@@ -560,18 +560,17 @@ router.post '/entity/others',  (req, res, next) ->
   entities = ['version','device','team', 'browser', 'platform', 'platform_version', 'stage']
   async.map(entities,
     (item, callback) ->
-        Build.distinct(item, condition).
-        exec((err, entity) ->
-            _t = {}
-            _t[item] = entity
-            callback(err,_t)
-        )
+      Build.distinct(item, condition).
+      exec((err, entity) ->
+        _t = {}
+        _t[item] = entity
+        callback(err,_t)
+      )
     (err,rs) ->
-        if err
-          return next(err) 
-        res.json rs
+      if err
+        return next(err)
+      res.json rs
   )
-  
 
 router.post '/total',  (req, res, next) ->
     query = {}
@@ -595,13 +594,13 @@ router.post '/total',  (req, res, next) ->
     
     if(req.body.platform)
       query.platform = req.body.platform
-  
+
     if(req.body.platform_version)
       query.platform_version = req.body.platform_version
 
     if(req.body.stage)
       query.stage = req.body.stage
-  
+
     if(req.body.untilDate)
       untilDate = moment(req.body.untilDate).format()
       query.start_time = {
@@ -660,7 +659,8 @@ router.post '/purge/calculate',  (req, res, next) ->
         '$lt': new Date(untilDate)
       }
 
-    Build.aggregate()
+    try
+      Build.aggregate()
       .match(query)
       .lookup({
         from: "tests",
@@ -679,6 +679,9 @@ router.post '/purge/calculate',  (req, res, next) ->
         else
           res.json {error: "cannot find any builds"}
       );
+    catch error
+      console.log("Exception: ",error)
+
 
 router.post '/purge',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role,component))
@@ -775,28 +778,43 @@ router.post '/search', (req, res, next) ->
       res.status(400)
       return res.json {error: "Type is mandatory"}
 
+  since = 90
+  if(req.body.since)
+    since = req.body.since
+
   range = -20
   if(req.body.range)
     range = (-req.body.range)
 
   query = {}
+  regexBoth = /^\^.*\$$/;
+  regexStart = /^\^/;
+  regexEnd = /\$$/;
 
   if(req.body.specificQueries)
     query = { $or : req.body.specificQueries }
   else
-    conditions = [
-      { product: { $regex: req.body.product, $options: 'i'} },
-      { type: { $regex: req.body.type, $options: 'i'} }
-    ]
+    productQuery = { $regex: '^'+req.body.product+'$', $options: 'i'}
+    typeQuery = { $regex: '^'+req.body.type+'$', $options: 'i'}
+    if(regexBoth.test(req.body.product.trim()) || regexStart.test(req.body.product.trim()) || regexEnd.test(req.body.product.trim()))
+      productQuery = { $regex: req.body.product, $options: 'i'}
+    if(regexBoth.test(req.body.type.trim()) || regexStart.test(req.body.type.trim()) || regexEnd.test(req.body.type.trim()))
+      typeQuery = { $regex: req.body.type, $options: 'i'}
 
-    if(req.body.since)
-      conditions.push({ start_time: { $gte: new Date(moment().subtract(req.body.since,'day').format()) } })
-  
+    conditions = [
+      { product: productQuery },
+      { type: typeQuery },
+      { start_time: { $gte: new Date(moment().subtract(since,'day').format()) } },
+    ]
+    
     if(req.body.version)
       conditions.push({ version: { $regex: req.body.version, $options: 'i'} })
 
     if(req.body.team)
-      conditions.push({ team: { $regex: req.body.team, $options: 'i'} })
+      if(regexBoth.test(req.body.team.trim()) || regexStart.test(req.body.team.trim()) || regexEnd.test(req.body.team.trim()))
+        conditions.push({ team: { $regex: req.body.team, $options: 'i'} })
+      else
+        conditions.push({ team: { $regex: '^'+req.body.team+'$', $options: 'i'} })
 
     if(req.body.browser)
       conditions.push({ browser: { $regex: req.body.browser, $options: 'i'} })
@@ -805,21 +823,28 @@ router.post '/search', (req, res, next) ->
       conditions.push({ device: { $regex: req.body.device, $options: 'i'} })
     
     if(req.body.platform)
-      conditions.push({ platform: { $regex: req.body.platform, $options: 'i'} })
+      if(regexBoth.test(req.body.platform.trim()) || regexStart.test(req.body.platform.trim()) || regexEnd.test(req.body.platform.trim()))
+        conditions.push({ platform: { $regex: req.body.platform, $options: 'i'} })
+      else
+        conditions.push({ platform: { $regex: '^'+req.body.platform+'$', $options: 'i'} })
     
     if(req.body.platform_version)
       conditions.push({ platform_version: { $regex: req.body.platform_version, $options: 'i'} })
 
     if(req.body.stage)
-      conditions.push({ stage: { $regex: req.body.stage, $options: 'i'} })
+      if(regexBoth.test(req.body.stage.trim()) || regexStart.test(req.body.stage.trim()) || regexEnd.test(req.body.stage.trim()))
+        conditions.push({ stage: { $regex: req.body.stage, $options: 'i'} })
+      else
+        conditions.push({ stage: { $regex: '^'+req.body.stage+'$', $options: 'i'} })
 
     query = { $and : conditions }
 
   Build.aggregate()
+  .sort({start_time:1})
   .match(query)
-  .sort({start_time: 1})
   .group(
     { 
+      # _id:  "$_id",
       _id:  {
         product:  "$product",
         type: "$type",

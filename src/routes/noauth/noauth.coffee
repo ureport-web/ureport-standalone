@@ -83,30 +83,50 @@ router.post '/build/search', (req, res, next) ->
       res.status(400)
       return res.json {error: "Type is mandatory"}
 
-  since = 90
+  if(req.body.since && req.body.before)
+    res.status(400)
+    return res.json {error: "Since and Before cannot be set at the same time"}
+  
+  time_query = { $gte: new Date(moment().subtract(90,'day').format()) }
   if(req.body.since)
-    since = req.body.since
+    time_query = { $gte: new Date(moment().subtract(req.body.since,'day').format()) }
+  
+  if(req.body.before)
+    time_query = { $lt: new Date(moment().subtract(req.body.before,'day').format()) }
 
   range = -20
   if(req.body.range)
     range = (-req.body.range)
 
   query = {}
+  regexBoth = /^\^.*\$$/;
+  regexStart = /^\^/;
+  regexEnd = /\$$/;
 
   if(req.body.specificQueries)
     query = { $or : req.body.specificQueries }
   else
+    productQuery = { $regex: '^'+req.body.product+'$', $options: 'i'}
+    typeQuery = { $regex: '^'+req.body.type+'$', $options: 'i'}
+    if(regexBoth.test(req.body.product.trim()) || regexStart.test(req.body.product.trim()) || regexEnd.test(req.body.product.trim()))
+      productQuery = { $regex: req.body.product, $options: 'i'}
+    if(regexBoth.test(req.body.type.trim()) || regexStart.test(req.body.type.trim()) || regexEnd.test(req.body.type.trim()))
+      typeQuery = { $regex: req.body.type, $options: 'i'}
+    
     conditions = [
-      { product: { $regex: req.body.product, $options: 'i'} },
-      { type: { $regex: req.body.type, $options: 'i'} },
-      { start_time: { $gte: new Date(moment().subtract(since,'day').format()) } }
+      { product: productQuery },
+      { type: typeQuery },
+      { start_time: time_query }
     ]
     
     if(req.body.version)
       conditions.push({ version: { $regex: req.body.version, $options: 'i'} })
 
     if(req.body.team)
-      conditions.push({ team: { $regex: req.body.team, $options: 'i'} })
+      if(regexBoth.test(req.body.team.trim()) || regexStart.test(req.body.team.trim()) || regexEnd.test(req.body.team.trim()))
+        conditions.push({ team: { $regex: req.body.team, $options: 'i'} })
+      else
+        conditions.push({ team: { $regex: '^'+req.body.team+'$', $options: 'i'} })
 
     if(req.body.browser)
       conditions.push({ browser: { $regex: req.body.browser, $options: 'i'} })
@@ -115,13 +135,19 @@ router.post '/build/search', (req, res, next) ->
       conditions.push({ device: { $regex: req.body.device, $options: 'i'} })
     
     if(req.body.platform)
-      conditions.push({ platform: { $regex: req.body.platform, $options: 'i'} })
-    
+      if(regexBoth.test(req.body.platform.trim()) || regexStart.test(req.body.platform.trim()) || regexEnd.test(req.body.platform.trim()))
+        conditions.push({ platform: { $regex: req.body.platform, $options: 'i'} })
+      else
+        conditions.push({ platform: { $regex: '^'+req.body.platform+'$', $options: 'i'} })
+
     if(req.body.platform_version)
       conditions.push({ platform_version: { $regex: req.body.platform_version, $options: 'i'} })
 
     if(req.body.stage)
-      conditions.push({ stage: { $regex: req.body.stage, $options: 'i'} })
+      if(regexBoth.test(req.body.stage.trim()) || regexStart.test(req.body.stage.trim()) || regexEnd.test(req.body.stage.trim()))
+        conditions.push({ stage: { $regex: req.body.stage, $options: 'i'} })
+      else
+        conditions.push({ stage: { $regex: '^'+req.body.stage+'$', $options: 'i'} })
 
     query = { $and : conditions }
 
