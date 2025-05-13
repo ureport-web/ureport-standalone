@@ -1,94 +1,114 @@
 #!/usr/bin/env node
-let moment = require('moment')
-let mongoose = require('mongoose')
+let moment = require("moment");
+let mongoose = require("mongoose");
 ObjectId = mongoose.Types.ObjectId;
-const product = "uReport"
-const ui_type = "UI Regression"
-const api_type = "API Regression"
+const product = "uReport";
+const ui_type = "UI Regression";
+const api_type = "API Regression";
 
 const failuresMsg = [
-  "expected false to equal true", 
-  "expect a date 10/21/2023 to equal 11/21/2023.", 
+  "expected false to equal true",
+  "expect a date 10/21/2023 to equal 11/21/2023.",
   "expect 30 to equal 10",
-  "expect 'Item update failed' to contain 'success'"
-]
+  "expect 'Item update failed' to contain 'success'",
+];
 const failuresStack = [
-  "AssertionError: expected false to equal true\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70", 
-  "AssertionError: expect a date 10/21/2023 to equal 11/21/2023\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70", 
-  "AssertionError: expect 30 to equal 10\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70", 
-  "AssertionError: expect 'Item update failed' to contain 'success'\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70", 
-
-]
-const teamA = [{ name: "Team A" }]
-const teamB = [{ name: "Team B" }]
-const componentsA = ['login','search','createTask']
-const componentsB = ['filter','permission','updateTask']
+  "AssertionError: expected false to equal true\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70",
+  "AssertionError: expect a date 10/21/2023 to equal 11/21/2023\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70",
+  "AssertionError: expect 30 to equal 10\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70",
+  "AssertionError: expect 'Item update failed' to contain 'success'\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70",
+];
+const teamA = [{ name: "Team A" }];
+const teamB = [{ name: "Team B" }];
+const componentsA = ["login", "search", "createTask"];
+const componentsB = ["filter", "permission", "updateTask"];
 const customsA = {
-  Partner: [ "Company A", "Company B" ]
-}
+  Partner: ["Company A", "Company B"],
+};
 const customsB = {
-  Partner: [ "Company X", "Company Y" ]
-}
-const tags = [ "Major", "Critical", "Blocker" ]
+  Partner: ["Company X", "Company Y"],
+};
+const tags = ["Major", "Critical", "Blocker"];
 
-let rs = []
-let tests = []
-let relations = []
-let investigatedTests = []
+let rs = [];
+let tests = [];
+let relations = [];
+let investigatedTests = [];
 
-let firstBuildIdTeamA
-let firstBuildIdTeamB
+let firstBuildIdTeamA;
+let firstBuildIdTeamB;
 
 function randomInteger(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function createTests(build, date, totalTests=30, failPercent = 30, info=undefined, testNamePrefix="1111"){
+function createTests(
+  build,
+  date,
+  totalTests = 30,
+  failPercent = 30,
+  info = undefined,
+  testNamePrefix = "1111"
+) {
   /**
    * Test fail with the same reason
    * Test fail with similar reason
    * Test fail with different reason completely
    * Test skip
    */
-  let accumulateTime = 0
-  let failureNumber = totalTests * (failPercent/100)
-  let status = { 
-    total: 0, pass: 0, fail: 0, skip:0, warning: 0
-  }
+  let accumulateTime = 0;
+  let failureNumber = totalTests * (failPercent / 100);
+  let status = {
+    total: 0,
+    pass: 0,
+    fail: 0,
+    skip: 0,
+    warning: 0,
+  };
   for (let i = 0; i < totalTests; i++) {
-    let start_time = date.add(accumulateTime,'minutes').format()
-    accumulateTime += randomInteger(6,8)
-    let end_time = date.add(accumulateTime,'minutes').format()
-    let uid = testNamePrefix.toString() + (i < 10 ? '0'+i : i)
-    let name = "Test case name"+ testNamePrefix.toString() + (i < 10 ? '0'+i : i)
-    if(i<=failureNumber){
-      let stat = 'FAIL'
+    let start_time = date.add(accumulateTime, "minutes").format();
+    accumulateTime += randomInteger(6, 8);
+    let end_time = date.add(accumulateTime, "minutes").format();
+    let uid = testNamePrefix.toString() + (i < 10 ? "0" + i : i);
+    let name =
+      "Test case name" + testNamePrefix.toString() + (i < 10 ? "0" + i : i);
+    if (i <= failureNumber) {
+      let stat = "FAIL";
       // make the first failure is always the test fail with the same reason
-      if(i==0){
-        error_message= "Element [id='loginButton] is not found"
-        stack_trace= "AssertionError: Element [id='loginButton] is not found\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70"
-        status.fail += 1
-      }else if(i==1){
-        error_message= `expect a date ${date.format()} to equal ${date.add(1,"days").format()}`
-        stack_trace= `AssertionError: expect a date ${date.format()} to equal ${date.add(1,"days").format()}\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70`
-        status.fail += 1
-      }else if(i==2){
-        error_message= `${Date.now()} to ${Date.now() + randomInteger(10000,40000)}`
-        stack_trace= `AssertionError: ${Date.now()} to ${Date.now() + randomInteger(10000,40000)}\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70`
-        status.fail += 1
-      }else if(i==4){
-        error_message= `expect 2 to equals 1`
-        stack_trace= `AssertionError: expect 2 to equals 1\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70`
-        status.fail += 1
-      }else if(i==5){
-        status.skip += 1
-        stat = 'SKIP'
-        error_message= `Skip test cases due to failure in setup`
-      }else{
-        var index = randomInteger(0,3)
-        error_message= failuresMsg[index]
-        stack_trace= failuresStack[index]
-        status.fail += 1
+      if (i == 0) {
+        error_message = "Element [id='loginButton] is not found";
+        stack_trace =
+          "AssertionError: Element [id='loginButton] is not found\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70";
+        status.fail += 1;
+      } else if (i == 1) {
+        error_message = `expect a date ${date.format()} to equal ${date
+          .add(1, "days")
+          .format()}`;
+        stack_trace = `AssertionError: expect a date ${date.format()} to equal ${date
+          .add(1, "days")
+          .format()}\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70`;
+        status.fail += 1;
+      } else if (i == 2) {
+        error_message = `${Date.now()} to ${
+          Date.now() + randomInteger(10000, 40000)
+        }`;
+        stack_trace = `AssertionError: ${Date.now()} to ${
+          Date.now() + randomInteger(10000, 40000)
+        }\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70`;
+        status.fail += 1;
+      } else if (i == 4) {
+        error_message = `expect 2 to equals 1`;
+        stack_trace = `AssertionError: expect 2 to equals 1\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70`;
+        status.fail += 1;
+      } else if (i == 5) {
+        status.skip += 1;
+        stat = "SKIP";
+        error_message = `Skip test cases due to failure in setup`;
+      } else {
+        var index = randomInteger(0, 3);
+        error_message = failuresMsg[index];
+        stack_trace = failuresStack[index];
+        status.fail += 1;
       }
 
       tests.push({
@@ -102,10 +122,10 @@ function createTests(build, date, totalTests=30, failPercent = 30, info=undefine
         info: info ? info : {},
         failure: {
           error_message,
-          stack_trace
-        }
-      })
-    }else{
+          stack_trace,
+        },
+      });
+    } else {
       tests.push({
         uid,
         build,
@@ -114,66 +134,74 @@ function createTests(build, date, totalTests=30, failPercent = 30, info=undefine
         status: "PASS",
         start_time,
         end_time,
-        info: info ? info : {}
-      })
-      status.pass += 1
+        info: info ? info : {},
+      });
+      status.pass += 1;
     }
-    status.total += 1
+    status.total += 1;
   }
-  return status
+  return status;
 }
 
-function createRelation(teams, components, customs, tags, totalTests = 30, testNamePrefix="1111"){
+function createRelation(
+  teams,
+  components,
+  customs,
+  tags,
+  totalTests = 30,
+  testNamePrefix = "1111"
+) {
   for (let i = 0; i < totalTests; i++) {
-    let comp = components[randomInteger(0,2)]
+    let comp = components[randomInteger(0, 2)];
     relations.push({
       product,
       type: ui_type,
-      uid: `${testNamePrefix}${i < 10 ? '0'+i : i}`,
-      components: [{ name: comp}],
+      uid: `${testNamePrefix}${i < 10 ? "0" + i : i}`,
+      components: [{ name: comp }],
       customs,
-      tags: [{ name: tags[randomInteger(0,2)]}],
+      tags: [{ name: tags[randomInteger(0, 2)] }],
       teams,
       file: `test_${comp}.java`,
       path: `\\test\\web\\regression\\${comp}\\`,
-    })
+    });
   }
 }
 
-function createInvestigatedTests(){
+function createInvestigatedTests() {
   investigatedTests.push({
     uid: "111100",
     caused_by: "Defect",
     comments: [],
     configuration: {
       similarity: {
-        value: 100
-      }
+        value: 100,
+      },
     },
     create_at: moment().format(),
     failure: {
       error_message: "Element [id='loginButton] is not found",
-      stack_trace: "AssertionError: Element [id='loginButton] is not found\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70"
+      stack_trace:
+        "AssertionError: Element [id='loginButton] is not found\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70",
     },
     origin: {
-      "test": "657787519f6cb7445417b311",
-      "build": firstBuildIdTeamA
+      test: "657787519f6cb7445417b311",
+      build: firstBuildIdTeamA,
     },
     product: "uReport",
     tracking: {
-      track_number: "JIRA-001"
+      track_number: "JIRA-001",
     },
     type: "UI Regression",
-    user: "608f72cfbde204263332366a"
-  })
+    user: "608f72cfbde204263332366a",
+  });
   //customize state
   investigatedTests.push({
     uid: "111104",
     comments: [],
     configuration: {
       similarity: {
-        value: 100
-      }
+        value: 100,
+      },
     },
     create_at: moment().format(),
     customize_state: {
@@ -181,29 +209,30 @@ function createInvestigatedTests(){
       label: "Start Investigating",
       key: "SI",
       color: "#7fe2d0",
-      ttl: 7
+      ttl: 7,
     },
     failure: {
       error_message: "expect 2 to equals 1",
-      stack_trace: "AssertionError: expect 2 to equals 1\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70"
+      stack_trace:
+        "AssertionError: expect 2 to equals 1\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70",
     },
     origin: {
-      build: firstBuildIdTeamA
+      build: firstBuildIdTeamA,
     },
     product: "uReport",
     tracking: {
-      track_number: "JIRA-100"
+      track_number: "JIRA-100",
     },
     type: ui_type,
-    user: "608f72cfbde204263332366a"
-  })
+    user: "608f72cfbde204263332366a",
+  });
   investigatedTests.push({
     uid: "111101",
     comments: [],
     configuration: {
       similarity: {
-        value: 75
-      }
+        value: 75,
+      },
     },
     create_at: moment().format(),
     customize_state: {
@@ -211,22 +240,26 @@ function createInvestigatedTests(){
       label: "Waiting for info",
       key: "WFI",
       color: "#c8e29a",
-      ttl: 15
+      ttl: 15,
     },
     failure: {
-      error_message: `expect a date ${moment().format()} to equal ${moment().add(1,"days").format()}`,
-      stack_trace: `AssertionError: expect a date ${moment().format()} to equal ${moment().add(1,"days").format()}\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70`
+      error_message: `expect a date ${moment().format()} to equal ${moment()
+        .add(1, "days")
+        .format()}`,
+      stack_trace: `AssertionError: expect a date ${moment().format()} to equal ${moment()
+        .add(1, "days")
+        .format()}\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70`,
     },
     origin: {
-      build: firstBuildIdTeamA
+      build: firstBuildIdTeamA,
     },
     product: "uReport",
     tracking: {
-      track_number: "JIRA-200"
+      track_number: "JIRA-200",
     },
     type: "UI Regression",
-    user: "608f72cfbde204263332366a"
-  })
+    user: "608f72cfbde204263332366a",
+  });
 
   // for team B
   investigatedTests.push({
@@ -235,61 +268,72 @@ function createInvestigatedTests(){
     comments: [],
     configuration: {
       similarity: {
-        value: 100
-      }
+        value: 100,
+      },
     },
     create_at: moment().format(),
     failure: {
       error_message: "Element [id='loginButton] is not found",
-      stack_trace: "AssertionError: Element [id='loginButton] is not found\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70"
+      stack_trace:
+        "AssertionError: Element [id='loginButton] is not found\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70",
     },
     origin: {
-      "build": firstBuildIdTeamB
+      build: firstBuildIdTeamB,
     },
     product,
     tracking: {
-      track_number: "JIRA-001"
+      track_number: "JIRA-001",
     },
     type: api_type,
-    user: "608f72cfbde204263332366a"
-  })
+    user: "608f72cfbde204263332366a",
+  });
   investigatedTests.push({
     uid: "222201",
     caused_by: "Automation Issue",
     comments: [],
     configuration: {
       similarity: {
-        value: 75
-      }
+        value: 75,
+      },
     },
     create_at: moment().format(),
     failure: {
-      error_message: `expect a date ${moment().format()} to equal ${moment().add(1,"days").format()}`,
-      stack_trace: `AssertionError: expect a date ${moment().format()} to equal ${moment().add(1,"days").format()}\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70`
+      error_message: `expect a date ${moment().format()} to equal ${moment()
+        .add(1, "days")
+        .format()}`,
+      stack_trace: `AssertionError: expect a date ${moment().format()} to equal ${moment()
+        .add(1, "days")
+        .format()}\n    at Function.expectTrue (C:\\framework\\Automation\\src\\lib\\common\\Asserter.ts:9:27)\n    at Context.<anonymous> (C:\\framework\\Automation\\test\\web\\regression\\playlist\\test.test.ts:53:18)\n    at Context.executeSync (C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:56:18)\n    at C:\\framework\\Automation\\node_modules\\@wdio\\sync\\build\\index.js:82:70`,
     },
     origin: {
-      "build": firstBuildIdTeamB
+      build: firstBuildIdTeamB,
     },
     product,
     tracking: {
-      track_number: "JIRA-002"
+      track_number: "JIRA-002",
     },
     type: api_type,
-    user: "608f72cfbde204263332366a"
-  })
+    user: "608f72cfbde204263332366a",
+  });
 }
 //  Product Type Team Browser Device Platform Platform_Version Stage
 for (let i = 0; i < 30; i++) {
   // Team A on Desktop Windows 10 chrome
   // take note of first build id
-  let start_time1 = moment().subtract(i, 'days')
-  let id1 = new ObjectId()
-  if(i==0){
-    firstBuildIdTeamA = id1
+  let start_time1 = moment().subtract(i, "days");
+  let id1 = new ObjectId();
+  if (i == 0) {
+    firstBuildIdTeamA = id1;
   }
-  
-  let status1 = createTests(id1,moment().subtract(i, 'days'),30, randomInteger(20,30), {browser: "Chrome", device:"Desktop"})
-   // Team A on Desktop Windows 10 Dev
+
+  let status1 = createTests(
+    id1,
+    moment().subtract(i, "days"),
+    30,
+    randomInteger(20, 30),
+    { browser: "Chrome", device: "Desktop" }
+  );
+  // Team A on Desktop Windows 10 Dev
   rs.push({
     _id: id1,
     product,
@@ -298,24 +342,32 @@ for (let i = 0; i < 30; i++) {
     browser: "Chrome",
     device: "Desktop",
     platform: "Windows",
-    platform_version:"10",
+    platform_version: "10",
     stage: "dev",
     build: 1000 - i,
     start_time: start_time1.format(),
-	  end_time: start_time1.add(randomInteger(6,8),'hours').format(),
-	  owner: "jenkins_admin",
+    end_time: start_time1.add(randomInteger(6, 8), "hours").format(),
+    owner: "jenkins_admin",
     status: status1,
-    comments: [{
-      user: 'admin',
-      message: 'this is just a message.',
-      time: moment().add(4, 'hour').format()
-    }]
-  })
-  
+    comments: [
+      {
+        user: "admin",
+        message: "this is just a message.",
+        time: moment().add(4, "hour").format(),
+      },
+    ],
+  });
+
   // Team A on Desktop Windows 10 Stage
-  let start_time2 = moment().subtract(i, 'days')
-  let id2 = new ObjectId()
-  let status2 = createTests(id2,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Chrome", device:"Desktop"})
+  let start_time2 = moment().subtract(i, "days");
+  let id2 = new ObjectId();
+  let status2 = createTests(
+    id2,
+    moment().subtract(i, "days"),
+    30,
+    randomInteger(10, 20),
+    { browser: "Chrome", device: "Desktop" }
+  );
   rs.push({
     _id: id2,
     product,
@@ -324,24 +376,32 @@ for (let i = 0; i < 30; i++) {
     browser: "Chrome",
     device: "Desktop",
     platform: "Windows",
-    platform_version:"10",
+    platform_version: "10",
     stage: "QA Stage",
     build: 500 - i,
     start_time: start_time2.format(),
-	  end_time: start_time2.add(randomInteger(6,8),'hours').format(),
-	  owner: "jenkins_admin",
+    end_time: start_time2.add(randomInteger(6, 8), "hours").format(),
+    owner: "jenkins_admin",
     status: status2,
-    comments: [{
-      user: 'admin',
-      message: 'this is just a message.',
-      time: moment().add(4, 'hour').format()
-    }]
-  })
-  
+    comments: [
+      {
+        user: "admin",
+        message: "this is just a message.",
+        time: moment().add(4, "hour").format(),
+      },
+    ],
+  });
+
   // Team A on desktop windows 10 Firefox stage
-  let start_time4 = moment().subtract(i, 'days')
-  let id4 = new ObjectId()
-  let status4 = createTests(id4,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Firefox", device:"Desktop"})
+  let start_time4 = moment().subtract(i, "days");
+  let id4 = new ObjectId();
+  let status4 = createTests(
+    id4,
+    moment().subtract(i, "days"),
+    30,
+    randomInteger(10, 20),
+    { browser: "Firefox", device: "Desktop" }
+  );
   rs.push({
     _id: id4,
     product,
@@ -350,19 +410,25 @@ for (let i = 0; i < 30; i++) {
     browser: "Firefox",
     device: "Desktop",
     platform: "Windows",
-    platform_version:"10",
+    platform_version: "10",
     stage: "QA Stage",
     build: 2000 - i,
     start_time: start_time4.format(),
-	  end_time: start_time4.add(randomInteger(6,8),'hours').format(),
-	  owner: "jenkins_admin",
-    status: status4
-  })
-  
+    end_time: start_time4.add(randomInteger(6, 8), "hours").format(),
+    owner: "jenkins_admin",
+    status: status4,
+  });
+
   // Team A on desktop windows 10 Safari
-  let start_time5 = moment().subtract(i, 'days')
-  let id5 = new ObjectId()
-  let status5 = createTests(id5,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Safari", device:"Desktop"})
+  let start_time5 = moment().subtract(i, "days");
+  let id5 = new ObjectId();
+  let status5 = createTests(
+    id5,
+    moment().subtract(i, "days"),
+    30,
+    randomInteger(10, 20),
+    { browser: "Safari", device: "Desktop" }
+  );
   rs.push({
     _id: id5,
     product,
@@ -371,19 +437,25 @@ for (let i = 0; i < 30; i++) {
     browser: "Safari",
     device: "Desktop",
     platform: "Windows",
-    platform_version:"10",
+    platform_version: "10",
     stage: "QA Stage",
     build: 3200 - i,
     start_time: start_time5.format(),
-	  end_time: start_time5.add(randomInteger(6,8),'hours').format(),
-	  owner: "jenkins_admin",
-    status: status5
-  })
-  
+    end_time: start_time5.add(randomInteger(6, 8), "hours").format(),
+    owner: "jenkins_admin",
+    status: status5,
+  });
+
   // Team A on iPad MacOs 12.0.0 Chrome
-  let start_time6 = moment().subtract(i, 'days')
-  let id6 = new ObjectId()
-  let status6 = createTests(id6,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Chrome", device:"iPad"})
+  let start_time6 = moment().subtract(i, "days");
+  let id6 = new ObjectId();
+  let status6 = createTests(
+    id6,
+    moment().subtract(i, "days"),
+    30,
+    randomInteger(10, 20),
+    { browser: "Chrome", device: "iPad" }
+  );
   rs.push({
     _id: id6,
     product,
@@ -392,19 +464,25 @@ for (let i = 0; i < 30; i++) {
     browser: "Chrome",
     device: "iPad",
     platform: "iOS",
-    platform_version:"16",
+    platform_version: "16",
     stage: "QA Stage",
     build: 700 - i,
     start_time: start_time6.format(),
-	  end_time: start_time6.add(randomInteger(6,8),'hours').format(),
-	  owner: "jenkins_admin",
-    status: status6
-  })
-  
+    end_time: start_time6.add(randomInteger(6, 8), "hours").format(),
+    owner: "jenkins_admin",
+    status: status6,
+  });
+
   // Team A on iPhone MacOs 12.0.0 Safari
-  let start_time7 = moment().subtract(i, 'days')
-  let id7 = new ObjectId()
-  let status7 = createTests(id7,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Safari", device:"iPhone"})
+  let start_time7 = moment().subtract(i, "days");
+  let id7 = new ObjectId();
+  let status7 = createTests(
+    id7,
+    moment().subtract(i, "days"),
+    30,
+    randomInteger(10, 20),
+    { browser: "Safari", device: "iPhone" }
+  );
   rs.push({
     _id: id7,
     product,
@@ -413,19 +491,25 @@ for (let i = 0; i < 30; i++) {
     browser: "Safari",
     device: "iPhone",
     platform: "iOS",
-    platform_version:"16",
+    platform_version: "16",
     stage: "QA Stage",
     build: 100 - i,
     start_time: start_time7.format(),
-	  end_time: start_time7.add(randomInteger(6,8),'hours').format(),
-	  owner: "jenkins_admin",
-    status: status7
-  })
-  
+    end_time: start_time7.add(randomInteger(6, 8), "hours").format(),
+    owner: "jenkins_admin",
+    status: status7,
+  });
+
   // Team A on pixel Android 14.0 Chrome
-  let start_time8 = moment().subtract(i, 'days')
-  let id8 = new ObjectId()
-  let status8 = createTests(id8,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Chrome", device:"Pixel"})
+  let start_time8 = moment().subtract(i, "days");
+  let id8 = new ObjectId();
+  let status8 = createTests(
+    id8,
+    moment().subtract(i, "days"),
+    30,
+    randomInteger(10, 20),
+    { browser: "Chrome", device: "Pixel" }
+  );
   rs.push({
     _id: id8,
     product,
@@ -434,19 +518,25 @@ for (let i = 0; i < 30; i++) {
     browser: "Chrome",
     device: "Pixel 7 Pro",
     platform: "Android",
-    platform_version:"14.0",
+    platform_version: "14.0",
     stage: "QA Stage",
     build: 100 - i,
     start_time: start_time8.format(),
-	  end_time: start_time8.add(randomInteger(6,8),'hours').format(),
-	  owner: "jenkins_admin",
-    status: status8
-  })
+    end_time: start_time8.add(randomInteger(6, 8), "hours").format(),
+    owner: "jenkins_admin",
+    status: status8,
+  });
 
   // Team A on desktop windows 10 Edge
-  let start_time9 = moment().subtract(i, 'days')
-  let id9 = new ObjectId()
-  let status9 = createTests(id9,moment().subtract(i, 'days'),30, randomInteger(10,20), {browser: "Edge", device:"Desktop"})
+  let start_time9 = moment().subtract(i, "days");
+  let id9 = new ObjectId();
+  let status9 = createTests(
+    id9,
+    moment().subtract(i, "days"),
+    30,
+    randomInteger(10, 20),
+    { browser: "Edge", device: "Desktop" }
+  );
   rs.push({
     _id: id9,
     product,
@@ -455,25 +545,32 @@ for (let i = 0; i < 30; i++) {
     browser: "Edge",
     device: "Desktop",
     platform: "Windows",
-    platform_version:"10",
+    platform_version: "10",
     stage: "QA Stage",
     build: 3200 - i,
     start_time: start_time9.format(),
-    end_time: start_time9.add(randomInteger(6,8),'hours').format(),
+    end_time: start_time9.add(randomInteger(6, 8), "hours").format(),
     owner: "jenkins_admin",
-    status: status9
-  })
+    status: status9,
+  });
 }
 
 // team B for sprint view
 for (let i = 0; i < 60; i++) {
   // Team B on desktop windows 10 Chrome
-  let start_time = moment().subtract(i, 'days')
-  let id3 = new ObjectId()
-  if(i==0){
-    firstBuildIdTeamB = id3
+  let start_time = moment().subtract(i, "days");
+  let id3 = new ObjectId();
+  if (i == 0) {
+    firstBuildIdTeamB = id3;
   }
-  let status3 = createTests(id3,moment().subtract(i, 'days'),300, randomInteger(2,5), undefined, "2222")
+  let status3 = createTests(
+    id3,
+    moment().subtract(i, "days"),
+    300,
+    randomInteger(2, 5),
+    undefined,
+    "2222"
+  );
   rs.push({
     _id: id3,
     product,
@@ -481,27 +578,29 @@ for (let i = 0; i < 60; i++) {
     team: "Team B",
     device: "Desktop",
     platform: "Windows",
-    platform_version:"10",
+    platform_version: "10",
     stage: "dev",
     build: 300 - i,
     start_time: start_time.format(),
-    end_time: start_time.add(randomInteger(6,8),'hours').format(),
+    end_time: start_time.add(randomInteger(6, 8), "hours").format(),
     owner: "jenkins_admin",
     status: status3,
-    comments: [{
-      user: 'admin',
-      message: 'this is just a message.',
-      time: moment().add(4, 'hour').format()
-    }]
-  })
+    comments: [
+      {
+        user: "admin",
+        message: "this is just a message.",
+        time: moment().add(4, "hour").format(),
+      },
+    ],
+  });
 }
 
 /**
  * Relations
  */
-createRelation(teamA, componentsA, customsA, tags)
-createRelation(teamB, componentsB, customsB, tags, 300, "2222")
+createRelation(teamA, componentsA, customsA, tags);
+createRelation(teamB, componentsB, customsB, tags, 300, "2222");
 
-createInvestigatedTests()
+createInvestigatedTests();
 
-module.exports = { builds : rs, tests, relations, investigatedTests }
+module.exports = { builds: rs, tests, relations, investigatedTests };
