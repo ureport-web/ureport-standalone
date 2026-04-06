@@ -42,7 +42,9 @@ try {
       server.on('error', onError);
       server.on('listening', onListening);
     } else {
-      if (numCPUs > 4) {
+      if (process.env.UREPORT_IS_DEMO === 'true') {
+        numCPUs = 1;
+      } else if (numCPUs > 4) {
         if (process.env.NODE_ENV == undefined || process.env.NODE_ENV == 'dev') {
           numCPUs = 2;
         } else {
