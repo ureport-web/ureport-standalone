@@ -1,5 +1,6 @@
 express = require('express')
 router = express.Router()
+bcrypt = require('bcrypt')
 User = require('../models/user')
 UserBilling = require('../models/userBilling')
 
@@ -37,7 +38,7 @@ router.post '/:page/:perPage',  (req, res, next) ->
     else
         sort = {username: 'desc'}
     # invTest filter and condition
-    User.find(query, { password:0 }, pagnition)
+    User.find(query, { password:0, apiToken:0 }, pagnition)
     .limit(size)
     .sort(sort)
     .exec((err, users) ->
@@ -72,7 +73,7 @@ router.post '/search', (req, res, next) ->
     regex = new RegExp(req.body.username.trim())
     User.find({
       username: { $regex: regex, $options: 'i' }
-    }, { password:0 }).
+    }, { password:0, apiToken:0 }).
     exec((err, users) ->
         if(err)
             return next(err)
@@ -104,6 +105,7 @@ router.post '/signup',  (req, res, next) ->
           if error
             return next(error)
           rs['password'] = undefined
+          rs['apiToken'] = undefined
           res.json rs
       )
     );
@@ -116,7 +118,7 @@ router.put '/update/:username',  (req, res, next) ->
       return res.status(403).json({"error": "You don't have permission"})
   if(req.body.password)
     return res.status(400).json({"error": "Cannot update password through user update, please use /reset to update the password"})
-  
+
   if(req.user.role !='admin' && req.body.role)
     return res.status(400).json({"error": "You are not admin, and you cannot update the role field."})
 
@@ -172,5 +174,83 @@ router.delete '/:id',  (req, res, next) ->
       return next(err)
     res.json rs
   );
+
+# Get pending users
+router.get '/pending',  (req, res, next) ->
+  if (!AccessControl.canAccessReadAny(req.user.role, component))
+    return res.status(403).json({"error": "You don't have permission to perform this action"})
+
+  User.find({ status: 'pending' }, { password: 0, apiToken: 0 })
+  .sort({ _id: -1 })
+  .exec((err, users) ->
+    if err
+      return next(err)
+    res.json users
+  );
+
+# Approve user
+router.put '/approve/:id',  (req, res, next) ->
+  if (!AccessControl.canAccessUpdateAny(req.user.role, component))
+    return res.status(403).json({"error": "You don't have permission to perform this action"})
+
+  User.findById(req.params.id)
+  .exec((err, user) ->
+    if err
+      return next(err)
+    if !user
+      return res.status(404).json({ error: "User not found" })
+
+    user.status = 'active'
+    user.save (err, rs) ->
+      if err
+        return next(err)
+      rs.password = undefined
+      rs.apiToken = undefined
+      res.json rs
+  );
+
+# Reject user
+router.put '/reject/:id',  (req, res, next) ->
+  if (!AccessControl.canAccessUpdateAny(req.user.role, component))
+    return res.status(403).json({"error": "You don't have permission to perform this action"})
+
+  User.findById(req.params.id)
+  .exec((err, user) ->
+    if err
+      return next(err)
+    if !user
+      return res.status(404).json({ error: "User not found" })
+
+    user.status = 'rejected'
+    user.save (err, rs) ->
+      if err
+        return next(err)
+      rs.password = undefined
+      rs.apiToken = undefined
+      res.json rs
+  );
+
+router.post '/change-password', (req, res, next) ->
+  { currentPassword, newPassword } = req.body
+  if !currentPassword || !newPassword
+    return res.status(400).json({ error: 'currentPassword and newPassword are required' })
+
+  User.findOne({ _id: req.user._id }).exec (err, user) ->
+    if err
+      return next(err)
+    if !user
+      return res.status(404).json({ error: 'User not found' })
+
+    bcrypt.compare currentPassword, user.password, (err, isMatch) ->
+      if err
+        return next(err)
+      if !isMatch
+        return res.status(400).json({ error: 'Current password is incorrect' })
+
+      user.password = newPassword
+      user.save (err) ->
+        if err
+          return next(err)
+        res.json({ message: 'Password updated successfully' })
 
 module.exports = router

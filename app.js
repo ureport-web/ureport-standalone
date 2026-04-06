@@ -35,10 +35,15 @@ let app = undefined;
 if (config !== undefined) {
   const passport = require('./src/configuration/authStrategy')
   const session = require('./src/configuration/sessions')
+  const User = require('./src/models/user')
   app = express()
 
   // set static file to dist folder.
   app.use(express.static(path.join(__dirname, 'public')))
+  app.use(
+    '/nextgen',
+    express.static(path.join(__dirname, 'public/nextgen/browser'))
+  )
 
   //API doc
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument,options));
@@ -60,7 +65,7 @@ if (config !== undefined) {
   app.use(session);
   app.use(passport.initialize());
   app.use(passport.session());
- 
+
   /*
    * security guard
    */
@@ -104,7 +109,7 @@ if (config !== undefined) {
       return res.statusCode < 400
     }
   }))
-  
+
   // log all requests to access.log
   app.use(morgan('combined', {
     stream: rfs('access.log', {
@@ -129,13 +134,41 @@ if (config !== undefined) {
   /*
    * Middle ware
    */
-  var isAuthenticatedMid = (req, res, next) => {
-    if (req.isAuthenticated()) {
-        next()
-    } else {
-        res.redirect('/api/unauthorized')
+  const Dashboard = require('./src/models/dashboard')
+
+  var isShareTokenMid = async (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.slice(7);
+      try {
+        const dashboard = await Dashboard.findOne({ share_token: token }).exec();
+        if (dashboard) {
+          req.sharedDashboard = dashboard;
+          return next();
+        }
+      } catch (err) { return next(err); }
     }
-  }
+    return res.status(401).json({ message: 'Invalid or missing share token.' });
+  };
+
+  var isAuthenticatedMid = async (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.slice(7);
+      try {
+        const user = await User.findOne({ apiToken: token, status: 'active' }).exec();
+        if (user) {
+          req.user = user;
+          return next();
+        }
+      } catch (err) {
+        return next(err);
+      }
+      return res.status(401).json({ message: 'Invalid or expired API token.' });
+    }
+    if (req.isAuthenticated()) return next();
+    res.redirect('/api/unauthorized');
+  };
 
   // skip authorization if it is test environment
   if(process.env.NODE_ENV !== "test"){
@@ -186,9 +219,9 @@ if (config !== undefined) {
   const searching = require('./src/routes/search/solr')
   const dependency = require('./src/routes/dependency')
   const dependencyRelation = require('./src/routes/dependency_relation')
+  const analytics = require('./src/routes/analytics')
 
-  // list of endpoints for readonly page
-  const noauth = require('./src/routes/noauth/noauth')
+  const shared = require('./src/routes/shared/shared')
   app.use('/api',version)
   app.use('/api', authenticate)
   app.use('/api/setting', setting)
@@ -208,8 +241,21 @@ if (config !== undefined) {
   app.use('/api/search', searching)
   app.use('/api/dependency', dependency)
   app.use('/api/dependency_relation', dependencyRelation)
-  
-  app.use('/api/noauth', noauth)
+  app.use('/api/analytics', isAuthenticatedMid)
+  app.use('/api/analytics', analytics)
+
+  app.use('/api/shared', isShareTokenMid)
+  app.use('/api/shared', shared)
+
+  // Angular SPA fallback - must be after API routes
+  app.get('/nextgen/*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/nextgen/browser/index.html'))
+  })
+
+  // Public dashboard share links served by the nextgen SPA
+  app.get('/public/dashboard/:token', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/nextgen/browser/index.html'))
+  })
 
   //error handling
   app.use(function (err, req, res, next) {

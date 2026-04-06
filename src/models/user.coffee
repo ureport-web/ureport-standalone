@@ -6,6 +6,11 @@ SALT_WORK_FACTOR = 10;
 userSchema = new Schema(
   resetPasswordToken: String,
   resetPasswordExpires: Date,
+  apiToken: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   username:{
     type: String,
     unique: true,
@@ -33,10 +38,15 @@ userSchema = new Schema(
     type: String,
     required: true,
   },
+  status: {
+    type: String,
+    enum: ['pending', 'active', 'rejected'],
+    default: 'active'
+  },
   role: {
     type: String,
     required: true,
-    enum: { 
+    enum: {
       values: ['admin', 'operator', 'viewer'],
       message: "We only support role: [admin, operator, viewer]"
     }

@@ -17,9 +17,11 @@ getSystemSetting = require('../utils/getSystemSetting')
 async = require("async")
 ObjectId = require('mongoose').Types.ObjectId;
 registerAudit = require('../utils/register_audit')
+NodeCache = require('node-cache')
 
 AccessControl = require('../utils/ac_grants')
 component = 'test'
+testCache = new NodeCache({ stdTTL: 0 , maxKeys: 10000 })
 
 router.get '/:id',  (req, res, next) ->
     Test.findOne({
@@ -209,6 +211,95 @@ router.post '/filter/nonpass',  (req, res, next) ->
         res.json tests
     );
 
+router.post '/filter/all',  (req, res, next) ->
+    startTime = Date.now()
+    if(!req.body.build)
+        res.status(400)
+        return res.json {error: "Build id is mandatory"}
+
+    # Get build IDs array
+    buildIds = if typeof req.body.build == 'string' then [req.body.build] else req.body.build
+
+    # Check cache for each build
+    cacheStartTime = Date.now()
+    cachedResults = []
+    uncachedBuildIds = []
+
+    for buildId in buildIds
+        cacheKey = "#{buildId}"
+        try
+            cached = testCache.get(cacheKey)
+            # node-cache returns the value directly, not wrapped in an object
+            if cached != undefined && cached != null && Object.keys(cached).length > 0
+                cachedResults = cachedResults.concat(cached[cacheKey])
+            else
+                uncachedBuildIds.push(buildId)
+        catch err
+            console.log("Cache get error for #{buildId}:", err)
+            uncachedBuildIds.push(buildId)
+
+    cacheTime = Date.now() - cacheStartTime
+    console.log("Uncached build IDs:", uncachedBuildIds)
+
+    # If all builds are cached, return immediately
+    if uncachedBuildIds.length == 0
+        totalTime = Date.now() - startTime
+        console.log("All builds found in cache - Total response time: #{totalTime}ms")
+        return res.json cachedResults
+
+    # Query only uncached builds
+    dbStartTime = Date.now()
+    ins = []
+    Test.buildBuildsQuery(ins, uncachedBuildIds)
+    query = { build: { $in: ins } }
+
+    # build filter and condition - no status condition
+    conditions = [{ $or: [{is_rerun:false},{is_rerun:null}] }]
+
+    query.$or = [
+        { $and: conditions },
+        {
+            $and: [{ $or: [{is_rerun:true}] }]
+        }
+    ]
+
+    #build exclude doc
+    if(req.body.exclude)
+        exclude = {}
+        Test.buildExcludeFieldQuery(exclude,req.body.exclude)
+
+    Test.find(query,exclude)
+    .sort({uid:1})
+    .exec((err, tests) ->
+        dbTime = Date.now() - dbStartTime
+        console.log("DB query took #{dbTime}ms")
+        if(err)
+            return next err
+
+        # Group tests by build and cache each build separately
+        testsByBuild = {}
+        for test in tests
+            buildId = test.build.toString()
+            testsByBuild[buildId] ?= []
+            testsByBuild[buildId].push(test)
+
+        # Cache each build's data
+        for buildId, buildTests of testsByBuild
+            cacheKey = "#{buildId}"
+            try
+                testCache.set(cacheKey, buildTests)
+            catch err
+                console.log("Cache set error for #{buildId}:", err)
+
+        # Combine cached and new results
+        allResults = cachedResults.concat(tests)
+        totalTime = Date.now() - startTime
+        console.log("Total response time: #{totalTime}ms (Cache: #{cacheTime}ms, DB: #{dbTime}ms)")
+        console.log("Cache stats:", testCache.getStats())
+        res.json allResults
+    )
+
+
 router.post '/steps/:id',  (req, res, next) ->
   Test.findOne({_id: req.params.id}).
   exec((err, test) ->
@@ -364,8 +455,9 @@ router.post '/aggregate/trend', (req, res, next) ->
         .group({
             _id: "$uid",
             trend: { $push: {
-                    build: "$build", 
+                    build: "$build",
                     status : "$status",
+                    start_time: "$start_time",
                     uid : "$uid",
                     id: "$_id",
                     failure: "$failure",

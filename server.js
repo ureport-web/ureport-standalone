@@ -2,14 +2,15 @@
 if (process.env.NODE_ENV == undefined) {
   process.env.NODE_ENV = "dev"
 }
-var config = require('config')
-var port = normalizePort(config.PORT || 3000);
+if(process.env.PORT == undefined) {
+    var config = require('config')
+    process.env.PORT = config.PORT || 3000;
+}
+
+var port = normalizePort(process.env.PORT);
 
 console.log("Detected environment " , process.env.NODE_ENV)
-
-if(process.env.NODE_ENV == 'production'){
-  port = normalizePort(process.env.PORT|| 3000);
-}
+console.log("Detected port " , process.env.PORT)
 
 try {
     /**

@@ -233,8 +233,8 @@ router.post '/status/calculate/:id',  (req, res, next) ->
   );
 
 router.post '/status/latest',  (req, res, next) ->
-  if (!AccessControl.canAccessUpdateAny(req.user.role,component))
-    return res.status(403).json({"error": "You don't have permission to perform this action"})
+  if (!AccessControl.canAccessReadAny(req.user.role,component))
+    return res.status(403).json({"error": "You don't have permission to perform this action "+ component})
 
   query = req.body.query
   Build.aggregate()
@@ -867,6 +867,7 @@ router.post '/search', (req, res, next) ->
       stage: { $last: "$stage"},
       build: { $last: "$build"},
       start_time: { $last: "$start_time"},
+      end_time: { $last: "$end_time"},
       environments: {$last: "$environments"},
       settings: {$last: "$settings"},
       aggregate_last_id: {
@@ -901,6 +902,7 @@ router.post '/search', (req, res, next) ->
       stage: "$stage",
       build: "$build",
       start_time: "$start_time",
+      end_time: "$end_time",
       aggregate_last_id: "$aggregate_last_id",
       aggregate_last_start_time: "$aggregate_last_start_time",
       status: "$status",

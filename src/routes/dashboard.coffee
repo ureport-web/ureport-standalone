@@ -117,6 +117,47 @@ router.post '/:id',  (req, res, next) ->
     res.json rs
   );
 
+# Generate / regenerate share token
+router.post '/:id/share', (req, res, next) ->
+  crypto = require('crypto')
+  Dashboard.findOne({_id: req.params.id}).
+  exec((err, dashboard) ->
+    if err
+      return next(err)
+    if dashboard
+      if (!AccessControl.canAccessUpdateAnyIfOwn(req.user, dashboard.user.toString(), component))
+        return res.status(403).json({"error": "You don't have permission to perform this action"})
+      dashboard.share_token = crypto.randomBytes(32).toString('hex')
+      dashboard.save((err, rs) ->
+        if err
+          return next(err)
+        res.json { share_token: rs.share_token }
+      )
+    else
+      res.status(404)
+      res.json {"error": "Cannot find Dashboard with id " + req.params.id}
+  )
+
+# Revoke share token
+router.delete '/:id/share', (req, res, next) ->
+  Dashboard.findOne({_id: req.params.id}).
+  exec((err, dashboard) ->
+    if err
+      return next(err)
+    if dashboard
+      if (!AccessControl.canAccessUpdateAnyIfOwn(req.user, dashboard.user.toString(), component))
+        return res.status(403).json({"error": "You don't have permission to perform this action"})
+      dashboard.share_token = null
+      dashboard.save((err, rs) ->
+        if err
+          return next(err)
+        res.json { ok: true }
+      )
+    else
+      res.status(404)
+      res.json {"error": "Cannot find Dashboard with id " + req.params.id}
+  )
+
 router.post '/widget/:id',  (req, res, next) ->
   if(!req.body.user)
     res.status(400)

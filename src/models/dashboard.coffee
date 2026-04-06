@@ -93,7 +93,8 @@ dashboardSchema = new Schema(
 			}, {_id: false})
 	],
 	config: Schema.Types.Mixed,
-	comments: Schema.Types.Mixed
+	comments: Schema.Types.Mixed,
+	share_token: { type: String, default: null, index: true }
 )
 
 dashboardSchema.statics.update = (dashboard, payload) ->

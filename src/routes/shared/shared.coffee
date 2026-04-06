@@ -1,20 +1,21 @@
 express = require('express')
 router = express.Router()
 moment = require('moment');
+async = require("async")
 
 Build = require('../../models/build')
 Test = require('../../models/test')
 InvestigatedTest = require('../../models/investigated_test')
 TestRelation = require('../../models/test_relation')
-Dashboard = require('../../models/dashboard')
 Setting = require('../../models/setting')
-
 ObjectId = require('mongoose').Types.ObjectId;
 getSystemSetting = require('../../utils/getSystemSetting')
 
-async = require("async")
+# Return the dashboard resolved by isShareTokenMid
+router.get '/dashboard', (req, res, next) ->
+  res.json req.sharedDashboard
 
-router.post '/build/filter',  (req, res, next) ->
+router.post '/build/filter', (req, res, next) ->
   if(!req.body.product)
     res.status(400)
     return res.json {error: "Product is mandatory"}
@@ -30,14 +31,13 @@ router.post '/build/filter',  (req, res, next) ->
   conditions.push({ $or : req.body.product })
   conditions.push({ $or : req.body.type })
 
-  # since = moment("2010-01-01").format()
   if(req.body.since)
-    since = moment(req.body.since).format()  
-    conditions.push({ start_time: { $gte: since }})
+    since = moment(req.body.since).format()
+    conditions.push({ start_time: { $gt: since }})
 
   if(req.body.after)
-    after = moment(req.body.after).format()  
-    conditions.push({ start_time: { $lte: after }})
+    after = moment(req.body.after).format()
+    conditions.push({ start_time: { $lt: after }})
 
   if(req.body.version)
     conditions.push({ $or : req.body.version })
@@ -50,10 +50,10 @@ router.post '/build/filter',  (req, res, next) ->
 
   if(req.body.device)
     conditions.push({ $or : req.body.device })
-  
+
   if(req.body.platform)
     conditions.push({ $or : req.body.platform })
-  
+
   if(req.body.platform_version)
     conditions.push({ $or : req.body.platform_version })
 
@@ -61,7 +61,7 @@ router.post '/build/filter',  (req, res, next) ->
     conditions.push({ $or : req.body.stage })
 
   query = {
-      $and : conditions
+    $and : conditions
   }
 
   Build.find(query).
@@ -83,16 +83,9 @@ router.post '/build/search', (req, res, next) ->
       res.status(400)
       return res.json {error: "Type is mandatory"}
 
-  if(req.body.since && req.body.before)
-    res.status(400)
-    return res.json {error: "Since and Before cannot be set at the same time"}
-  
-  time_query = { $gte: new Date(moment().subtract(90,'day').format()) }
+  since = 90
   if(req.body.since)
-    time_query = { $gte: new Date(moment().subtract(req.body.since,'day').format()) }
-  
-  if(req.body.before)
-    time_query = { $lt: new Date(moment().subtract(req.body.before,'day').format()) }
+    since = req.body.since
 
   range = -20
   if(req.body.range)
@@ -112,13 +105,13 @@ router.post '/build/search', (req, res, next) ->
       productQuery = { $regex: req.body.product, $options: 'i'}
     if(regexBoth.test(req.body.type.trim()) || regexStart.test(req.body.type.trim()) || regexEnd.test(req.body.type.trim()))
       typeQuery = { $regex: req.body.type, $options: 'i'}
-    
+
     conditions = [
       { product: productQuery },
       { type: typeQuery },
-      { start_time: time_query }
+      { start_time: { $gte: new Date(moment().subtract(since,'day').format()) } },
     ]
-    
+
     if(req.body.version)
       conditions.push({ version: { $regex: req.body.version, $options: 'i'} })
 
@@ -133,7 +126,7 @@ router.post '/build/search', (req, res, next) ->
 
     if(req.body.device)
       conditions.push({ device: { $regex: req.body.device, $options: 'i'} })
-    
+
     if(req.body.platform)
       if(regexBoth.test(req.body.platform.trim()) || regexStart.test(req.body.platform.trim()) || regexEnd.test(req.body.platform.trim()))
         conditions.push({ platform: { $regex: req.body.platform, $options: 'i'} })
@@ -155,8 +148,7 @@ router.post '/build/search', (req, res, next) ->
   .sort({start_time:1})
   .match(query)
   .group(
-    { 
-      # _id:  "$_id",
+    {
       _id:  {
         product:  "$product",
         type: "$type",
@@ -179,6 +171,7 @@ router.post '/build/search', (req, res, next) ->
       stage: { $last: "$stage"},
       build: { $last: "$build"},
       start_time: { $last: "$start_time"},
+      end_time: { $last: "$end_time"},
       environments: {$last: "$environments"},
       settings: {$last: "$settings"},
       aggregate_last_id: {
@@ -187,11 +180,11 @@ router.post '/build/search', (req, res, next) ->
       aggregate_last_start_time: {
         $last: "$start_time"
       },
-      status: { 
+      status: {
         $last: "$status"
       },
-      aggregate_previous_runs: { 
-        $push: { 
+      aggregate_previous_runs: {
+        $push: {
           _id: "$_id",
           build: "$build",
           start_time: "$start_time",
@@ -200,7 +193,7 @@ router.post '/build/search', (req, res, next) ->
       }
   })
   .project(
-    { 
+    {
       _id: "$_id",
       product: "$product",
       type: "$type",
@@ -213,10 +206,11 @@ router.post '/build/search', (req, res, next) ->
       stage: "$stage",
       build: "$build",
       start_time: "$start_time",
+      end_time: "$end_time",
       aggregate_last_id: "$aggregate_last_id",
       aggregate_last_start_time: "$aggregate_last_start_time",
       status: "$status",
-      aggregate_previous_runs: { 
+      aggregate_previous_runs: {
         $slice : ["$aggregate_previous_runs", range]
       },
       environments: "$environments",
@@ -224,7 +218,7 @@ router.post '/build/search', (req, res, next) ->
   })
   .exec((err, builds) -> res.json builds );
 
-router.get '/build/entity/producttype',  (req, res, next) ->
+router.get '/build/entity/producttype', (req, res, next) ->
   entities = ['product','type']
   async.map(entities,
     (item, callback) ->
@@ -236,11 +230,230 @@ router.get '/build/entity/producttype',  (req, res, next) ->
         )
     (err,rs) ->
         if err
-          return next(err) 
+          return next(err)
         res.json rs
   )
 
-router.post '/investigated_test/filter',  (req, res, next) ->
+router.post '/test/filter', (req, res, next) ->
+    if(!req.body.build)
+        res.status(400)
+        return res.json {error: "Build id is mandatory"}
+
+    if( typeof req.body.build == 'string' )
+        query = {
+          build: new ObjectId(req.body.build)
+        }
+    else
+        ins = []
+        Test.buildBuildsQuery(ins,req.body.build)
+        query = {
+            build : {
+                $in : ins
+            }
+        }
+    conditions = []
+    if(req.body.status)
+        status = []
+        Test.buildStatusQuery(status,req.body.status)
+        conditions.push({ $or: status })
+
+    if(conditions.length>0)
+        query.$and = conditions
+
+    if(req.body.exclude)
+        exclude = {}
+        Test.buildExcludeFieldQuery(exclude,req.body.exclude)
+
+    Test.find(query,exclude)
+    .sort({uid:1})
+    .exec((err, tests) ->
+        if(err)
+            next err
+        res.json tests
+    );
+
+router.post '/test/filter/nonpass', (req, res, next) ->
+    if(!req.body.build)
+        res.status(400)
+        return res.json {error: "Build id is mandatory"}
+
+    if( typeof req.body.build == 'string' )
+        query = {
+          build: new ObjectId(req.body.build)
+        }
+    else
+        ins = []
+        Test.buildBuildsQuery(ins,req.body.build)
+        query = {
+            build : {
+                $in : ins
+            }
+        }
+    conditions = [{ $or: [{is_rerun:false},{is_rerun:null}] }]
+    if(req.body.status)
+        status = []
+        Test.buildStatusQuery(status,req.body.status)
+        conditions.push({ $or: status })
+
+    query.$or = [
+        { $and: conditions },
+        {
+            $and: [{ $or: [{is_rerun:true}] }]
+        }
+    ]
+
+    if(req.body.exclude)
+        exclude = {}
+        Test.buildExcludeFieldQuery(exclude,req.body.exclude)
+
+    Test.find(query,exclude)
+    .sort({uid:1})
+    .exec((err, tests) ->
+        if(err)
+            next err
+        res.json tests
+    );
+
+router.post '/test/aggregate/stable', (req, res, next) ->
+    if(req.body.builds)
+        Test.aggregate()
+        .match({ $and : [
+            { build : {$in : req.body.builds.map((el) -> ObjectId(el) )} },
+            { $or: [ { is_rerun: false }, { is_rerun: null} ]}
+            ]
+        })
+        .group({ _id: "$uid", total: { $sum: 1 }, status: { $push: "$status" }, trace: { $push: { $substr: ["$status", 0, 1] } } })
+        .project({
+            total : "$total",
+            trace : "$trace",
+            fails: {
+                $filter: {
+                    input: '$status',
+                    as: 's',
+                    cond: { $eq: ['$$s', 'FAIL'] }
+                }
+            },
+            passes: {
+                $filter: {
+                    input: '$status',
+                    as: 's',
+                    cond: { $eq: ['$$s', 'PASS'] }
+                }
+            },
+            skips: {
+                $filter: {
+                    input: '$status',
+                    as: 's',
+                    cond: { $eq: ['$$s', 'SKIP'] }
+                }
+            }
+        })
+        .project({
+            failNumber : { $size: "$fails" },
+            passNumber : { $size: "$passes" },
+            skipNumber : { $size: "$skips" },
+            total: "$total",
+            size : { $size:  "$trace" }
+        })
+        .project({
+            percentage_f: { $divide: [ "$failNumber", "$total" ] },
+            percentage_p: { $divide: [ "$passNumber", "$total" ] },
+            percentage_s: { $divide: [ "$skipNumber", "$total" ] },
+            size : "$size"
+        })
+        .match({
+            $or : [
+                { percentage_f : { $eq : 1.0 } },
+                { percentage_p : { $eq : 1.0 } },
+                { percentage_s : { $eq : 1.0 } }
+            ]
+        })
+        .exec((err, tests) -> res.json tests );
+    else
+        res.status(404)
+        res.json {"error": "builds list is mandatory"}
+
+router.post '/test/aggregate/unstable', (req, res, next) ->
+    if(req.body.builds)
+        Test.aggregate()
+        .match({
+            $and : [
+                { build : {$in : req.body.builds.map((el) -> ObjectId(el) )} },
+                { $or: [ { is_rerun: false }, { is_rerun: null} ]} ]
+        })
+        .group({
+            _id: "$uid",
+            total: { $sum: 1 },
+            status: { $push: "$status" },
+            trace: { $push: { $substr: ["$status", 0, 1] } }
+        })
+        .project({
+            total : "$total" ,
+            trace : "$trace",
+            fails: {
+                $filter: {
+                    input: '$status',
+                    as: 's',
+                    cond: {
+                        $or: [
+                            {$eq: ['$$s', "FAIL"]},
+                            {$eq: ['$$s', "SKIP"]}
+                        ]
+                    }
+                }
+            }
+        })
+        .project({
+            failNumber : { $size: "$fails" },
+            total: "$total" ,
+            trace : "$trace"
+        })
+        .project({
+            percentage: { $divide: [ "$failNumber", "$total" ] },
+            trace : "$trace"
+        })
+        .match({
+            $and: [
+                { percentage : { $lt : 0.9 }},
+                { percentage : { $gt : 0.0 }}
+            ]
+        })
+        .sort({ percentage: -1 })
+        .exec((err, tests) -> res.json tests );
+    else
+        res.status(404)
+        res.json {"error": "builds list is mandatory"}
+
+router.post '/test/aggregate/trend', (req, res, next) ->
+    if(req.body.builds)
+        Test.aggregate()
+        .match({
+            $and : [
+                { build : {$in : req.body.builds.map((el) -> ObjectId(el) )} }
+                ]
+        })
+        .group({
+            _id: "$uid",
+            trend: { $push: {
+                    build: "$build",
+                    status : "$status",
+                    start_time: "$start_time",
+                    uid : "$uid",
+                    id: "$_id",
+                    failure: "$failure",
+                    is_rerun: "$is_rerun"
+                }
+            }
+        })
+        .project({
+            trend : "$trend"
+        })
+        .exec((err, tests) -> res.json tests );
+    else
+        res.status(404)
+        res.json {"error": "builds list is mandatory"}
+
+router.post '/investigated_test/filter', (req, res, next) ->
     if(!req.body.product)
         res.status(400)
         return res.json {error: "Product is mandatory"}
@@ -248,7 +461,7 @@ router.post '/investigated_test/filter',  (req, res, next) ->
     if(!req.body.type)
         res.status(400)
         return res.json {error: "Type is mandatory"}
-    
+
     getSystemSetting(req, "SYSTEM_SETTING", false, (setting) ->
         sinceDay = 30
 
@@ -260,17 +473,22 @@ router.post '/investigated_test/filter',  (req, res, next) ->
         else
             fromDate = moment().subtract(sinceDay,'day').format()
 
-        #build exclude doc
         if(req.body.exclude)
             exclude = {}
             InvestigatedTest.buildExcludeFieldQuery(exclude,req.body.exclude)
 
-        query = {
-            product: req.body.product
-            type: req.body.type
-            create_at: { $gte: fromDate }
-        }
-        # invTest filter and condition
+        if(req.body.activeRegEx)
+            query = { $and : [
+                { product: { $regex: req.body.product, $options: 'i'} },
+                { type: { $regex: req.body.type, $options: 'i'} },
+                { create_at: { $gte: new Date(moment().subtract(sinceDay,'day').format()) } }
+            ]}
+        else
+            query = {
+                product: req.body.product
+                type: req.body.type
+                create_at: { $gte: fromDate }
+            }
         InvestigatedTest.find(query,exclude)
         .exec((err, invTests) ->
             if err
@@ -280,7 +498,7 @@ router.post '/investigated_test/filter',  (req, res, next) ->
         )
     )
 
-router.post '/test_relation/filter',  (req, res, next) ->
+router.post '/test_relation/filter', (req, res, next) ->
     if(!req.body.product)
         res.status(400)
         return res.json {error: "Product is mandatory"}
@@ -289,12 +507,17 @@ router.post '/test_relation/filter',  (req, res, next) ->
         res.status(400)
         return res.json {error: "Type is mandatory"}
 
-    query = {
-      product: req.body.product
-      type: req.body.type
-    }
+    if(req.body.activeRegEx)
+        query = { $and : [
+            { product: { $regex: req.body.product, $options: 'i'} },
+            { type: { $regex: req.body.type, $options: 'i'} }
+        ]}
+    else
+        query = {
+            product: req.body.product
+            type: req.body.type
+        }
 
-    #build exclude doc
     if(req.body.exclude)
         exclude = {}
         TestRelation.buildExcludeFieldQuery(exclude,req.body.exclude)
@@ -306,214 +529,7 @@ router.post '/test_relation/filter',  (req, res, next) ->
         res.json tests
     );
 
-router.get '/dashboard/:id',  (req, res, next) ->
-  Dashboard.findOne({_id: req.params.id}).
-  exec((err, rs) ->
-    if(err)
-      return next(err)
-
-    if(rs)
-      res.json rs
-    else
-      res.status(404)
-      res.json {"error": "Cannot find Dashboard with id " + req.params.id}
-  );
-
-router.post '/test/filter',  (req, res, next) ->
-    if(!req.body.build)
-        res.status(400)
-        return res.json {error: "Build id is mandatory"}
-
-    if( typeof req.body.build == 'string' )
-        query = {
-          build: new ObjectId(req.body.build)
-        }
-    else
-        ins = []
-        Test.buildBuildsQuery(ins,req.body.build)
-        query = {
-            build : {
-                $in : ins
-            }
-        }
-    # build filter and condition
-    conditions = []
-    if(req.body.status)
-        status = []
-        Test.buildStatusQuery(status,req.body.status)
-        conditions.push({ $or: status })
-    
-    if(conditions.length>0)
-        query.$and = conditions
-
-    #build exclude doc
-    if(req.body.exclude)
-        exclude = {}
-        Test.buildExcludeFieldQuery(exclude,req.body.exclude)
-
-    Test.find(query,exclude)
-    .sort({uid:1})
-    .exec((err, tests) ->
-        if(err)
-            next err
-        res.json tests
-    );
-
-router.post '/test/filter/nonpass',  (req, res, next) ->
-    if(!req.body.build)
-        res.status(400)
-        return res.json {error: "Build id is mandatory"}
-
-    if( typeof req.body.build == 'string' )
-        query = {
-          build: new ObjectId(req.body.build)
-        }
-    else
-        ins = []
-        Test.buildBuildsQuery(ins,req.body.build)
-        query = {
-            build : {
-                $in : ins
-            }
-        }
-    # build filter and condition
-    conditions = [{ $or: [{is_rerun:false},{is_rerun:null}] }]
-    if(req.body.status)
-        status = []
-        Test.buildStatusQuery(status,req.body.status)
-        conditions.push({ $or: status })
-    
-    query.$or = [
-        { $and: conditions }, 
-        { 
-            $and: [{ $or: [{is_rerun:true}] }]
-        }
-    ]
-
-    #build exclude doc
-    if(req.body.exclude)
-        exclude = {}
-        Test.buildExcludeFieldQuery(exclude,req.body.exclude)
-
-    Test.find(query,exclude)
-    .sort({uid:1})
-    .exec((err, tests) ->
-        if(err)
-            next err
-        res.json tests
-    );
-
-router.post '/test/aggregate/stable', (req, res, next) -> 
-  if(req.body.builds)
-      Test.aggregate()
-      .match({ $and : [
-          { build : {$in : req.body.builds.map((el) -> ObjectId(el) )} }, 
-          { $or: [ { is_rerun: false }, { is_rerun: null} ]} 
-          ]
-      })
-      .group({ _id: "$uid", total: { $sum: 1 }, status: { $push: "$status" }, trace: { $push: { $substr: ["$status", 0, 1] } } })
-      .project({ 
-          total : "$total", 
-          trace : "$trace", 
-          fails: { 
-              $filter: { 
-                  input: '$status', 
-                  as: 's', 
-                  cond: { $eq: ['$$s', 'FAIL'] } 
-              } 
-          },
-          passes: { 
-              $filter: { 
-                  input: '$status', 
-                  as: 's', 
-                  cond: { $eq: ['$$s', 'PASS'] } 
-              } 
-          },
-          skips: { 
-              $filter: { 
-                  input: '$status', 
-                  as: 's', 
-                  cond: { $eq: ['$$s', 'SKIP'] } 
-              } 
-          } 
-      })
-      .project({ 
-          failNumber : { $size: "$fails" },
-          passNumber : { $size: "$passes" },
-          skipNumber : { $size: "$skips" },
-          total: "$total",
-          size : { $size:  "$trace" }
-      })
-      .project({ 
-          percentage_f: { $divide: [ "$failNumber", "$total" ] }, 
-          percentage_p: { $divide: [ "$passNumber", "$total" ] }, 
-          percentage_s: { $divide: [ "$skipNumber", "$total" ] }, 
-          size : "$size" 
-      })
-      .match({ 
-          $or : [
-              { percentage_f : { $eq : 1.0 } },
-              { percentage_p : { $eq : 1.0 } },
-              { percentage_s : { $eq : 1.0 } }
-          ]
-      })
-      .exec((err, tests) -> res.json tests );
-  else
-      res.status(404)
-      res.json {"error": "builds list is mandatory"}
-
-router.post '/test/aggregate/unstable', (req, res, next) -> 
-  if(req.body.builds) 
-      Test.aggregate()
-      .match({
-          $and : [
-              { build : {$in : req.body.builds.map((el) -> ObjectId(el) )} },
-              { $or: [ { is_rerun: false }, { is_rerun: null} ]} ]
-      })
-      .group({
-          _id: "$uid",
-          total: { $sum: 1 },
-          status: { $push: "$status" },
-          trace: { $push: { $substr: ["$status", 0, 1] } }
-      })
-      .project({
-          total : "$total" ,
-          trace : "$trace",
-          fails: { 
-              $filter: { 
-                  input: '$status', 
-                  as: 's', 
-                  cond: { 
-                      $or: [
-                          {$eq: ['$$s', "FAIL"]},
-                          {$eq: ['$$s', "SKIP"]}
-                      ]
-                  } 
-              } 
-          }
-      })
-      .project({
-          failNumber : { $size: "$fails" },
-          total: "$total" ,
-          trace : "$trace"
-      })
-      .project({
-          percentage: { $divide: [ "$failNumber", "$total" ] },
-          trace : "$trace"
-      })
-      .match({
-          $and: [
-              { percentage : { $lt : 0.9 }},
-              { percentage : { $gt : 0.0 }}
-          ]
-      })
-      .sort({ percentage: -1 })
-      .exec((err, tests) -> res.json tests );
-  else
-      res.status(404)
-      res.json {"error": "builds list is mandatory"}
-
-router.post '/setting/filter',  (req, res, next) ->
+router.post '/setting/filter', (req, res, next) ->
   if(!req.body.product)
     res.status(400)
     return res.json {error: "Product is mandatory"}
@@ -535,34 +551,33 @@ router.post '/setting/filter',  (req, res, next) ->
     res.json cases
   );
 
-router.post '/test/aggregate/trend', (req, res, next) -> 
-  if(req.body.builds) 
-      Test.aggregate()
-      .match({
-          $and : [
-              { build : {$in : req.body.builds.map((el) -> ObjectId(el) )} }
-              # { $or: [ { is_rerun: false }, { is_rerun: null} ]} 
-              ]
-      })
-      .group({
-          _id: "$uid",
-          trend: { $push: {
-                  build: "$build",
-                  status : "$status",
-                  # uid : "$uid",
-                  # id: "$_id",
-                  start_time: "$start_time",
-                  failure: "$failure",
-                  is_rerun: "$is_rerun"
-              }
-          }
-      })
-      .project({
-          trend : "$trend"
-      })
-      .exec((err, tests) -> res.json tests );
-  else
-      res.status(404)
-      res.json {"error": "builds list is mandatory"}
+router.post '/test/filter/all', (req, res, next) ->
+  if(!req.body.build)
+    res.status(400)
+    return res.json {error: "Build id is mandatory"}
+
+  buildIds = if typeof req.body.build == 'string' then [req.body.build] else req.body.build
+
+  ins = []
+  Test.buildBuildsQuery(ins, buildIds)
+  query = { build: { $in: ins } }
+
+  conditions = [{ $or: [{is_rerun:false},{is_rerun:null}] }]
+  query.$or = [
+    { $and: conditions },
+    { $and: [{ $or: [{is_rerun:true}] }] }
+  ]
+
+  if(req.body.exclude)
+    exclude = {}
+    Test.buildExcludeFieldQuery(exclude, req.body.exclude)
+
+  Test.find(query, exclude)
+  .sort({uid:1})
+  .exec((err, tests) ->
+    if(err)
+      return next(err)
+    res.json tests
+  )
 
 module.exports = router
