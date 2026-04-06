@@ -37,7 +37,8 @@ if (config !== undefined) {
   app = express();
 
   // set static file to dist folder.
-  app.use("", express.static(path.join(__dirname, "public/nextgen/browser")));
+  app.use("/nextgen", express.static(path.join(__dirname, "public/nextgen/browser")));
+  app.get("/", (req, res) => res.redirect("/nextgen/"));
 
   //API doc
   app.use(
