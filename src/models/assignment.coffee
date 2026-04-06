@@ -23,6 +23,7 @@ assignmentSchema = new Schema(
   	},
 	state: { type: String, required: true, default: 'OPEN'},
 	failure: { type: Schema.Types.Mixed,required: true }
+	test_url: String
 	assign_at: { type: Date, default: Date.now },
 	comments: [Schema({
 		userId: Schema.Types.ObjectId,

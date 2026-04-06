@@ -2,7 +2,7 @@ process.env.NODE_ENV = 'test'
 mongoose = require('mongoose')
 config = require('config')
 
-process.env.PORT = config.PORT
+process.env.PORT = process.env.PORT
 
 Promise = require("bluebird")
 async = require("async")
@@ -44,7 +44,8 @@ before (done) ->
   if config != undefined
     mongoose = require('mongoose')
     mongoose.connect(config.DBHost, {
-        useNewUrlParser: true
+        useNewUrlParser: true,
+        useUnifiedTopology: true
     });
     mongoose.set('useFindAndModify', false);
     mongoose.set('useCreateIndex', true);
@@ -72,8 +73,7 @@ before (done) ->
             dashboards_data[1].user = new ObjectId(results[3]._id) #admin@test.com admin
 
             Promise.all([
-              Test.create(tests_data),
-              Test.create(batch_data),
+              Test.create(tests_data.concat(batch_data)),
               Dashboard.create(dashboards_data)
             ]).then( ->
               console.log "===== Finish DB setup ====="

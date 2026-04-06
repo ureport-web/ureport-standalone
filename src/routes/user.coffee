@@ -118,7 +118,7 @@ router.put '/update/:username',  (req, res, next) ->
       return res.status(403).json({"error": "You don't have permission"})
   if(req.body.password)
     return res.status(400).json({"error": "Cannot update password through user update, please use /reset to update the password"})
-
+  
   if(req.user.role !='admin' && req.body.role)
     return res.status(400).json({"error": "You are not admin, and you cannot update the role field."})
 
@@ -179,7 +179,7 @@ router.delete '/:id',  (req, res, next) ->
 router.get '/pending',  (req, res, next) ->
   if (!AccessControl.canAccessReadAny(req.user.role, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
-
+  
   User.find({ status: 'pending' }, { password: 0, apiToken: 0 })
   .sort({ _id: -1 })
   .exec((err, users) ->
@@ -192,14 +192,14 @@ router.get '/pending',  (req, res, next) ->
 router.put '/approve/:id',  (req, res, next) ->
   if (!AccessControl.canAccessUpdateAny(req.user.role, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
-
+  
   User.findById(req.params.id)
   .exec((err, user) ->
     if err
       return next(err)
     if !user
       return res.status(404).json({ error: "User not found" })
-
+    
     user.status = 'active'
     user.save (err, rs) ->
       if err
@@ -213,14 +213,14 @@ router.put '/approve/:id',  (req, res, next) ->
 router.put '/reject/:id',  (req, res, next) ->
   if (!AccessControl.canAccessUpdateAny(req.user.role, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
-
+  
   User.findById(req.params.id)
   .exec((err, user) ->
     if err
       return next(err)
     if !user
       return res.status(404).json({ error: "User not found" })
-
+    
     user.status = 'rejected'
     user.save (err, rs) ->
       if err

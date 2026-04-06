@@ -46,7 +46,7 @@ userSchema = new Schema(
   role: {
     type: String,
     required: true,
-    enum: {
+    enum: { 
       values: ['admin', 'operator', 'viewer'],
       message: "We only support role: [admin, operator, viewer]"
     }

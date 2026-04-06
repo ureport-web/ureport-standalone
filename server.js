@@ -2,6 +2,7 @@
 if (process.env.NODE_ENV == undefined) {
   process.env.NODE_ENV = "dev"
 }
+
 if(process.env.PORT == undefined) {
     var config = require('config')
     process.env.PORT = config.PORT || 3000;

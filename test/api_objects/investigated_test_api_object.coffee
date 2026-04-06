@@ -38,10 +38,10 @@ module.exports = {
         res.should.have.status expectStatus
         cb(res)
 
-  delete : (server, cookies, id, expectStatus, cb) ->
-    req = chai.request(server).delete(endpoint+"/"+id)
+  delete : (server, cookies, id, user, expectStatus, cb) ->
+    req = chai.request(server).delete(endpoint+"/"+id+"/"+user)
     req.cookies = cookies;
-    
+
     req.end (err, res) ->
       if err
         err.should.have.status expectStatus

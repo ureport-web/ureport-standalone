@@ -33,6 +33,7 @@ settingSchema = new Schema(
 		}, 
 		{_id: true}
 	)],
+	notification: Schema.Types.Mixed,
 	investigated_setting: Schema(
 		{	
 			sharePL: [Schema(
@@ -89,5 +90,7 @@ settingSchema.statics.update = (setting, payload) ->
 			setting.custom_execution_script = payload.custom_execution_script
 		if(payload.investigated_setting)
 			setting.investigated_setting = payload.investigated_setting
+		if(payload.notification != undefined)
+			setting.notification = payload.notification
 
 module.exports = mongoose.model('Setting', settingSchema)

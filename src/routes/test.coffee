@@ -219,12 +219,12 @@ router.post '/filter/all',  (req, res, next) ->
 
     # Get build IDs array
     buildIds = if typeof req.body.build == 'string' then [req.body.build] else req.body.build
-
+    
     # Check cache for each build
     cacheStartTime = Date.now()
     cachedResults = []
     uncachedBuildIds = []
-
+    
     for buildId in buildIds
         cacheKey = "#{buildId}"
         try
@@ -237,10 +237,10 @@ router.post '/filter/all',  (req, res, next) ->
         catch err
             console.log("Cache get error for #{buildId}:", err)
             uncachedBuildIds.push(buildId)
-
+    
     cacheTime = Date.now() - cacheStartTime
     console.log("Uncached build IDs:", uncachedBuildIds)
-
+        
     # If all builds are cached, return immediately
     if uncachedBuildIds.length == 0
         totalTime = Date.now() - startTime
@@ -252,13 +252,13 @@ router.post '/filter/all',  (req, res, next) ->
     ins = []
     Test.buildBuildsQuery(ins, uncachedBuildIds)
     query = { build: { $in: ins } }
-
+    
     # build filter and condition - no status condition
     conditions = [{ $or: [{is_rerun:false},{is_rerun:null}] }]
-
+    
     query.$or = [
-        { $and: conditions },
-        {
+        { $and: conditions }, 
+        { 
             $and: [{ $or: [{is_rerun:true}] }]
         }
     ]
@@ -275,14 +275,14 @@ router.post '/filter/all',  (req, res, next) ->
         console.log("DB query took #{dbTime}ms")
         if(err)
             return next err
-
+        
         # Group tests by build and cache each build separately
         testsByBuild = {}
         for test in tests
             buildId = test.build.toString()
             testsByBuild[buildId] ?= []
             testsByBuild[buildId].push(test)
-
+        
         # Cache each build's data
         for buildId, buildTests of testsByBuild
             cacheKey = "#{buildId}"
@@ -290,7 +290,7 @@ router.post '/filter/all',  (req, res, next) ->
                 testCache.set(cacheKey, buildTests)
             catch err
                 console.log("Cache set error for #{buildId}:", err)
-
+        
         # Combine cached and new results
         allResults = cachedResults.concat(tests)
         totalTime = Date.now() - startTime
@@ -455,7 +455,7 @@ router.post '/aggregate/trend', (req, res, next) ->
         .group({
             _id: "$uid",
             trend: { $push: {
-                    build: "$build",
+                    build: "$build", 
                     status : "$status",
                     start_time: "$start_time",
                     uid : "$uid",

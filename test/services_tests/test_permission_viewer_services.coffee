@@ -103,7 +103,7 @@ describe 'User with Viewer permission', ->
             return
 
         it 'delete investigated test', (done) ->
-            invTest.delete(server, cookies, "111",  403,
+            invTest.delete(server, cookies, "111", "someuser", 403,
                 (res) ->
                     res.body.error.should.equal "You don't have permission to perform this action"
                     done()

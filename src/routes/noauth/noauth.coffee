@@ -547,7 +547,7 @@ router.post '/test/aggregate/trend', (req, res, next) ->
       .group({
           _id: "$uid",
           trend: { $push: {
-                  build: "$build",
+                  build: "$build", 
                   status : "$status",
                   # uid : "$uid",
                   # id: "$_id",

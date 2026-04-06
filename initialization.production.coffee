@@ -9,11 +9,11 @@ User = require('./src/models/user')
 DashboardTemplate = require('./src/models/dashboard_template')
 Setting = require("./src/models/system_setting")
 
-users = require('./data/sample/seeds/users')
-templates = require('./data/sample/seeds/templates')
-settings = require('./data/sample/seeds/system_settings')
+users = require('./data/users')
+templates = require('./data/templates')
+settings = require('./data/settings')
 mongoose = require('mongoose')
-mongoose.connect(config.DBHost, {
+mongoose.connect(process.env..DBHost, {
     useNewUrlParser: true
 });
 mongoose.set('useFindAndModify', false);

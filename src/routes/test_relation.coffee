@@ -76,7 +76,6 @@ router.post '/',  (req, res, next) ->
         else
             condition = { uid: 'ureport-does-not-exist' }
 
-
     TestRelation.findOneAndUpdate(condition, req.body,
         {
             upsert: true,

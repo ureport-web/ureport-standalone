@@ -108,11 +108,11 @@ module.exports = {
         res.should.have.status expectStatus
         cb(res)
 
-  endBatch : (server, cookies, id, payload, expectStatus, cb) ->
-    req = chai.request(server).post(endpoint + "/status/calculate/" + id)
+  endBatch : (server, cookies, path, payload, expectStatus, cb) ->
+    req = chai.request(server).post(endpoint + "/status/calculate/" + path)
     req.cookies = cookies;
     req.send(payload)
-    .end (err,res) ->
+    .end (err, res) ->
       if err
         err.should.have.status expectStatus
         cb(err.response)
