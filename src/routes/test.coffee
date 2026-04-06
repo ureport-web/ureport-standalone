@@ -83,6 +83,8 @@ router.post '/multi', (req, res, next) ->
 
 # TODO MISSING TEST
 router.post '/status/:id',  (req, res, next) ->
+  if (!AccessControl.canAccessUpdateAny(req.user.role,component))
+    return res.status(403).json({"error": "You don't have permission to perform this action"})
   Test.findOne({_id: req.params.id}).
   exec((err, test) ->
     if err

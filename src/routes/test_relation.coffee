@@ -4,6 +4,8 @@ router = express.Router()
 TestRelation = require('../models/test_relation')
 async = require("async")
 ObjectId = require('mongoose').Types.ObjectId;
+AccessControl = require('../utils/ac_grants')
+component = 'dependency'
 
 router.get '/:id',  (req, res, next) ->
     TestRelation.findOne({
@@ -68,6 +70,8 @@ router.post '/filter',  (req, res, next) ->
  * [create a test relation test object]
 ###
 router.post '/',  (req, res, next) ->
+    if (!AccessControl.canAccessCreateAny(req.user.role,component))
+        return res.status(403).json({"error": "You don't have permission to perform this action"})
     if(req.body._id != undefined)
         condition = { _id: new ObjectId(req.body._id) }
     else
@@ -89,6 +93,8 @@ router.post '/',  (req, res, next) ->
     )
 
 router.post '/update/attributes',  (req, res, next) ->
+    if (!AccessControl.canAccessUpdateAny(req.user.role,component))
+        return res.status(403).json({"error": "You don't have permission to perform this action"})
     if(req.body._id == undefined)
         res.status(400)
         return res.json { error: "Relation Id is mandatory" }
@@ -110,6 +116,8 @@ router.post '/update/attributes',  (req, res, next) ->
     )
 
 router.delete '/:id',  (req, res, next) ->
+    if (!AccessControl.canAccessDeleteAny(req.user.role,component))
+        return res.status(403).json({"error": "You don't have permission to perform this action"})
     TestRelation.deleteOne({_id: req.params.id}).
     exec((err, relation) ->
         if err

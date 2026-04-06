@@ -11,6 +11,8 @@ AccessControl = require('../utils/ac_grants')
 component = 'setting'
 
 router.get '/:name',  (req, res, next) ->
+  if (!AccessControl.canAccessDeleteAny(req.user.role,component))
+    return res.status(403).json({"error": "You don't have permission to perform this action"})
   if(!req.params.name)
     res.status(400)
     res.json {error: "Setting name is required"}

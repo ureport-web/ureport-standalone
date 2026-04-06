@@ -1,68 +1,73 @@
 # UReport
-### Stand-alone server-side reporting and analyzing software for local or CI automation.
-[Demo](https://ureport-demo.herokuapp.com/#/)
 
-If you want to explorer more features in an admin model, please contact ureport@outlook.com
-or
-Download and set up your own environment.
+Stand-alone server-side reporting and analysis software for local or CI automation.
 
-# Prerequiste
-- MongoDB (> 3.0)
-- Nodejs (> 12.0)
-    - [Nodejs site](https://ureport-demo.herokuapp.com/#/)
+## Prerequisites
 
-# How to install
-1. Download or clone the repo.
-2. Open a command-line terminal
-3. cd to the location of the folder
-4. Run `npm install`
-5. Go to config folder, change DBHost and PORT if it is different from the given one
-    + If you need to deploy it as prod, please modify the file **production.json**
-6. Run `npm install --global coffee-script`
-7. Run `coffee initialization.dev.coffee ` to initialize the dev database 
-    + the script will create an admin user, system setting, and dashboard templates
-8. Run `npm start` to start the server
-9. Open the browser and go to http://localhost:4100 to start using the application
-    + By default, there is one admin user created for you with credential admin/1234. You can change it in the app or use API to add more user.
+- MongoDB ≥ 3.0
+- Node.js ≥ 12.x
 
-# Overview
-This repo includes everything you need to set up your UReport server. And it is production-ready to be used once you have downloaded it. You have access to all the backend server code as well.
+## Installation
 
-# Features
-<h4 class="display-5"><i class="fas fa-microscope"> Auto Analysis</i></h2>
-<p class="lead">Never do the same work twice!</p>
-<p>Start your day with all of your repeated failures already analyzed.</p>
-<p>UReport allows you to save big on time and effort by auto analyzing and retagging the failures that were studied and tagged in a previous run.</p>
+1. Clone or download the repo.
+2. Run `npm install`.
+3. Edit `config/dev.json` — update `DBHost` and `PORT` if needed.
+4. Run `npm run initialize` to seed the database (creates the admin user, system settings, and dashboard templates).
+5. Run `npm start`.
+6. Open `http://localhost:4100` in your browser.
 
-![image info](./public/assets/images/auto_1.png)
-![image info](./public/assets/images/auto_2.png)
+Default credentials: **admin / 1234**
 
-<h4 class="display-5"> <i class="fa fa-wrench"> Customize Dashboard</i></h2>
-<p class="lead">No need to search hard for the info you need!</p>
-<P>Our customizable dashboard allows you to get the stats you want as soon as you open UReport!</P>You can use our user friendly module to create your own bar charts, line charts and tables to see the pass rates, fail rates, percentage of skipped tests and analyzed tests.
+## Configuration
 
-![image info](./public/assets/images/cd_1.png)
-![image info](./public/assets/images/cd_4.png)
+| Key | Description | Default |
+|---|---|---|
+| `DBHost` | MongoDB connection string | `mongodb://localhost/ureport` |
+| `PORT` | HTTP port the server listens on | `4100` |
+| `analysisSinceDay` | How many days back auto-analysis looks | `7` |
+| `NODE_ENV` | Runtime environment (`development` / `production`) | `development` |
 
-<h4 class="display-5"> <i class="fas fa-balance-scale"> Compare different product</i></h2>
-<p class="lead">When you need to compare the results of different runs or even different products, you can use one of UReport’s modules to either create a table or a chart to compare stats.</p>
-<p>You can also simply split the screen in 2 and compare the results side by side! </p>
+**Development:** edit `config/dev.json`.
 
-![image info](./public/assets/images/cdf_1.png)
-![image info](./public/assets/images/cdf_2.png)
+**Production:** set `NODE_ENV=production` and supply `DBHost` as an environment variable (or edit `config/production.json`).
 
-# How to send test data to UReport
-UReport offers various API for you to adjust your automation framework to send data.
-There are two important collections you need to know about for you to send your data.
-<br>
-**Build and Test**
-<P>Build is a collection that holds all your executions. It is named Build to reflect the build number your CI software generated when building your application and executing automation tests
-<br> 
-Test is a collection that holds all your tests that belongs to a specific build
-<br>
-Once you deploy the server, you can go to http://your-server:your-port/api-docs/
-Or
-You can log in with user admin and go to http://your-server:your-port/#/faq
-This page contains basic information about how UReport works
-<!-- # What to contribute to UI?
-Check out our UI repo -->
+## Features
+
+- **Auto-Analysis** — repeated failures are automatically matched and re-tagged based on previous investigations, so you start each day with analysis already done.
+- **Customizable dashboards** — build bar charts, line charts, and tables to track pass rates, fail rates, skip rates, and analysis coverage.
+- **Multi-product comparison** — compare results across different products or runs side-by-side, or in a combined chart.
+- **Role-based access** — three roles: `admin`, `operator`, and `viewer`, each with different permissions.
+- **JIRA integration** — link test failures directly to JIRA issues from within UReport.
+- **Public dashboard sharing** — generate a shareable token to expose a read-only dashboard view without requiring a login.
+- **API token authentication** — generate per-user API tokens for programmatic access to the REST API.
+- **Swagger API docs** — full interactive API reference available at `/api-docs`.
+
+## Sending Test Data
+
+UReport stores test results in two collections:
+
+- **Build** — represents a single execution (e.g. a CI build). Holds metadata like build number, product, and environment.
+- **Test** — represents an individual test case that belongs to a Build.
+
+To integrate your automation framework, POST builds and tests to the REST API. See the interactive reference for request/response shapes:
+
+```
+http://your-server:your-port/api-docs
+```
+
+## npm Scripts
+
+| Script | Command | Description |
+|---|---|---|
+| `start` | `node server` | Start the server |
+| `initialize` | `node initialize.js` | Seed the database with initial data |
+| `seed` | `node seedGenerator` | Generate sample seed data |
+| `test` | `mocha` | Run the test suite |
+
+## API Documentation
+
+Once the server is running, the full Swagger UI is available at:
+
+```
+http://your-server:your-port/api-docs
+```

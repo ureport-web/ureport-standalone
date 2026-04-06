@@ -6,7 +6,8 @@
   "scripts": {
     "test": "mocha",
     "start": "node server",
-    "seed": "node seedGenerator"
+    "seed": "node seedGenerator",
+    "initialize": "node initialize.js"
   },
   "keywords": [
     "automation",
@@ -49,6 +50,6 @@
     "mocha": "^3.3.0"
   },
   "engines": {
-    "node": "12.x"
+    "node": "18.x"
   }
 }
