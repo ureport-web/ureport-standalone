@@ -40,6 +40,7 @@ ac.grant('viewer')
     .updateOwn('dashboard_template')
     .deleteOwn('dashboard_template')
     .extend('operator')
+    .updateAny('dashboard')
     .deleteAny('build') #Tested
     .deleteAny('dashboard')
     .deleteAny('investigate')  #Tested

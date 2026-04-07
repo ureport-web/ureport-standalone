@@ -80,7 +80,7 @@ router.put '/:id',  (req, res, next) ->
     res.status(400)
     return res.json {error: "UserID is mandatory"}
 
-  if (!AccessControl.canAccessUpdateAnyIfOwn(req.user, req.body.user, component))
+  if (!AccessControl.canAccessUpdateAnyIfOwn(req.user, req.body.user, component) && !AccessControl.canAccessUpdateAny(req.user.role, component))
       return res.status(403).json({"error": "You don't have permission to perform this action"})
 
   Dashboard.findOne({_id: req.params.id}).
@@ -163,7 +163,7 @@ router.post '/widget/:id',  (req, res, next) ->
     res.status(400)
     return res.json {error: "UserID is mandatory"}
 
-  if (!AccessControl.canAccessUpdateAnyIfOwn(req.user, req.body.user, component))
+  if (!AccessControl.canAccessUpdateAnyIfOwn(req.user, req.body.user, component) && !AccessControl.canAccessUpdateAny(req.user.role, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
 
   Dashboard.findOne({_id: req.params.id}).
