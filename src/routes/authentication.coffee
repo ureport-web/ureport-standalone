@@ -5,6 +5,8 @@ passport = require('passport')
 async = require('async');
 crypto = require('crypto');
 signature = require('cookie-signature');
+getSystemSetting = require('../utils/getSystemSetting')
+sendConfirmationEmail = require('../utils/send_confirmation_email')
 
 router.post '/login', (req, res, next) -> 
     passport.authenticate('local', (err, user, info) -> 
@@ -30,31 +32,65 @@ router.post '/login', (req, res, next) ->
 
 router.post '/signup', (req, res, next) ->
     { username, displayname, email, password } = req.body
-    
-    # Validate required fields
+
     if !username || !email || !password
         return res.status(400).json({ message: 'Username, email, and password are required' })
-    
-    # Create new user with pending status
-    newUser = new User({
-        username: username,
-        displayname: displayname || username,
-        email: email,
-        password: password,
-        role: 'viewer',
-        status: 'pending'
-    })
-    
-    newUser.save (err) ->
-        if err
-            if err.code == 11000
-                return res.status(400).json({ message: 'Username already exists' })
-            return res.status(500).json({ message: err.message || 'Error creating user' })
-        
-        res.json({ 
-            message: 'Account created successfully. Waiting for admin approval.',
-            userId: newUser._id 
+
+    isAdminCreating = req.isAuthenticated() && req.user?.role == 'admin' && req.body.adminCreated == true
+
+    getSystemSetting req, "SYSTEM_SETTING", false, (setting) ->
+        newUser = new User({
+            username: username,
+            displayname: displayname || username,
+            email: email,
+            password: password,
+            role: if isAdminCreating then (req.body.role || 'viewer') else 'viewer',
+            status: if isAdminCreating then 'active' else 'pending'
         })
+
+        hasEmailConfig = setting?.notification?.email?.user && setting?.notification?.email?.password
+
+        if hasEmailConfig && !isAdminCreating
+            confirmToken = crypto.randomBytes(32).toString('hex')
+            newUser.confirmationToken = confirmToken
+            newUser.confirmationTokenExpires = new Date(Date.now() + 24 * 3600000)
+
+        newUser.save (err) ->
+            if err
+                if err.code == 11000
+                    return res.status(400).json({ message: 'Username already exists' })
+                return res.status(500).json({ message: err.message || 'Error creating user' })
+
+            if hasEmailConfig && !isAdminCreating
+                sendConfirmationEmail(req, newUser, confirmToken)
+                res.json({
+                    message: 'Please check your email to confirm your account.',
+                    requiresEmailConfirmation: true
+                })
+            else if isAdminCreating
+                res.json({
+                    message: 'User created successfully.',
+                    requiresEmailConfirmation: false
+                })
+            else
+                res.json({
+                    message: 'Account created. Waiting for admin approval.',
+                    requiresEmailConfirmation: false
+                })
+
+router.get '/confirm-email/:token', (req, res, next) ->
+    User.findOne({
+        confirmationToken: req.params.token,
+        confirmationTokenExpires: { $gt: Date.now() }
+    }).exec (err, user) ->
+        if err then return next(err)
+        if !user then return res.status(400).json({ message: 'Invalid or expired confirmation token.' })
+        user.status = 'active'
+        user.confirmationToken = undefined
+        user.confirmationTokenExpires = undefined
+        user.save (err) ->
+            if err then return next(err)
+            res.json({ message: 'Email confirmed! You can now log in.' })
 
 router.post '/logout', (req, res, next) ->
     req.logout()

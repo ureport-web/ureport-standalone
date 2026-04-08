@@ -80,38 +80,7 @@ router.post '/search', (req, res, next) ->
         res.json users
     );
 
-router.post '/signup',  (req, res, next) ->
-  if (!AccessControl.canAccessCreateAny(req.user.role,component))
-    return res.status(403).json({"error": "You don't have permission to perform this action"})
-  if req.body && !req.body.settings
-    req.body.settings = {}
-
-  User.findOne({
-    username: req.body.username
-  }).
-  exec((err, user) ->
-    if(err)
-      return next(err)
-    if(user)
-      res.json { msg: "User [" + req.body.username + "] already exists!"}
-    else
-      user = new User(req.body)
-      user.save((err, rs) ->
-        if err
-          return next(err)
-        # save use for billing
-        userBilling = new UserBilling(req.body, { _id: false })
-        userBilling.save((error, disgard) ->
-          if error
-            return next(error)
-          rs['password'] = undefined
-          rs['apiToken'] = undefined
-          res.json rs
-      )
-    );
-  );
-
-# update
+# update user
 router.put '/update/:username',  (req, res, next) ->
   if(!AccessControl.canAccessUpdateAny(req.user.role, component))
     if (!AccessControl.canAccessUpdateAnyIfOwnByName(req.user, req.params.username, component))
@@ -163,7 +132,7 @@ router.put '/update/:username',  (req, res, next) ->
           return res.status(400).json({"error": "Cannot find username "+ req.params.username+" to update."})
     );
 
-# Delete dashboard
+# Delete user
 router.delete '/:id',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})

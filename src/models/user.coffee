@@ -6,6 +6,8 @@ SALT_WORK_FACTOR = 10;
 userSchema = new Schema(
   resetPasswordToken: String,
   resetPasswordExpires: Date,
+  confirmationToken: String,
+  confirmationTokenExpires: Date,
   apiToken: {
     type: String,
     unique: true,

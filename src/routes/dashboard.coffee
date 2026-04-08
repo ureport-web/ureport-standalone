@@ -55,7 +55,7 @@ router.post '/',  (req, res, next) ->
     res.status(400)
     return res.json {error: " UserID is mandatory "}
 
-  if (!AccessControl.canAccessCreateAnyIfOwn(req.user, req.body.user, component))
+  if (!AccessControl.canAccessCreateAnyIfOwn(req.user, req.body.user, component) && !AccessControl.canAccessUpdateAny(req.user.role, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
 
   if(req.body._id != undefined)
@@ -107,7 +107,7 @@ router.post '/:id',  (req, res, next) ->
     res.status(400)
     return res.json {error: "UserID is mandatory"}
 
-  if (!AccessControl.canAccessDeleteAnyIfOwn(req.user, req.body.user, component))
+  if (!AccessControl.canAccessDeleteAnyIfOwn(req.user, req.body.user, component) && !AccessControl.canAccessDeleteAny(req.user.role, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
 
   Dashboard.deleteOne({_id: req.params.id}).
