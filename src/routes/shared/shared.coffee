@@ -106,7 +106,9 @@ router.post '/build/search', (req, res, next) ->
     if(regexBoth.test(req.body.type.trim()) || regexStart.test(req.body.type.trim()) || regexEnd.test(req.body.type.trim()))
       typeQuery = { $regex: req.body.type, $options: 'i'}
 
+    isArchive = req.body.is_archive || false
     conditions = [
+      { is_archive: isArchive },
       { product: productQuery },
       { type: typeQuery },
       { start_time: { $gte: new Date(moment().subtract(since,'day').format()) } },

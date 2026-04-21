@@ -143,6 +143,7 @@ buildSchema.statics.updateAttributes = (build, payload) ->
 	if(payload)
 		if(payload.is_archive != undefined)
 			build.is_archive = payload.is_archive
+			build.markModified('is_archive')
 		if(payload.start_time)
 			build.start_time = payload.start_time
 		if(payload.end_time)

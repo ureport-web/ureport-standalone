@@ -122,14 +122,14 @@ router.put '/:id',  (req, res, next) ->
   Build.findOne({_id: req.params.id}).
   exec((err, build) ->
     if err
-      next err
+      return next err
 
     if build
       #perform update
       Build.updateAttributes(build, req.body)
       build.save (err, results) ->
         if err
-          next err
+          return next err
 
         res.json build
     else
@@ -810,7 +810,9 @@ router.post '/search', (req, res, next) ->
     if(regexBoth.test(req.body.type.trim()) || regexStart.test(req.body.type.trim()) || regexEnd.test(req.body.type.trim()))
       typeQuery = { $regex: req.body.type, $options: 'i'}
 
+    isArchive = req.body.is_archive || false
     conditions = [
+      { is_archive: isArchive },
       { product: productQuery },
       { type: typeQuery },
       { start_time: { $gte: new Date(moment().subtract(since,'day').format()) } },

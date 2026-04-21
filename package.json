@@ -7,7 +7,8 @@
     "test": "mocha",
     "start": "node server",
     "seed": "node seedGenerator",
-    "initialize": "node initialize.js"
+    "initialize": "node initialize.js",
+    "seed:demo": "node seedDemo.js"
   },
   "keywords": [
     "automation",
