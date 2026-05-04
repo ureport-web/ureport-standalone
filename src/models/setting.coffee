@@ -3,6 +3,73 @@ ObjectId = mongoose.Types.ObjectId;
 async = require("async")
 Schema = mongoose.Schema
 
+quarantineConditionSchema = new Schema(
+  {
+    mode: { type: String }
+    failures: { type: Number }
+  }
+  { _id: false }
+)
+
+quarantineThresholdSchema = new Schema(
+  {
+    conditions: [quarantineConditionSchema]
+    resolve_passes: { type: Number }
+  }
+  { _id: false }
+)
+
+quarantineRelationSchema = new Schema(
+  {
+    type: { type: String }
+    values: [String]
+  }
+  { _id: false }
+)
+
+quarantineFilterSchema = new Schema(
+  {
+    logic: { type: String }
+    name_pattern: { type: String }
+    relations: [quarantineRelationSchema]
+  }
+  { _id: false }
+)
+
+quarantineScopeSchema = new Schema(
+  {
+    version: { type: String }
+    team: { type: String }
+    browser: { type: String }
+    device: { type: String }
+    platform: { type: String }
+    platform_version: { type: String }
+    stage: { type: String }
+  }
+  { _id: false }
+)
+
+quarantineRuleSchema = new Schema(
+  {
+    _id: { type: String }
+    name: { type: String }
+    enabled: { type: Boolean }
+    scope: quarantineScopeSchema
+    filter: quarantineFilterSchema
+    threshold: quarantineThresholdSchema
+  }
+  { _id: false }
+)
+
+quarantineRulesSchema = new Schema(
+  {
+    builds: { type: Number }
+    min_pass_rate: { type: Number }
+    rules: [quarantineRuleSchema]
+  }
+  { _id: false }
+)
+
 settingSchema = new Schema(
 	product: {
 		type: String,
@@ -34,6 +101,7 @@ settingSchema = new Schema(
 		{_id: true}
 	)],
 	notification: Schema.Types.Mixed,
+	quarantine_rules: quarantineRulesSchema,
 	investigated_setting: Schema(
 		{	
 			sharePL: [Schema(
@@ -92,5 +160,7 @@ settingSchema.statics.update = (setting, payload) ->
 			setting.investigated_setting = payload.investigated_setting
 		if(payload.notification != undefined)
 			setting.notification = payload.notification
+		if(payload.quarantine_rules != undefined)
+			setting.quarantine_rules = payload.quarantine_rules
 
 module.exports = mongoose.model('Setting', settingSchema)

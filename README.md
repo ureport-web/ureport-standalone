@@ -2,16 +2,72 @@
 
 Stand-alone server-side reporting and analysis software for local or CI automation.
 
+## Features
+
+### Dashboard Builder
+
+Drag-and-drop grid layout with configurable widgets: pass rate line charts, pie charts, bar charts, treemaps, heatmaps, summary cards, and analysis tables.
+
+![Dashboard Builder](docs/screenshots/dashboards_1.png)
+![Dashboard Builder](docs/screenshots/dashboards_2.png)
+![Dashboard Builder](docs/screenshots/dashboards_3.png)
+
+---
+
+### Test Results Explorer
+
+Browse test results in four switchable views: tree (class/suite hierarchy), list, build comparison (side-by-side A/B/C coloring), and timeline (slider-based time range filter).
+
+![Test Results Explorer](docs/screenshots/test-explorer.png)
+![Test Results Explorer](docs/screenshots/test-explorer_1.png)
+
+---
+
+### Auto-Analysis
+
+Repeated failures are automatically matched and re-tagged based on previous investigations.
+
+![Auto-Analysis](docs/screenshots/auto-analysis.png)
+
+---
+
+### Quarantine System
+
+Flag flaky tests to suppress noise; quarantine entries auto-expire after 90 days.
+
+![Quarantine System](docs/screenshots/quarantine.png)
+
+---
+
+### Product Lane Overview
+
+Top-level view of all test execution lanes grouped by product, showing live pass rates and health status.
+
+![Product Lane Overview](docs/screenshots/product-lanes.png)
+
+---
+
+### Also included
+
+- Test Relations & Investigated Test table
+- Public Dashboard Sharing
+- Role-based access (admin / operator / viewer)
+- User management with admin approval workflow
+- Email notifications (build completion, test assignments)
+- API token authentication
+- Audit logging
+- Swagger API docs at `/api-docs`
+
 ## Prerequisites
 
+- Node.js ≥ 18.x
 - MongoDB ≥ 3.0
-- Node.js ≥ 12.x
 
-## Installation
+## Quick Start
 
-1. Clone or download the repo.
+1. Clone the repo.
 2. Run `npm install`.
-3. Edit `config/dev.json` — update `DBHost` and `PORT` if needed.
+3. Edit `config/dev.json` — set `DBHost` and `PORT` if the defaults don't fit your environment.
 4. Run `npm run initialize` to seed the database (creates the admin user, system settings, and dashboard templates).
 5. Run `npm start`.
 6. Open `http://localhost:4100` in your browser.
@@ -20,27 +76,15 @@ Default credentials: **admin / 1234**
 
 ## Configuration
 
-| Key | Description | Default |
-|---|---|---|
-| `DBHost` | MongoDB connection string | `mongodb://localhost/ureport` |
-| `PORT` | HTTP port the server listens on | `4100` |
-| `analysisSinceDay` | How many days back auto-analysis looks | `7` |
-| `NODE_ENV` | Runtime environment (`development` / `production`) | `development` |
+| Key        | Description                                        | Default                       |
+| ---------- | -------------------------------------------------- | ----------------------------- |
+| `DBHost`   | MongoDB connection string                          | `mongodb://localhost/ureport` |
+| `PORT`     | HTTP port the server listens on                    | `4100`                        |
+| `NODE_ENV` | Runtime environment (`development` / `production`) | `development`                 |
 
 **Development:** edit `config/dev.json`.
 
-**Production:** set `NODE_ENV=production` and supply `DBHost` as an environment variable (or edit `config/production.json`).
-
-## Features
-
-- **Auto-Analysis** — repeated failures are automatically matched and re-tagged based on previous investigations, so you start each day with analysis already done.
-- **Customizable dashboards** — build bar charts, line charts, and tables to track pass rates, fail rates, skip rates, and analysis coverage.
-- **Multi-product comparison** — compare results across different products or runs side-by-side, or in a combined chart.
-- **Role-based access** — three roles: `admin`, `operator`, and `viewer`, each with different permissions.
-- **JIRA integration** — link test failures directly to JIRA issues from within UReport.
-- **Public dashboard sharing** — generate a shareable token to expose a read-only dashboard view without requiring a login.
-- **API token authentication** — generate per-user API tokens for programmatic access to the REST API.
-- **Swagger API docs** — full interactive API reference available at `/api-docs`.
+**Production:** set `NODE_ENV=production` and supply `DBHost` as an environment variable (or edit `config/production.json`). In production the server runs as a cluster (2–4 workers).
 
 ## Sending Test Data
 
@@ -49,20 +93,13 @@ UReport stores test results in two collections:
 - **Build** — represents a single execution (e.g. a CI build). Holds metadata like build number, product, and environment.
 - **Test** — represents an individual test case that belongs to a Build.
 
-To integrate your automation framework, POST builds and tests to the REST API. See the interactive reference for request/response shapes:
+**Official reporters:**
 
-```
-http://your-server:your-port/api-docs
-```
+- [ureport-playwright-reporter](https://www.npmjs.com/package/ureport-playwright-reporter) — Playwright
+- [ureport-jest-reporter](https://www.npmjs.com/package/ureport-jest-reporter) — Jest
+- [ureport-pytest-reporter](https://pypi.org/project/ureport-pytest-reporter/) — pytest
 
-## npm Scripts
-
-| Script | Command | Description |
-|---|---|---|
-| `start` | `node server` | Start the server |
-| `initialize` | `node initialize.js` | Seed the database with initial data |
-| `seed` | `node seedGenerator` | Generate sample seed data |
-| `test` | `mocha` | Run the test suite |
+Or POST directly to the REST API — see the interactive reference at `http://your-server:port/api-docs`.
 
 ## API Documentation
 
@@ -71,3 +108,14 @@ Once the server is running, the full Swagger UI is available at:
 ```
 http://your-server:your-port/api-docs
 ```
+
+Most endpoints require either a session cookie (browser login) or an `Authorization: Bearer <token>` header (API token).
+
+## npm Scripts
+
+| Script               | Description                                                          |
+| -------------------- | -------------------------------------------------------------------- |
+| `npm start`          | Start the server                                                     |
+| `npm run initialize` | Seed the database (admin user, system settings, dashboard templates) |
+| `npm run seed`       | Generate sample data                                                 |
+| `npm test`           | Run the test suite                                                   |

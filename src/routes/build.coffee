@@ -17,6 +17,8 @@ Setting = require('../models/setting')
 TestRelation = require('../models/test_relation')
 User = require('../models/user')
 sendBuildNotification = require('../utils/send_build_notification_email')
+QuarantinedTest = require('../models/quarantined_test')
+evaluator = require('../utils/quarantine_evaluator')
 
 router.get '/:id',  (req, res, next) ->
   Build.findOne({_id: req.params.id}).
@@ -182,64 +184,52 @@ router.post '/status/calculate/:id',  (req, res, next) ->
   else
     isUpdateBuild = req.body.is_update_build_status
 
-  Test.aggregate()
-  .match({ $and : [ { build : {$in : [ObjectId(req.params.id)]} }] })
-  .sort({ start_time: 1, _id: 1 })
-  .group({ _id: "$uid", total: { $sum: 1 }, status: { $last: "$status" } })
-  .group({ _id: "$status",total: { $sum:1 } })
-  .exec((err, cols) ->
+  # Get last status per uid (single group pass)
+  Test.aggregate([
+    { $match: { $and: [ { build: { $in: [ObjectId(req.params.id)] } } ] } },
+    { $sort: { start_time: 1, _id: 1 } },
+    { $group: { _id: '$uid', status: { $last: '$status' } } }
+  ]).exec (err, uidCols) ->
     if err
-      next err      
-    if(cols.length > 0)
-      rs = { total: 0 }
-      async.each(cols,
-        (item,callback) ->
-          rs[item._id.toLowerCase()]=item.total
-          rs.total += item.total
-          callback()
-        (err) ->
+      return next err
+
+    if uidCols.length > 0
+      rs = { total: 0, pass: 0, fail: 0, skip: 0 }
+      failedUids = []
+
+      uidCols.forEach (item) ->
+        if item.status
+          statusKey = item.status.toLowerCase()
+          rs[statusKey] = (rs[statusKey] or 0) + 1
+          rs.total += 1
+        if item.status == 'FAIL' or item.status == 'SKIP'
+          failedUids.push item._id
+
+      if isUpdateBuild == true
+        Build.findOne({_id: req.params.id}).exec (err, foundBuild) ->
           if err
-            next err
+            return next err
 
-          if(isUpdateBuild == true)
-            # overwrite build status
-            Build.findOne({_id: req.params.id}).
-            exec((err, foundBuild) ->
-              if(err)
+          if foundBuild
+            foundBuild.status = rs
+            foundBuild.end_time = Date.now()
+            foundBuild.save (err, sbuild) ->
+              if err
                 return next err
-
-              if(foundBuild)
-                # set defualt status to 0
-                if(rs.pass == undefined)
-                  rs.pass = 0
-                if(rs.fail == undefined)
-                  rs.fail = 0
-                if(rs.skip == undefined)
-                  rs.skip = 0
-
-                foundBuild.status = rs
-                foundBuild.end_time = Date.now()
-                foundBuild.save((err, sbuild) ->
-                  if(err)
-                    return next err
-                  res.json {
-                    status: rs,
-                    end_time: foundBuild.end_time
-                  }
-                  # Trigger notification rules after response is sent
-                  fireNotificationRules(req, res, foundBuild, rs)
-                )
-              else
-                res.status(404)
-                res.json {message: "Cannot find build id " + req.params.id}
-            )
+              res.json {
+                status: rs,
+                end_time: foundBuild.end_time
+              }
+              fireNotificationRules(req, res, foundBuild, rs)
+              evaluator.evaluateQuarantineRules(foundBuild)
           else
-            res.json { status: rs, end_time: Date.now()}
-      )
+            res.status(404)
+            res.json {message: "Cannot find build id " + req.params.id}
+      else
+        res.json { status: rs, end_time: Date.now()}
     else
       res.status(404)
       res.json {message: "Cannot find any tests with build id " + req.params.id}
-  );
 
 router.post '/status/latest',  (req, res, next) ->
   if (!AccessControl.canAccessReadAny(req.user.role,component))
@@ -692,22 +682,48 @@ router.post '/purge/calculate',  (req, res, next) ->
       console.log("Exception: ",error)
 
 
+cleanupOrphanedQuarantineRecords = (purgedBuilds) ->
+  ptMap = {}
+  (purgedBuilds or []).forEach (b) ->
+    key = "#{b.product}::#{b.type}"
+    ptMap[key] = { product: b.product, type: b.type }
+  Object.keys(ptMap).forEach (key) ->
+    { product, type } = ptMap[key]
+    Build.find({ product: product, type: type }).select('_id').exec (err, remaining) ->
+      return if err
+      remainingIds = (remaining or []).map (b) -> b._id
+      if remainingIds.length == 0
+        QuarantinedTest.deleteMany({ product: product, type: type }).exec (err) ->
+          if err then console.error '[quarantine] cleanup error', err
+      else
+        Test.distinct('uid', { build: { $in: remainingIds } }).exec (err, existingUids) ->
+          return if err
+          existingUidSet = {}
+          (existingUids or []).forEach (uid) -> existingUidSet[uid] = true
+          QuarantinedTest.find({ product: product, type: type }).select('uid _id').exec (err, qDocs) ->
+            return if err
+            toDelete = (qDocs or []).filter (q) -> not existingUidSet[q.uid]
+            return unless toDelete.length
+            ids = toDelete.map (q) -> q._id
+            QuarantinedTest.deleteMany({ _id: { $in: ids } }).exec (err) ->
+              if err then console.error '[quarantine] cleanup error', err
+
 router.post '/purge',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role,component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
 
-  Build.deleteMany({_id : {$in : req.body.builds}}).
-  exec((err, rsBuild) ->
+  buildIds = req.body.builds
+  Build.find({ _id: { $in: buildIds } }).select('product type').exec (err, purgedBuilds) ->
     if err
-      next err
-    # console.log(req.body.builds)
-    Test.deleteMany({ build : { $in : req.body.builds } }).
-    exec((err, rs) ->
+      return next err
+    Build.deleteMany({ _id: { $in: buildIds } }).exec (err, rsBuild) ->
       if err
-        next err
-      res.json rs
-    );
-  );
+        return next err
+      Test.deleteMany({ build: { $in: buildIds } }).exec (err, rs) ->
+        if err
+          return next err
+        res.json rs
+        cleanupOrphanedQuarantineRecords(purgedBuilds)
 
 # page
 router.post '/:page/:perPage',  (req, res, next) ->
@@ -927,95 +943,107 @@ router.post '/search', (req, res, next) ->
 
 
 fireNotificationRules = (req, res, build, statusSummary) ->
-  Setting.findOne({ product: build.product, type: build.type }).exec (err, setting) ->
-    return unless setting?.notification?.rules?.length
-    enabledRules = setting.notification.rules.filter (r) -> r.enabled
-    return unless enabledRules.length
+  # Fetch quarantined UIDs to exclude from notification triggers
+  QuarantinedTest.find({ product: build.product, type: build.type, is_active: true })
+  .select('uid')
+  .exec (qErr, qTests) ->
+    quarantinedUids = (qTests or []).map (q) -> q.uid
 
-    matchedRules = []
-    pending = enabledRules.length
+    Setting.findOne({ product: build.product, type: build.type }).exec (err, setting) ->
+      return unless setting?.notification?.rules?.length
+      enabledRules = setting.notification.rules.filter (r) -> r.enabled
+      return unless enabledRules.length
 
-    dispatchGrouped = ->
-      return unless matchedRules.length
-      recipientRuleMap = {}
-      matchedRules.forEach (rule) ->
-        (rule.recipients or []).forEach (recipientId) ->
-          id = recipientId.toString()
-          recipientRuleMap[id] = [] unless recipientRuleMap[id]
-          recipientRuleMap[id].push rule.name
-      allRecipientIds = Object.keys(recipientRuleMap)
-      return unless allRecipientIds.length
-      User.find({ _id: { $in: allRecipientIds } }).exec (err, users) ->
-        validUsers = (users or []).filter (u) -> u.email
-        return unless validUsers.length
-        validUsers.forEach (user) ->
-          ruleNames = recipientRuleMap[user._id.toString()] or []
-          sendBuildNotification(req, res, [user], build, statusSummary, ruleNames)
+      matchedRules = []
+      pending = enabledRules.length
 
-    checkDone = ->
-      pending -= 1
-      dispatchGrouped() if pending == 0
+      dispatchGrouped = ->
+        return unless matchedRules.length
+        recipientRuleMap = {}
+        matchedRules.forEach (rule) ->
+          (rule.recipients or []).forEach (recipientId) ->
+            id = recipientId.toString()
+            recipientRuleMap[id] = [] unless recipientRuleMap[id]
+            recipientRuleMap[id].push rule.name
+        allRecipientIds = Object.keys(recipientRuleMap)
+        return unless allRecipientIds.length
+        User.find({ _id: { $in: allRecipientIds } }).exec (err, users) ->
+          validUsers = (users or []).filter (u) -> u.email
+          return unless validUsers.length
+          validUsers.forEach (user) ->
+            ruleNames = recipientRuleMap[user._id.toString()] or []
+            sendBuildNotification(req, res, [user], build, statusSummary, ruleNames)
 
-    matchesScope = (rule, build) ->
-      scope = rule.scope or {}
-      ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage'].every (f) ->
-        return true unless scope[f]
-        build[f] == scope[f]
+      checkDone = ->
+        pending -= 1
+        dispatchGrouped() if pending == 0
 
-    enabledRules.forEach (rule) ->
-      unless matchesScope(rule, build)
-        checkDone()
-        return
-      filter    = rule.filter or {}
-      statuses  = filter.statuses or ['FAIL']
-      search    = filter.search or ''
-      relations = filter.relations or []
-      logic     = filter.logic or 'AND'
+      matchesScope = (rule, build) ->
+        scope = rule.scope or {}
+        ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage'].every (f) ->
+          return true unless scope[f]
+          build[f] == scope[f]
 
-      testQuery = { build: build._id, status: { $in: statuses } }
-      if search
-        testQuery.$or = [
-          { uid:  { $regex: search, $options: 'i' } },
-          { name: { $regex: search, $options: 'i' } }
-        ]
-
-      if relations.length == 0
-        Test.find(testQuery).limit(1).exec (testErr, tests) ->
-          matchedRules.push rule if tests?.length
+      enabledRules.forEach (rule) ->
+        unless matchesScope(rule, build)
           checkDone()
-      else
-        TestRelation.find({ product: build.product, type: build.type }).exec (relErr, allRelations) ->
-          console.log '[notify] rule "' + rule.name + '": found ' + (allRelations?.length or 0) + ' TestRelations for ' + build.product + '/' + build.type
-          if allRelations?.length
-            sample = allRelations[0]
-            console.log '[notify] first relation sample: uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
+          return
+        filter    = rule.filter or {}
+        statuses  = filter.statuses or ['FAIL']
+        search    = filter.search or ''
+        relations = filter.relations or []
+        logic     = filter.logic or 'AND'
 
-          matchedRelations = matcher.matchesRule(rule, allRelations or [])
+        testQuery = { build: build._id, status: { $in: statuses } }
+        # Exclude quarantined UIDs from notification queries
+        if quarantinedUids.length
+          testQuery.uid = { $nin: quarantinedUids }
+        if search
+          testQuery.$or = [
+            { uid:  { $regex: search, $options: 'i' } },
+            { name: { $regex: search, $options: 'i' } }
+          ]
 
-          console.log '[notify] rule "' + rule.name + '": ' + matchedRelations.length + ' relations matched out of ' + (allRelations?.length or 0)
-          if matchedRelations.length > 0
-            sample = matchedRelations[0]
-            console.log '[notify] sample match uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
-
-          unless matchedRelations.length
-            checkDone()
-            return
-
-          matchedUIDs = matchedRelations.map (tr) -> tr.uid
-          console.log '[notify] rule "' + rule.name + '": querying tests with uids=' + JSON.stringify(matchedUIDs) + ' query=' + JSON.stringify(testQuery)
-
-          if search
-            testQuery.$or = [
-              { uid:  { $in: matchedUIDs } },
-              { name: { $regex: search, $options: 'i' } }
-            ]
-            delete testQuery.uid
-          else
-            testQuery.uid = { $in: matchedUIDs }
-
+        if relations.length == 0
           Test.find(testQuery).limit(1).exec (testErr, tests) ->
-            console.log '[notify] rule "' + rule.name + '": test query found ' + (tests?.length or 0) + ' tests (testErr=' + testErr + ')'
             matchedRules.push rule if tests?.length
             checkDone()
+        else
+          TestRelation.find({ product: build.product, type: build.type }).exec (relErr, allRelations) ->
+            console.log '[notify] rule "' + rule.name + '": found ' + (allRelations?.length or 0) + ' TestRelations for ' + build.product + '/' + build.type
+            if allRelations?.length
+              sample = allRelations[0]
+              console.log '[notify] first relation sample: uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
+
+            matchedRelations = matcher.matchesRule(rule, allRelations or [])
+
+            console.log '[notify] rule "' + rule.name + '": ' + matchedRelations.length + ' relations matched out of ' + (allRelations?.length or 0)
+            if matchedRelations.length > 0
+              sample = matchedRelations[0]
+              console.log '[notify] sample match uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
+
+            unless matchedRelations.length
+              checkDone()
+              return
+
+            matchedUIDs = matchedRelations.map (tr) -> tr.uid
+            console.log '[notify] rule "' + rule.name + '": querying tests with uids=' + JSON.stringify(matchedUIDs) + ' query=' + JSON.stringify(testQuery)
+
+            if search
+              testQuery.$or = [
+                { uid:  { $in: matchedUIDs } },
+                { name: { $regex: search, $options: 'i' } }
+              ]
+              delete testQuery.uid
+            else
+              testQuery.uid = { $in: matchedUIDs }
+              # Re-apply quarantine exclusion after uid override
+              if quarantinedUids.length
+                testQuery.uid = { $in: matchedUIDs, $nin: quarantinedUids }
+
+            Test.find(testQuery).limit(1).exec (testErr, tests) ->
+              console.log '[notify] rule "' + rule.name + '": test query found ' + (tests?.length or 0) + ' tests (testErr=' + testErr + ')'
+              matchedRules.push rule if tests?.length
+              checkDone()
 
 module.exports = router

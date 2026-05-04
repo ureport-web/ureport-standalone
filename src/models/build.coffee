@@ -50,8 +50,8 @@ buildSchema = new Schema(
 	end_time: Date,
 	owner: String,
 	is_archive: { type: Boolean, default: false},
-	status: { 
-		type: Schema.Types.Mixed, 
+	status: {
+		type: Schema.Types.Mixed,
 		default: { total: 0, pass: 0, fail: 0, skip:0, warning: 0}
 	},
 	environments: { 
