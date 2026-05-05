@@ -2,6 +2,8 @@
 
 Stand-alone server-side reporting and analysis software for local or CI automation.
 
+**Live demo:** https://ureport-standalone.onrender.com/nextgen/
+
 ## Features
 
 ### Dashboard Builder
