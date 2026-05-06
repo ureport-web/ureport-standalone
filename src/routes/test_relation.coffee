@@ -92,28 +92,6 @@ router.post '/',  (req, res, next) ->
             res.json relation
     )
 
-router.post '/update/attributes',  (req, res, next) ->
-    if (!AccessControl.canAccessUpdateAny(req.user.role,component))
-        return res.status(403).json({"error": "You don't have permission to perform this action"})
-    if(req.body._id == undefined)
-        res.status(400)
-        return res.json { error: "Relation Id is mandatory" }
-    TestRelation.findOne({_id: req.body._id}).
-    exec((err, relation) ->
-        if err
-          next err
-        if relation
-          #perform update
-          TestRelation.update(relation, req.body)
-          relation.save (err, results) ->
-            if err
-              next err
-
-            res.json relation
-        else
-          res.status(404)
-          res.json {"error": "Cannot find Relation with id " + req.params.id}
-    )
 
 router.delete '/:id',  (req, res, next) ->
     if (!AccessControl.canAccessDeleteAny(req.user.role,component))

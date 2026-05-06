@@ -8,7 +8,8 @@
     "start": "node server",
     "seed": "node seedGenerator",
     "initialize": "node initialize.js",
-    "seed:demo": "node scripts/seedDemo.js"
+    "seed:demo": "node scripts/seedDemo.js",
+    "swagger": "node scripts/swagger-autogen.js"
   },
   "keywords": [
     "automation",
@@ -45,6 +46,7 @@
     "uuid": "^3.3.3"
   },
   "devDependencies": {
+    "swagger-autogen": "^2.23.7",
     "chai": "^3.5.0",
     "chai-http": "^3.0.0",
     "faker": "^4.1.0",

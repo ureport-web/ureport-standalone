@@ -24,20 +24,6 @@ router.get '/:id',  (req, res, next) ->
       res.json {"error": "Cannot find Assignment with id " + req.params.id}
   );
 
-router.get '/my/:userid',  (req, res, next) ->
-  Assignment.find({user: req.params.userid}).
-  sort({"assign_at": -1}).
-  exec((err, rs) ->
-    if(err)
-      next err
-
-    if(rs)
-      res.json rs
-    else
-      res.status(404)
-      res.json {"error": "Cannot find Assignments with userid " + req.params.userid}
-  );
-
 router.post '/filter',  (req, res, next) ->
   if(!req.body.product)
     res.status(400)

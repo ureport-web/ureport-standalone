@@ -302,23 +302,6 @@ router.post '/filter/all',  (req, res, next) ->
     )
 
 
-router.post '/steps/:id',  (req, res, next) ->
-  Test.findOne({_id: req.params.id}).
-  exec((err, test) ->
-    if err
-      next err
-
-    if test
-      Test.addStep(test, req.body)
-      test.save (err, results) ->
-        if err
-          next err
-        res.json test
-    else
-      res.status(404)
-      res.json {"error": "Cannot find Test with id " + req.params.id}
-  );
-
 router.post '/find/test/:id',  (req, res, next) ->
     if (!AccessControl.canAccessCreateAny(req.user.role,component))
         return res.status(403).json({"error": "You don't have permission to perform this action"})

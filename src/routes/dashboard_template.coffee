@@ -132,31 +132,6 @@ router.post '/:id',  (req, res, next) ->
     res.json rs
   );
 
-router.post '/widget/:id',  (req, res, next) ->
-  if(!req.body.user)
-    res.status(400)
-    return res.json {error: " UserID is mandatory "}
-
-  if (!AccessControl.canAccessUpdateAnyIfOwn(req.user, req.body.user, component))
-    return res.status(403).json({"error": "You don't have permission to perform this action"})
-
-  Template.findOne({_id: req.params.id}).
-  exec((err, template) ->
-    if err
-      return next(err)
-
-    if template
-      #perform update
-      Template.addWidget(template, req.body)
-      template.save (err, rs) ->
-        if err
-          return next(err)
-        res.json rs
-    else
-      res.status(404)
-      res.json {"error": "Cannot find template with id " + req.params.id}
-  );
-
 # router.post '/comment/:id',  (req, res, next) ->
 #   Dashboard.findOne({_id: req.params.id}).
 #   exec((err, dashboard) ->
