@@ -15,6 +15,7 @@ systemSettingSchema = new Schema(
 	notification: Schema.Types.Mixed,
 	issue_tracking: Schema.Types.Mixed,
 	tc_management: Schema.Types.Mixed,
+	ai: Schema.Types.Mixed,
 )
 
 systemSettingSchema.statics.updateSetting = (setting, payload) ->
@@ -31,4 +32,6 @@ systemSettingSchema.statics.updateSetting = (setting, payload) ->
 			setting.issue_tracking = payload.issue_tracking
 		if(payload.tc_management)
 			setting.tc_management = payload.tc_management
+		if(payload.ai != undefined)
+			setting.ai = payload.ai
 module.exports = mongoose.model('SystemSetting', systemSettingSchema)
