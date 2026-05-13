@@ -1,0 +1,1 @@
+import{a as s}from"./chunk-XJHAQDGV.js";import{e as r}from"./chunk-EQDQRRRY.js";var i=r(s()),t=class{_id;uid;product;type;getId(){return this._id}isUIDExist(){return!(0,i.isEmpty)(this.uid)}getUID(){return this.uid}getProduct(){return this.product}getType(){return this.type}};export{t as a};
