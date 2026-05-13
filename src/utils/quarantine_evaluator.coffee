@@ -45,7 +45,7 @@ evaluateThreshold = (mode, results, qualifyingBuildIds, requiredFailures) ->
     candidateUids.forEach (uid) ->
       uidResults = uidResultMap[uid] or []
       failCount = uidResults.reduce ((sum, r) -> sum + r.failed), 0
-      if failCount >= requiredFailures
+      if failCount + 1 >= requiredFailures
         toQuarantine.push { uid: uid, failCount: failCount, buildCount: uidResults.length }
   else
     # consecutive mode — walk qualifying build IDs most-recent-first
@@ -61,7 +61,7 @@ evaluateThreshold = (mode, results, qualifyingBuildIds, requiredFailures) ->
         else
           i = buildIdStrs.length # break equivalent
         i++
-      if streak >= requiredFailures
+      if streak + 1 >= requiredFailures
         toQuarantine.push { uid: uid, failCount: streak, buildCount: streak }
 
   toQuarantine

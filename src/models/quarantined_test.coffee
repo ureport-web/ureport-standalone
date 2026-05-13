@@ -28,6 +28,6 @@ quarantinedTestSchema = new Schema(
 )
 
 quarantinedTestSchema.index({ uid: 1, product: 1, type: 1 }, { unique: true })
-quarantinedTestSchema.index({ resolved_at: 1 }, { expireAfterSeconds: 7776000, partialFilterExpression: { resolved_at: { $type: 'date' } } })
+quarantinedTestSchema.index({ resolved_at: 1 }, { expireAfterSeconds: 7776000 })
 
 module.exports = mongoose.model('QuarantinedTest', quarantinedTestSchema)

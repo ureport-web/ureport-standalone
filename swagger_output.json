@@ -1,0 +1,4227 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "UReport API",
+    "version": "2.0.0",
+    "description": "UReport REST API"
+  },
+  "servers": [
+    {
+      "url": "/api"
+    }
+  ],
+  "paths": {
+    "/version": {
+      "get": {
+        "tags": [
+          "Version"
+        ],
+        "summary": "Get application version",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Version info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": {
+                      "type": "string"
+                    },
+                    "isDemo": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Log in with username and password",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          },
+          "403": {
+            "description": "Account not active"
+          }
+        },
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logout": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Log out current session",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Logged out successfully"
+          }
+        }
+      }
+    },
+    "/user/signup": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Register a new user account",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Signup successful, pending approval"
+          },
+          "400": {
+            "description": "Validation error or duplicate username"
+          }
+        },
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/confirm-email/{token}": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Confirm email address via token",
+        "description": "",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email confirmed"
+          },
+          "400": {
+            "description": "Invalid or expired token"
+          }
+        },
+        "security": []
+      }
+    },
+    "/user/token": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Generate an API token for the current user",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Token generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Revoke the current API token",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Token revoked"
+          }
+        }
+      }
+    },
+    "/user/forgot": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Request a password reset email",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Reset email sent if account exists"
+          }
+        },
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/reset/{token}": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Reset password using token",
+        "description": "",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password reset successful"
+          },
+          "400": {
+            "description": "Invalid token or password"
+          }
+        },
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/{page}/{perPage}": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List users (paginated)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "perPage",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated user list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/total": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get total user count",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Total count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/search": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Search users",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Matching users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/update/{username}": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Update user profile",
+        "description": "",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User updated"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/{id}": {
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Delete a user",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/user/pending": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List users pending approval",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Pending users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/approve/{id}": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Approve a pending user",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User approved"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/user/reject/{id}": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Reject a pending user",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User rejected"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/user/change-password": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Change current user password",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Password changed"
+          },
+          "400": {
+            "description": "Current password incorrect"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "properties": {
+                  "currentPassword": {
+                    "type": "string"
+                  },
+                  "newPassword": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/{id}": {
+      "get": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Get a build by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Build record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Build"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Build not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Update a build by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Build updated"
+          },
+          "404": {
+            "description": "Build not found"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Build"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Delete a build by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Build deleted"
+          },
+          "404": {
+            "description": "Build not found"
+          }
+        }
+      }
+    },
+    "/build": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Create or update a build",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Build created or updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Build"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Build"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/status/{id}": {
+      "put": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Update build status counters",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status updated"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildStatusUpdate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/status/calculate/{id}": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Recalculate build status from test results",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status recalculated"
+          }
+        }
+      }
+    },
+    "/build/status/latest": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Get latest build status for given product/type",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Latest build with status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Build"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/comment/{id}": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Add a comment to a build",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment added"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Comment"
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Update a build comment",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment updated"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Comment"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/outage/{buildId}": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Report an outage for a build",
+        "description": "",
+        "parameters": [
+          {
+            "name": "buildId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Outage recorded"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/outage/comment/{buildId}": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Add a comment to a build outage",
+        "description": "",
+        "parameters": [
+          {
+            "name": "buildId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Outage comment added"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Comment"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/filter": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Filter builds",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Filtered builds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Build"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/entity/read": {
+      "get": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Get distinct product/type entities from builds",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Entity list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/entity/producttype": {
+      "get": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Get distinct product/type combinations",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Product-type combinations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/entity/recommend": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Get entity recommendations based on partial input",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Recommended entities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/entity/others": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Get other entity values (version, team, stage, etc.)",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Entity values",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/total": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Get total build count",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Total count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/purge/calculate": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Calculate which builds would be purged",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Builds that would be purged",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Build"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "keepBuilds": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/purge": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Purge old builds",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Builds purged"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "keepBuilds": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/search": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "Search builds by keyword",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Matching builds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Build"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/build/{page}/{perPage}": {
+      "post": {
+        "tags": [
+          "Build"
+        ],
+        "summary": "List builds (paginated)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "perPage",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated builds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Build"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test/{id}": {
+      "get": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Get a test by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Test record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Test"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Test not found"
+          }
+        }
+      }
+    },
+    "/test/multi": {
+      "post": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Create multiple tests in one request",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Tests created"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MultiTests"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test/status/{id}": {
+      "post": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Update test status",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status updated"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "PASS",
+                      "FAIL",
+                      "SKIP",
+                      "WARNING",
+                      "RERUN_PASS",
+                      "RERUN_FAIL",
+                      "RERUN_SKIP"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test/history/{uid}": {
+      "post": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Get test run history by UID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Test history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Test"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test/filter": {
+      "post": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Filter tests",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Filtered tests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Test"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test/filter/nonpass": {
+      "post": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Filter non-passing tests (FAIL, SKIP, WARNING)",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Non-passing tests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Test"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test/filter/all": {
+      "post": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Filter all tests without status restriction",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "All matching tests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Test"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test/aggregate/stable": {
+      "post": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Aggregate stable (consistently passing) tests",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Stable test aggregation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test/aggregate/unstable": {
+      "post": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Aggregate unstable (flaky) tests",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Unstable test aggregation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test/aggregate/trend": {
+      "post": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Get test result trend over builds",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Trend data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test/aggregate/single/history": {
+      "post": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Get history aggregation for a single test UID",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Single test history aggregation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "uid": {
+                    "type": "string"
+                  },
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test/aggregate/by/failure": {
+      "post": {
+        "tags": [
+          "Test"
+        ],
+        "summary": "Aggregate tests grouped by failure token",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Tests grouped by failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test_relation/{id}": {
+      "get": {
+        "tags": [
+          "TestRelation"
+        ],
+        "summary": "Get a test relation by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "TestRelation record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestRelation"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TestRelation"
+        ],
+        "summary": "Delete a test relation by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "TestRelation deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/test_relation/total": {
+      "post": {
+        "tags": [
+          "TestRelation"
+        ],
+        "summary": "Get total test relation count",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Total count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test_relation/filter": {
+      "post": {
+        "tags": [
+          "TestRelation"
+        ],
+        "summary": "Filter test relations",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Filtered test relations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestRelation"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test_relation": {
+      "post": {
+        "tags": [
+          "TestRelation"
+        ],
+        "summary": "Create or update a test relation",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "TestRelation created or updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestRelation"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestRelation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test_relation/{page}/{perPage}": {
+      "post": {
+        "tags": [
+          "TestRelation"
+        ],
+        "summary": "List test relations (paginated)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "perPage",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated test relations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TestRelation"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/investigated_test/{id}": {
+      "get": {
+        "tags": [
+          "InvestigatedTest"
+        ],
+        "summary": "Get an investigated test by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "InvestigatedTest record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigatedTest"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/investigated_test": {
+      "post": {
+        "tags": [
+          "InvestigatedTest"
+        ],
+        "summary": "Create or update an investigated test",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "InvestigatedTest created or updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigatedTest"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvestigatedTest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/investigated_test/multi": {
+      "post": {
+        "tags": [
+          "InvestigatedTest"
+        ],
+        "summary": "Get multiple investigated tests by UIDs",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Matching investigated tests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvestigatedTest"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "uids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/investigated_test/{id}/{user}": {
+      "delete": {
+        "tags": [
+          "InvestigatedTest"
+        ],
+        "summary": "Delete an investigated test by ID and user",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "InvestigatedTest deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/investigated_test/total": {
+      "post": {
+        "tags": [
+          "InvestigatedTest"
+        ],
+        "summary": "Get total investigated test count",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Total count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/investigated_test/customize/state/total/{id}": {
+      "get": {
+        "tags": [
+          "InvestigatedTest"
+        ],
+        "summary": "Get customize state totals for a build",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Build ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customize state totals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/investigated_test/filter": {
+      "post": {
+        "tags": [
+          "InvestigatedTest"
+        ],
+        "summary": "Filter investigated tests",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Filtered investigated tests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InvestigatedTest"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/investigated_test/comment/{id}": {
+      "post": {
+        "tags": [
+          "InvestigatedTest"
+        ],
+        "summary": "Add a comment to an investigated test",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment added"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Comment"
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "InvestigatedTest"
+        ],
+        "summary": "Update a comment on an investigated test",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment updated"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Comment"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/investigated_test/{page}/{perPage}": {
+      "post": {
+        "tags": [
+          "InvestigatedTest"
+        ],
+        "summary": "List investigated tests (paginated)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "perPage",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated investigated tests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/InvestigatedTest"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assignment/{id}": {
+      "get": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Get an assignment by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Assignment record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assignment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Update an assignment by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Assignment updated"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Assignment"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Delete an assignment by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Assignment deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/assignment/filter": {
+      "post": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Filter assignments",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Filtered assignments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Assignment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assignment": {
+      "post": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Create or update an assignment",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Assignment created or updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assignment"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Assignment"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assignment/comment/{id}": {
+      "post": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Add a comment to an assignment",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment added"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Comment"
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Update a comment on an assignment",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment updated"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Comment"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quarantine/filter": {
+      "post": {
+        "tags": [
+          "QuarantinedTest"
+        ],
+        "summary": "Filter quarantined tests",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Filtered quarantined tests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuarantinedTest"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "is_active": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quarantine/{id}": {
+      "put": {
+        "tags": [
+          "QuarantinedTest"
+        ],
+        "summary": "Resolve (un-quarantine) a test",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Test resolved (is_active set to false)"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "resolved_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "QuarantinedTest"
+        ],
+        "summary": "Delete a quarantined test record",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quarantined test deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/analytics/top-failures": {
+      "post": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get top failing tests",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Top failing tests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "default": 10
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analytics/slowest-tests": {
+      "post": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get slowest tests by average duration",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Slowest tests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "default": 10
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/{id}": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Get a dashboard by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Update a dashboard by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard updated"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Dashboard"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Delete a dashboard by ID (uses POST)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/dashboard/byUser/{userId}": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Get dashboards belonging to a user",
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User dashboards",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Dashboard"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/shared/{userId}": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Get dashboards shared with a user",
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shared dashboards",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Dashboard"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard": {
+      "post": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Create or update a dashboard",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Dashboard created or updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Dashboard"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/{id}/share": {
+      "post": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Share a dashboard with users",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard shared"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "users": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Remove sharing from a dashboard",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sharing removed"
+          }
+        }
+      }
+    },
+    "/dashboard/widget/{id}": {
+      "post": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Add or update a widget on a dashboard",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget saved"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/template/{id}": {
+      "get": {
+        "tags": [
+          "DashboardTemplate"
+        ],
+        "summary": "Get a dashboard template by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "DashboardTemplate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardTemplate"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "DashboardTemplate"
+        ],
+        "summary": "Update a dashboard template by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template updated"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardTemplate"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "DashboardTemplate"
+        ],
+        "summary": "Delete a dashboard template by ID (uses POST)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template deleted"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/template/view/all": {
+      "get": {
+        "tags": [
+          "DashboardTemplate"
+        ],
+        "summary": "Get all templates visible to the current user",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "All templates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DashboardTemplate"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/template/view/public/all": {
+      "get": {
+        "tags": [
+          "DashboardTemplate"
+        ],
+        "summary": "Get all public dashboard templates",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Public templates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DashboardTemplate"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/template": {
+      "post": {
+        "tags": [
+          "DashboardTemplate"
+        ],
+        "summary": "Create or update a dashboard template",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Template created or updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardTemplate"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardTemplate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setting/{id}": {
+      "get": {
+        "tags": [
+          "Setting"
+        ],
+        "summary": "Get a setting by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Setting record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Setting"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Setting"
+        ],
+        "summary": "Update a setting by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Setting updated"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Setting"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Setting"
+        ],
+        "summary": "Delete a setting by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Setting deleted"
+          }
+        }
+      }
+    },
+    "/setting/find/all": {
+      "get": {
+        "tags": [
+          "Setting"
+        ],
+        "summary": "Get all settings",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "All settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Setting"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setting": {
+      "post": {
+        "tags": [
+          "Setting"
+        ],
+        "summary": "Create a new setting",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Setting created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Setting"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Setting"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setting/filter": {
+      "post": {
+        "tags": [
+          "Setting"
+        ],
+        "summary": "Filter settings",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Filtered settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Setting"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setting/share/with": {
+      "post": {
+        "tags": [
+          "Setting"
+        ],
+        "summary": "Share a setting with users",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Setting shared"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "settingId": {
+                    "type": "string"
+                  },
+                  "users": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/setting/{name}": {
+      "get": {
+        "tags": [
+          "SystemSetting"
+        ],
+        "summary": "Get a system setting by name",
+        "description": "",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "System setting value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/setting/{id}": {
+      "put": {
+        "tags": [
+          "SystemSetting"
+        ],
+        "summary": "Update a system setting by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "System setting updated"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/system/setting": {
+      "post": {
+        "tags": [
+          "SystemSetting"
+        ],
+        "summary": "Create a system setting",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "System setting created"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit/filter": {
+      "post": {
+        "tags": [
+          "Audit"
+        ],
+        "summary": "Filter audit log entries",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Audit log entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user": {
+                    "type": "string"
+                  },
+                  "action": {
+                    "type": "string"
+                  },
+                  "from": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "to": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "sessionAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "session"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "required": [
+          "username",
+          "password",
+          "email",
+          "role"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "displayname": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "operator",
+              "viewer"
+            ]
+          },
+          "password": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "active",
+              "rejected"
+            ]
+          },
+          "settings": {
+            "type": "object",
+            "properties": {
+              "language": {
+                "type": "string",
+                "default": "en"
+              },
+              "theme": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "default": "bootstrap"
+                  },
+                  "type": {
+                    "type": "string",
+                    "default": "light"
+                  }
+                }
+              },
+              "dashboard": {
+                "type": "object",
+                "properties": {
+                  "isShowWidgetBorder": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "isExpandMenu": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "isWidgetBarOnHover": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              },
+              "report": {
+                "type": "object",
+                "properties": {
+                  "assignmentRI": {
+                    "type": "integer",
+                    "default": 30
+                  },
+                  "displaySelfAN": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "displaySearchAndFilterBoxInStep": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "status": {
+                    "type": "object",
+                    "properties": {
+                      "pass": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "rerun": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "fail": {
+                        "type": "boolean",
+                        "default": true
+                      },
+                      "skip": {
+                        "type": "boolean",
+                        "default": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          }
+        }
+      },
+      "Build": {
+        "type": "object",
+        "required": [
+          "product",
+          "type",
+          "build"
+        ],
+        "properties": {
+          "product": {
+            "type": "string",
+            "example": "Reporting",
+            "description": "The product name of the software."
+          },
+          "type": {
+            "type": "string",
+            "example": "API or UI or Regression or Smoke",
+            "description": "The type of the automation."
+          },
+          "build": {
+            "type": "integer",
+            "example": 100,
+            "description": "Build number of the execution."
+          },
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          },
+          "team": {
+            "type": "string",
+            "example": "Team Alpha"
+          },
+          "stage": {
+            "type": "string",
+            "example": "staging",
+            "description": "Stage of the automation run (e.g. staging, production)."
+          },
+          "browser": {
+            "type": "string",
+            "enum": [
+              "Chrome",
+              "Firefox",
+              "Edge",
+              "Safari",
+              "Opera",
+              "IE",
+              "Internet Explorer",
+              "Electron",
+              "chromium"
+            ],
+            "example": "Chrome"
+          },
+          "device": {
+            "type": "string",
+            "example": "Windows VM or Pixel 2"
+          },
+          "platform": {
+            "type": "string",
+            "example": "iOS or Windows"
+          },
+          "platform_version": {
+            "type": "string",
+            "example": "13.0.4 or 10"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "owner": {
+            "type": "string",
+            "example": "admin"
+          },
+          "is_archive": {
+            "type": "boolean",
+            "default": false
+          },
+          "status": {
+            "type": "object",
+            "properties": {
+              "pass": {
+                "type": "integer",
+                "default": 0
+              },
+              "fail": {
+                "type": "integer",
+                "default": 0
+              },
+              "skip": {
+                "type": "integer",
+                "default": 0
+              },
+              "warning": {
+                "type": "integer",
+                "default": 0
+              },
+              "total": {
+                "type": "integer",
+                "default": 0
+              }
+            }
+          },
+          "environments": {
+            "type": "object",
+            "description": "Environment variables of the automation run."
+          },
+          "settings": {
+            "type": "object",
+            "description": "Settings variables of the automation run."
+          },
+          "client": {
+            "type": "string",
+            "example": "VM-01",
+            "description": "If provided, settings/environments are saved under the client name."
+          }
+        }
+      },
+      "BuildStatusUpdate": {
+        "type": "object",
+        "properties": {
+          "pass": {
+            "type": "integer"
+          },
+          "fail": {
+            "type": "integer"
+          },
+          "skip": {
+            "type": "integer"
+          },
+          "warning": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        }
+      },
+      "Test": {
+        "type": "object",
+        "required": [
+          "uid",
+          "build",
+          "name",
+          "status"
+        ],
+        "properties": {
+          "uid": {
+            "type": "string",
+            "example": "11120 or test.login.component",
+            "description": "Unique identifier of the test case."
+          },
+          "build": {
+            "type": "string",
+            "example": "6156f5ad744820091c9305b1",
+            "description": "ID of the build."
+          },
+          "name": {
+            "type": "string",
+            "example": "test.login.component"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PASS",
+              "FAIL",
+              "SKIP",
+              "WARNING",
+              "RERUN_PASS",
+              "RERUN_FAIL",
+              "RERUN_SKIP"
+            ],
+            "description": "Status of the test run."
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "failure": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string"
+              },
+              "error_message": {
+                "type": "string"
+              },
+              "stack_trace": {
+                "type": "string"
+              }
+            }
+          },
+          "is_rerun": {
+            "type": "boolean",
+            "default": false
+          },
+          "info": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "duration": {
+                "type": "string"
+              },
+              "file": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              }
+            }
+          },
+          "setup": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestStep"
+            }
+          },
+          "body": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestStep"
+            }
+          },
+          "teardown": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TestStep"
+            }
+          }
+        }
+      },
+      "TestStep": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PASS",
+              "FAIL",
+              "SKIP",
+              "INFO"
+            ]
+          },
+          "detail": {
+            "type": "string"
+          },
+          "attachment": {
+            "type": "object",
+            "properties": {
+              "screenshot": {
+                "type": "string",
+                "description": "Base64 encoded screenshot."
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "base64"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "MultiTests": {
+        "type": "object",
+        "properties": {
+          "tests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Test"
+            }
+          }
+        }
+      },
+      "TestRelation": {
+        "type": "object",
+        "required": [
+          "uid",
+          "product",
+          "type"
+        ],
+        "properties": {
+          "uid": {
+            "type": "string"
+          },
+          "product": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "components": {
+            "type": "object"
+          },
+          "teams": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Flexible tag objects (Mixed type)."
+          },
+          "customs": {
+            "type": "object",
+            "description": "Any custom key-value pairs (Mixed type)."
+          }
+        }
+      },
+      "InvestigatedTest": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string"
+          },
+          "product": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          },
+          "caused_by": {
+            "type": "string",
+            "default": "Defect",
+            "description": "Root cause category."
+          },
+          "tracking": {
+            "type": "string",
+            "description": "Tracking ticket reference."
+          },
+          "failure": {
+            "type": "object"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "comments": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "configuration": {
+            "type": "object"
+          },
+          "customize_state": {
+            "type": "string"
+          }
+        }
+      },
+      "Assignment": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "uid": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "default": "OPEN"
+          },
+          "failure": {
+            "type": "object"
+          },
+          "test_url": {
+            "type": "string"
+          },
+          "assign_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "comments": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "QuarantinedTest": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string"
+          },
+          "product": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "rule_id": {
+            "type": "string"
+          },
+          "rule_name": {
+            "type": "string"
+          },
+          "quarantined_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fail_snapshot": {
+            "type": "object"
+          },
+          "build_snapshot": {
+            "type": "object"
+          },
+          "is_active": {
+            "type": "boolean",
+            "default": true
+          },
+          "is_exempt": {
+            "type": "boolean",
+            "default": false
+          },
+          "resolved_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Comment": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          }
+        }
+      },
+      "FilterRequest": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "Setting": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "object"
+          }
+        }
+      },
+      "Dashboard": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "product": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "widgets": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "DashboardTemplate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "widgets": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "is_public": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
+}

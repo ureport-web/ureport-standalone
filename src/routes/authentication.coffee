@@ -5,6 +5,7 @@ passport = require('passport')
 async = require('async');
 crypto = require('crypto');
 signature = require('cookie-signature');
+nodemailer = require('nodemailer')
 getSystemSetting = require('../utils/getSystemSetting')
 sendConfirmationEmail = require('../utils/send_confirmation_email')
 
@@ -134,32 +135,48 @@ router.post '/forgot', (req, res, next) ->
         (token, done) ->
             User.findOne { email: req.body.email }, (err, user) ->
                 if !user
-                    res.json { "msg": 'No account with that email address exists.' }
+                    return res.json { msg: 'No account with that email address exists.' }
                 user.resetPasswordToken = token
                 user.resetPasswordExpires = Date.now() + 3600000
-                # 1 hour
                 user.save (err) ->
                     done(err, token, user)
         (token, user, done) ->
-            done(null, {
-                token : token
-            })
-        ], (err, data) ->
+            getSystemSetting req, "SYSTEM_SETTING", false, (setting) ->
+                if !setting?.notification?.email?.user or !setting?.notification?.email?.password
+                    console.log("Email not configured, skipping password reset email")
+                    return done(null)
+                sender = setting.notification.email.user
+                baseUrl = setting.notification.url or (req.protocol + '://' + req.get('host'))
+                resetUrl = baseUrl + '/reset-password/' + token
+                transporter = nodemailer.createTransport(
+                    service: 'Gmail'
+                    auth:
+                        user: sender
+                        pass: setting.notification.email.password
+                )
+                mailOptions =
+                    from: sender
+                    to: user.email
+                    subject: 'UReport: Password Reset Request'
+                    text: 'Click the link to reset your password: ' + resetUrl
+                    html: '<p>You requested a password reset. Click below to set a new password (link expires in 1 hour):</p><p><a href="' + resetUrl + '">Reset Password</a></p><p>If you did not request this, ignore this email.</p>'
+                transporter.sendMail mailOptions, (err, info) ->
+                    if err then console.log err
+                    done(null)
+        ], (err) ->
             if err
                 return next(err)
-            res.json { success: true, token: data.token }
+            res.json { success: true }
 
 router.get '/reset/:token', (req, res, next) ->
     User.findOne({
         resetPasswordToken: req.params.token,
-        resetPasswordExpires: $gt: Date.now()
-    })
-    .exec((err, user) ->
+        resetPasswordExpires: { $gt: Date.now() }
+    }).exec (err, user) ->
         return next(err) if err
         if !user
-            res.json { "msg": 'Password reset token is invalid or has expired.'}
-        res.json { success: true, user: user }
-    );
+            return res.json { valid: false, msg: 'Password reset token is invalid or has expired.' }
+        res.json { valid: true, username: user.username }
 
 router.post '/reset/:token', (req, res, next) ->
     async.waterfall [
@@ -171,7 +188,7 @@ router.post '/reset/:token', (req, res, next) ->
             .exec((err, user) ->
                 return next(err) if err
                 if !user
-                    res.json { success: false, msg: 'Password reset token is invalid or has expired.'}
+                    return res.json { success: false, msg: 'Password reset token is invalid or has expired.'}
                 
                 user.password = req.body.password;
                 user.resetPasswordToken = undefined;
@@ -188,6 +205,6 @@ router.post '/reset/:token', (req, res, next) ->
         ], (err, data) ->
             if err
                 return next(err)
-            res.json { success: true, msg: 'Reset now at ' + data.link }
+            res.json { success: true, msg: 'Password has been reset.' }
 
 module.exports = router

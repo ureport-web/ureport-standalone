@@ -8,7 +8,8 @@
     "start": "node server",
     "seed": "node seedGenerator",
     "initialize": "node initialize.js",
-    "seed:demo": "node scripts/seedDemo.js"
+    "seed:demo": "node scripts/seedDemo.js",
+    "swagger": "node scripts/swagger-autogen.js"
   },
   "keywords": [
     "automation",
@@ -42,9 +43,12 @@
     "solr-node": "^1.2.1",
     "swagger-ui-express": "^4.1.4",
     "underscore": "^1.9.1",
-    "uuid": "^3.3.3"
+    "uuid": "^3.3.3",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
+    "swagger-autogen": "^2.23.7",
     "chai": "^3.5.0",
     "chai-http": "^3.0.0",
     "faker": "^4.1.0",

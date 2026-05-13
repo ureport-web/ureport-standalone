@@ -1,10 +1,130 @@
 # UReport
 
-Stand-alone server-side reporting and analysis software for local or CI automation.
+uReport is an open-source automation reporting platform designed for modern QA and engineering teams.
+
+It centralizes test execution results across frontend, backend, API, and distributed automation frameworks into a unified, searchable reporting experience.
+
+Unlike traditional static HTML reports, uReport focuses on actionable test intelligence:
+
+- centralized reporting
+- execution visibility
+- flaky test analysis
+- CI/CD integration
+- scalable multi-framework support
+
+Built for teams adopting AI-driven QA workflows, uReport helps organizations reduce debugging time, improve release confidence, and gain real-time visibility into automation health across projects and environments.
+
+Free and open-source, with optional consulting and enterprise integration support available.
+
+**Live demo:** https://ureport-standalone.onrender.com/nextgen/
+
+## 🚀 How it solves it
+
+Two integration paths — pick what fits your workflow:
+
+- **Official reporters** for [Playwright](https://www.npmjs.com/package/ureport-playwright-reporter), [Jest](https://www.npmjs.com/package/ureport-jest-reporter), and [pytest](https://pypi.org/project/ureport-pytest-reporter/) push results automatically from CI — zero manual work
+- **MCP endpoint** lets Claude Code (or any MCP client) query your test data in plain English — no browser required
+
+Once data is in, uReport does the heavy lifting:
+
+- **AI root cause analysis** classifies failures and suggests fixes with one click — results cached by error fingerprint so sibling tests get analysis for free
+- **Dashboards** surface pass rate trends, flakiness patterns, and team-level health at a glance
+- **Quarantine system** suppresses known-flaky noise automatically; entries expire after 90 days
+- **Auto-analysis** re-tags repeated failures based on previous investigations — no manual re-triage
+
+## ⚡ Quick Start (under 2 minutes)
+
+**Prerequisites:** Node.js ≥ 18, MongoDB ≥ 3.0
+
+1. Clone the repo.
+2. Run `npm install`.
+3. Edit `config/dev.json` — set `DBHost` and `PORT` if the defaults don't fit your environment.
+4. Run `npm run initialize` to seed the database (creates the admin user, system settings, and dashboard templates).
+5. Run `npm start`.
+6. Open `http://localhost:4100` in your browser.
+
+Default credentials: **admin / 1234**
+
+Send your first results with an official reporter — see [Sending Test Data](#sending-test-data) below.
+
+## 🧠 Architecture Overview
+
+```
+  Playwright / Jest / pytest
+         │  (POST /api/builds, /api/tests)
+         ▼
+  ┌─────────────────────────┐
+  │   Express server        │
+  │   (Node / CoffeeScript) │
+  │                         │
+  │  REST API               │
+  │  MCP endpoint (/mcp)    │
+  │  AI provider clients    │
+  └────────────┬────────────┘
+               │
+          MongoDB
+               │
+       ┌───────┴────────┐
+       │                │
+  Angular UI      Claude Code /
+  (browser)      MCP client (Configurable & Optional)
+```
+
+- **Backend:** Express + CoffeeScript, runs as cluster in production
+- **Database:** MongoDB — two main collections: `Build` and `Test`
+- **Frontend:** Angular SPA served as static bundle from the same server
+- **MCP:** built-in at `/mcp` — no extra service needed
+- **AI:** stateless calls to external providers; results cached by error fingerprint
 
 **Live demo:** https://ureport-standalone.onrender.com/nextgen/
 
 ## Features
+
+### 🤖 AI Root Cause Analysis
+
+Any failing test can be analyzed by an LLM with a single click from the test detail panel:
+
+- **"Analyze with AI"** button on any failing test
+- LLM receives: error message, stack trace, step context, and prior run history
+- Returns: root cause category, confidence score, explanation, and suggested fix
+- **Root cause categories:** Code Defect, Test Flakiness, Environment Issue, Configuration Error, Test Data Issue, Infrastructure Issue
+- Results are cached by error fingerprint — sibling tests sharing the same error get free analysis
+- **Human feedback loop:** confirm or override the AI prediction to track accuracy over time
+
+**Supported providers** (configured in Settings):
+
+| Provider             | Notes                                          |
+| -------------------- | ---------------------------------------------- |
+| AWS Bedrock (Claude) | Recommended for enterprise                     |
+| Anthropic Claude API | Direct API — good if using Claude company-wide |
+| OpenAI               | GPT-4o-mini default                            |
+| Google Gemini        | gemini-2.0-flash                               |
+| Ollama               | Local/air-gapped deployments                   |
+
+---
+
+### 🔌 MCP Server — Use ureport with Claude Code
+
+ureport ships a [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server, letting you query your test data directly from Claude Code or any MCP-compatible AI assistant — no browser required.
+
+**Available tools:**
+
+| Tool                  | Description                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------- |
+| `list_builds`         | List recent builds with filters (product, type, version, browser, platform, team, stage)          |
+| `get_tests`           | Get tests for a build with advanced filtering (status, name, tag, component, team, custom fields) |
+| `get_statistics`      | Pass/fail stats and pass rate trends across recent builds                                         |
+| `get_relation_fields` | Discover available metadata fields before filtering                                               |
+
+**Example prompts you can use in Claude Code:**
+
+- "Show me the last 10 builds for product X and their pass rates"
+- "List all failing tests in build #1234"
+- "What's the failure trend for the checkout team over the last 20 builds?"
+
+**Setup:** configure your MCP client to point at your ureport backend — the MCP endpoint is `POST <ureport-backend-url>/mcp`.
+
+---
 
 ### Dashboard Builder
 
@@ -60,22 +180,6 @@ Top-level view of all test execution lanes grouped by product, showing live pass
 - Audit logging
 - Swagger API docs at `/api-docs`
 
-## Prerequisites
-
-- Node.js ≥ 18.x
-- MongoDB ≥ 3.0
-
-## Quick Start
-
-1. Clone the repo.
-2. Run `npm install`.
-3. Edit `config/dev.json` — set `DBHost` and `PORT` if the defaults don't fit your environment.
-4. Run `npm run initialize` to seed the database (creates the admin user, system settings, and dashboard templates).
-5. Run `npm start`.
-6. Open `http://localhost:4100` in your browser.
-
-Default credentials: **admin / 1234**
-
 ## Configuration
 
 | Key        | Description                                        | Default                       |
@@ -121,3 +225,8 @@ Most endpoints require either a session cookie (browser login) or an `Authorizat
 | `npm run initialize` | Seed the database (admin user, system settings, dashboard templates) |
 | `npm run seed`       | Generate sample data                                                 |
 | `npm test`           | Run the test suite                                                   |
+
+## 💼 Need help?
+
+Need custom integration, enterprise deployment, or dedicated support?
+→ [Get in touch](mailto:[yizhongji@email.com])
