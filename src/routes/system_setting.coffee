@@ -17,9 +17,6 @@ maskCredentials = (setting) ->
   if obj.ai
     obj.ai = Object.assign({}, obj.ai)
     if obj.ai.api_key               then obj.ai.api_key               = MASKED
-    if obj.ai.aws_access_key_id     then obj.ai.aws_access_key_id     = MASKED
-    if obj.ai.aws_secret_access_key then obj.ai.aws_secret_access_key = MASKED
-    if obj.ai.aws_session_token     then obj.ai.aws_session_token     = MASKED
   if obj.notification?.email?.password
     obj.notification = JSON.parse(JSON.stringify(obj.notification))
     obj.notification.email.password = MASKED
@@ -29,12 +26,6 @@ guardCredentials = (body, existing) ->
   if body.ai
     if !body.ai.api_key or body.ai.api_key is MASKED
       body.ai.api_key = existing?.ai?.api_key or ''
-    if !body.ai.aws_access_key_id or body.ai.aws_access_key_id is MASKED
-      body.ai.aws_access_key_id = existing?.ai?.aws_access_key_id or ''
-    if !body.ai.aws_secret_access_key or body.ai.aws_secret_access_key is MASKED
-      body.ai.aws_secret_access_key = existing?.ai?.aws_secret_access_key or ''
-    if !body.ai.aws_session_token or body.ai.aws_session_token is MASKED
-      body.ai.aws_session_token = existing?.ai?.aws_session_token or ''
   if body.notification?.email
     if !body.notification.email.password or body.notification.email.password is MASKED
       body.notification.email.password = existing?.notification?.email?.password or ''

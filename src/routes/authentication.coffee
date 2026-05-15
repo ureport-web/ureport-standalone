@@ -20,15 +20,18 @@ router.post '/login', (req, res, next) ->
         # Check user status
         if user.status != 'active'
             return res.status(403).json({ message: 'Account not active. Please contact administrator.' })
-        req.login user, (err) -> 
-            if (err) 
+        req.session.regenerate (err) ->
+            if (err)
                 return next(err)
-            # Sign the session ID with the same secret used by express-session
-            signedSessionId = 's:' + signature.sign(req.sessionID, 'uReport')
-            return res.json({
-                session: req.session,
-                sessionId: signedSessionId
-            })
+            req.login user, (err) ->
+                if (err)
+                    return next(err)
+                # Sign the session ID with the same secret used by express-session
+                signedSessionId = 's:' + signature.sign(req.sessionID, 'uReport')
+                return res.json({
+                    session: req.session,
+                    sessionId: signedSessionId
+                })
     )(req, res, next);
 
 router.post '/signup', (req, res, next) ->

@@ -1,15 +1,16 @@
 express = require('express')
 moment = require('moment')
 router = express.Router()
+crypto = require('crypto')
 # file upload
 multer  = require('multer')
 storage = multer.diskStorage({
   destination: (req, file, cb) ->
     cb(null, 'dist/assets/images/uploads')
   filename: (req, file, cb) ->
-    cb(null, file.fieldname + '-' + Date.now())
+    cb(null, crypto.randomBytes(16).toString('hex'))
 })
-upload = multer({ storage: storage })
+upload = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 } })
 
 Test = require('../models/test')
 getSystemSetting = require('../utils/getSystemSetting')
@@ -35,7 +36,7 @@ router.post '/single', upload.single('image'), (req, res, next) ->
     if (!AccessControl.canAccessCreateAny(req.user.role,component))
         return res.status(403).json({"error": "You don't have permission to perform this action"})
     if(req.file && req.file.mimetype)
-        if(req.file.mimetype == 'image/jpg' || req.file.mimetype == 'image/png')
+        if req.file.mimetype in ['image/jpg', 'image/jpeg', 'image/png']
             try 
                 res.status(200)
                 res.json {msg:"success"}

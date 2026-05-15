@@ -9,7 +9,6 @@ ac.grant('viewer')
     .readAny('investigate')
     .readAny('relation')
     .readAny('assignment')
-    .readAny('dependency')
     .updateOwn('preference')
     .updateOwn('user')
     .updateOwn('userFav')
@@ -33,8 +32,6 @@ ac.grant('viewer')
     .createAny('investigate')  #Tested
     .updateAny('investigate')  #Tested
     .deleteOwn('investigate')
-    .createAny('dependency')
-    .updateAny('dependency')
   .grant('admin')
     .createAny('dashboard_template')
     .updateOwn('dashboard_template')
@@ -51,7 +48,6 @@ ac.grant('viewer')
     .updateAny('user')
     .deleteAny('user')
     .deleteAny('test')
-    .deleteAny('dependency')
 
 ac.canAccessCreateAnyIfOwn = (user, userId, component) ->
   return user._id.toString() == userId.toString() && ac.can(user.role).createOwn(component).granted

@@ -147,7 +147,7 @@ createMcpServer = ->
           if team      then rq['teams.name']      = ciContains(team)
           if file      then rq.file               = ciContains(file)
           if path      then rq.path               = ciContains(path)
-          if custom_key and custom_value
+          if custom_key and custom_value and /^[a-zA-Z0-9_]+$/.test(custom_key)
             rq['customs.' + custom_key] = ciExact(custom_value)
           TestRelation.find(rq).select('uid').exec((err, relations) ->
             if err then return reject(err)

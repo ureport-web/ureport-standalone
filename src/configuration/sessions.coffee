@@ -29,7 +29,7 @@ module.exports =  session({
     genid: (req) -> return uuid(),
     secret: 'uReport',
     resave: true,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: new MongoStore({
       mongooseConnection: mongoose.connection,
       collection: 'sessions',
@@ -38,5 +38,8 @@ module.exports =  session({
     }),
     cookie: {
         maxAge: 600 * 120 * 1000, #In ms --> 5 minutes
+        httpOnly: true,
+        secure: process.env.NODE_ENV == 'production',
+        sameSite: 'lax',
     }
 })

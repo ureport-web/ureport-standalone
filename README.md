@@ -14,7 +14,7 @@ Unlike traditional static HTML reports, uReport focuses on actionable test intel
 
 Built for teams adopting AI-driven QA workflows, uReport helps organizations reduce debugging time, improve release confidence, and gain real-time visibility into automation health across projects and environments.
 
-Free and open-source, with optional consulting and enterprise integration support available.
+Free and open-source.
 
 **Live demo:** https://ureport-standalone.onrender.com/nextgen/
 
@@ -227,4 +227,4 @@ Most endpoints require either a session cookie (browser login) or an `Authorizat
 ## 💼 Need help?
 
 Need custom integration, enterprise deployment, or dedicated support?
-→ [Get in touch](mailto:[yizhongji@email.com])
+→ [Get in touch](mailto:[ureport@outlook.com])

@@ -21,7 +21,7 @@ getProvider = (callback) ->
 
     switch provider
       when 'bedrock'
-        callback(null, new BedrockProvider(ai.aws_access_key_id, ai.aws_secret_access_key, ai.aws_session_token, ai.aws_region, model or 'us.anthropic.claude-sonnet-4-5-20250929-v1:0'), provider, model or 'us.anthropic.claude-sonnet-4-5-20250929-v1:0')
+        callback(null, new BedrockProvider(ai.aws_region, model or 'us.anthropic.claude-sonnet-4-5-20250929-v1:0'), provider, model or 'us.anthropic.claude-sonnet-4-5-20250929-v1:0')
       when 'claude'
         callback(null, new ClaudeProvider(apiKey, model), provider, model or 'claude-haiku-4-5-20251001')
       when 'openai'

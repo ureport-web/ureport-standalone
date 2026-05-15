@@ -224,16 +224,19 @@ router.get '/analyses', (req, res, next) ->
 
 ###
  * GET /api/ai/ping
- * Check if AI is configured
+ * Check if AI is configured and reachable
 ###
 router.get '/ping', (req, res, next) ->
-  aiProviderFactory.getProvider((err, provider, providerName) ->
+  aiProviderFactory.getProvider((err, provider, providerName, model) ->
     if err
       return next(err)
-    if provider
-      res.json({ configured: true, provider: providerName })
-    else
-      res.json({ configured: false, provider: null })
+    if not provider
+      return res.json({ configured: false, provider: null })
+    provider.chat('You are a test assistant.', 'Reply with only the word PONG.', (chatErr, reply) ->
+      if chatErr
+        return res.status(502).json({ configured: true, provider: providerName, error: chatErr.message or String(chatErr) })
+      res.json({ configured: true, provider: providerName, model: model, reply: reply?.trim() })
+    )
   )
 
 module.exports = router

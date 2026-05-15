@@ -1,5 +1,7 @@
 express = require('express')
 router = express.Router()
+
+escapeRegex = (s) -> s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 bcrypt = require('bcrypt')
 User = require('../models/user')
 UserBilling = require('../models/userBilling')
@@ -27,7 +29,7 @@ router.post '/:page/:perPage',  (req, res, next) ->
 
     query = {}
     if(req.body.filter)
-        query.username = {'$regex': req.body.filter}
+        query.username = {'$regex': escapeRegex(req.body.filter)}
 
     pagnition = {
         skip: size * page
@@ -51,7 +53,7 @@ router.post '/total',  (req, res, next) ->
     query = {}
 
     if(req.body.filter)
-        query.uid = {'$regex': req.body.filter}
+        query.uid = {'$regex': escapeRegex(req.body.filter)}
     # invTest filter and condition
     User.find(query)
     .count()
@@ -70,7 +72,7 @@ router.post '/search', (req, res, next) ->
         res.status(400)
         return res.json {error: "Please provide a user name"}
 
-    regex = new RegExp(req.body.username.trim())
+    regex = new RegExp(escapeRegex(req.body.username.trim()))
     User.find({
       username: { $regex: regex, $options: 'i' }
     }, { password:0, apiToken:0 }).
