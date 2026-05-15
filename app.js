@@ -225,7 +225,6 @@ if (config !== undefined) {
   const assignment = require("./src/routes/assignment");
   const user = require("./src/routes/user");
   const userFav = require("./src/routes/user_favorite");
-  const trackingJIRA = require("./src/routes/tracking/jira");
   const searching = require("./src/routes/search/solr");
   const analytics = require("./src/routes/analytics");
   const quarantine = require("./src/routes/quarantined_test");
@@ -256,7 +255,6 @@ if (config !== undefined) {
   app.use("/api/user", user);
   app.use("/api/user/preference", preference);
   app.use("/api/user/favorite", userFav);
-  app.use("/api/tracking/jira", trackingJIRA);
   app.use("/api/search", searching);
   app.use("/api/analytics", isAuthenticatedMid);
   app.use("/api/analytics", analytics);
