@@ -5,10 +5,11 @@ config = require("config");
 const path = require("path");
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const rateLimit = require("express-rate-limit");
 
 // swaggerUI
 const swaggerUi = require("swagger-ui-express");
-const swaggerDocument = require("./swagger.json");
+const swaggerDocument = require("./swagger_output.json");
 const DisableTryItOutPlugin = function () {
   return {
     statePlugins: {
@@ -37,15 +38,20 @@ if (config !== undefined) {
   app = express();
 
   // set static file to dist folder.
-  app.use("/nextgen", express.static(path.join(__dirname, "public/nextgen/browser")));
-  app.get("/", (req, res) => res.redirect("/nextgen/"));
+  app.use("", express.static(path.join(__dirname, "public")));
+  app.use(
+    "/nextgen",
+    express.static(path.join(__dirname, "public/nextgen/browser"))
+  );
 
   //API doc
-  app.use(
-    "/api-docs",
-    swaggerUi.serve,
-    swaggerUi.setup(swaggerDocument, options),
-  );
+  if (process.env.UREPORT_IS_DEMO !== 'true') {
+    app.use(
+      "/api-docs",
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerDocument, options)
+    );
+  }
 
   /**
    * sessions
@@ -85,14 +91,14 @@ if (config !== undefined) {
     bodyParser.json({
       limit: "50mb",
       type: "application/json",
-    }),
+    })
   );
   app.use(
     bodyParser.urlencoded({
       parameterLimit: 100000,
       limit: "50mb",
       extended: true,
-    }),
+    })
   );
   /*
    * loging
@@ -109,7 +115,7 @@ if (config !== undefined) {
       skip: function (req, res) {
         return res.statusCode < 400;
       },
-    }),
+    })
   );
 
   // log all requests to access.log
@@ -119,7 +125,7 @@ if (config !== undefined) {
         interval: "1d", // rotate daily
         path: logDirectory,
       }),
-    }),
+    })
   );
 
   /**
@@ -141,33 +147,26 @@ if (config !== undefined) {
   const Dashboard = require("./src/models/dashboard");
 
   var isShareTokenMid = async (req, res, next) => {
-    const authHeader = req.headers["authorization"];
-    if (authHeader && authHeader.startsWith("Bearer ")) {
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.slice(7);
       try {
-        const dashboard = await Dashboard.findOne({
-          share_token: token,
-        }).exec();
+        const dashboard = await Dashboard.findOne({ share_token: token }).exec();
         if (dashboard) {
           req.sharedDashboard = dashboard;
           return next();
         }
-      } catch (err) {
-        return next(err);
-      }
+      } catch (err) { return next(err); }
     }
-    return res.status(401).json({ message: "Invalid or missing share token." });
+    return res.status(401).json({ message: 'Invalid or missing share token.' });
   };
 
   var isAuthenticatedMid = async (req, res, next) => {
-    const authHeader = req.headers["authorization"];
-    if (authHeader && authHeader.startsWith("Bearer ")) {
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.slice(7);
       try {
-        const user = await User.findOne({
-          apiToken: token,
-          status: "active",
-        }).exec();
+        const user = await User.findOne({ apiToken: token, status: 'active' }).exec();
         if (user) {
           req.user = user;
           return next();
@@ -175,10 +174,10 @@ if (config !== undefined) {
       } catch (err) {
         return next(err);
       }
-      return res.status(401).json({ message: "Invalid or expired API token." });
+      return res.status(401).json({ message: 'Invalid or expired API token.' });
     }
     if (req.isAuthenticated()) return next();
-    res.redirect("/api/unauthorized");
+    res.redirect('/api/unauthorized');
   };
 
   // skip authorization if it is test environment
@@ -195,7 +194,7 @@ if (config !== undefined) {
   app.use("/api/assignment", isAuthenticatedMid);
   app.use("/api/tracking", isAuthenticatedMid);
   app.use("/api/search", isAuthenticatedMid);
-  app.use("/api/dependency", isAuthenticatedMid);
+  app.use("/api/quarantine", isAuthenticatedMid);
 
   app.get("/api/unauthorized", (req, res) => {
     res.status(401);
@@ -228,13 +227,20 @@ if (config !== undefined) {
   const userFav = require("./src/routes/user_favorite");
   const trackingJIRA = require("./src/routes/tracking/jira");
   const searching = require("./src/routes/search/solr");
-  const dependency = require("./src/routes/dependency");
-  const dependencyRelation = require("./src/routes/dependency_relation");
   const analytics = require("./src/routes/analytics");
+  const quarantine = require("./src/routes/quarantined_test");
+  const aiAnalysis = require("./src/routes/ai_analysis");
+  const preset = require("./src/routes/preset");
+  const mcp = require("./src/routes/mcp");
 
   // list of endpoints for readonly page
   const noauth = require("./src/routes/noauth/noauth");
   const shared = require("./src/routes/shared/shared");
+  const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
+  const forgotLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false });
+  app.use("/api/login", loginLimiter);
+  app.use("/api/forgot", forgotLimiter);
+  app.use("/api/reset", forgotLimiter);
   app.use("/api", version);
   app.use("/api", authenticate);
   app.use("/api/setting", setting);
@@ -252,10 +258,14 @@ if (config !== undefined) {
   app.use("/api/user/favorite", userFav);
   app.use("/api/tracking/jira", trackingJIRA);
   app.use("/api/search", searching);
-  app.use("/api/dependency", dependency);
-  app.use("/api/dependency_relation", dependencyRelation);
   app.use("/api/analytics", isAuthenticatedMid);
   app.use("/api/analytics", analytics);
+  app.use("/api/quarantine", quarantine);
+  app.use("/api/preset", isAuthenticatedMid);
+  app.use("/api/preset", preset);
+  app.use("/api/ai", isAuthenticatedMid);
+  app.use("/api/ai", aiAnalysis);
+  app.use("/mcp", isAuthenticatedMid, mcp);
 
   app.use("/api/noauth", noauth);
 
@@ -276,10 +286,8 @@ if (config !== undefined) {
     if (res.headersSent) {
       return next(err);
     }
-    console.log("Internal Error:", err);
-    res.status(500).json({
-      error: err,
-    });
+    console.error("Internal Error:", err);
+    res.status(500).json({ error: 'Internal server error' });
   });
 } else {
   console.error("Cannot find configuration file, Server will not be started.");
