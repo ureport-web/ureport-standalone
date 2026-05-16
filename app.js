@@ -9,7 +9,7 @@ const rateLimit = require("express-rate-limit");
 
 // swaggerUI
 const swaggerUi = require("swagger-ui-express");
-const swaggerDocument = require("./swagger_output.json");
+const swaggerDocument = require("./swagger.json");
 const DisableTryItOutPlugin = function () {
   return {
     statePlugins: {
@@ -193,7 +193,6 @@ if (config !== undefined) {
   app.use("/api/setting", isAuthenticatedMid);
   app.use("/api/assignment", isAuthenticatedMid);
   app.use("/api/tracking", isAuthenticatedMid);
-  app.use("/api/search", isAuthenticatedMid);
   app.use("/api/quarantine", isAuthenticatedMid);
 
   app.get("/api/unauthorized", (req, res) => {
@@ -225,7 +224,6 @@ if (config !== undefined) {
   const assignment = require("./src/routes/assignment");
   const user = require("./src/routes/user");
   const userFav = require("./src/routes/user_favorite");
-  const searching = require("./src/routes/search/solr");
   const analytics = require("./src/routes/analytics");
   const quarantine = require("./src/routes/quarantined_test");
   const aiAnalysis = require("./src/routes/ai_analysis");
@@ -255,7 +253,6 @@ if (config !== undefined) {
   app.use("/api/user", user);
   app.use("/api/user/preference", preference);
   app.use("/api/user/favorite", userFav);
-  app.use("/api/search", searching);
   app.use("/api/analytics", isAuthenticatedMid);
   app.use("/api/analytics", analytics);
   app.use("/api/quarantine", quarantine);

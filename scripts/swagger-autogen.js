@@ -295,7 +295,7 @@ const doc = {
 
 const root = path.resolve(__dirname, '..');
 swaggerAutogen(
-  path.join(root, 'swagger_output.json'),
+  path.join(root, 'swagger.json'),
   [path.join(root, 'src/swagger/routes.js')],
   doc
 );

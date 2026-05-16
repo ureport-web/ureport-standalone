@@ -3,7 +3,7 @@
  * This file is NEVER loaded by Express — it exists solely for swagger-autogen to scan.
  *
  * Maintenance contract: when a route is added/changed in a .coffee route file,
- * update this file accordingly and run `npm run swagger` to regenerate swagger_output.json.
+ * update this file accordingly and run `npm run swagger` to regenerate swagger.json.
  */
 
 const express = require('express');
@@ -1544,6 +1544,97 @@ router.post('/analytics/top-failures', (req, res) => {
   */
 });
 
+router.post('/analytics/pass-rate-history', (req, res) => {
+  /*
+    #swagger.tags = ['Analytics']
+    #swagger.summary = 'Get pass-rate trend across recent builds'
+    #swagger.requestBody = {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['product', 'type'],
+            properties: {
+              product: { type: 'string' },
+              type: { type: 'string' },
+              limit: { type: 'integer', default: 20 },
+              team: { type: 'string' },
+              version: { type: 'string' },
+              browser: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[200] = {
+      description: 'Pass-rate history with anomaly detection',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                build: { type: 'integer' },
+                start_time: { type: 'string', format: 'date-time' },
+                passRate: { type: 'integer' },
+                zScore: { type: 'number' },
+                isAnomaly: { type: 'boolean' },
+                mean: { type: 'integer' }
+              }
+            }
+          }
+        }
+      }
+    }
+  */
+});
+
+router.post('/analytics/build-duration-history', (req, res) => {
+  /*
+    #swagger.tags = ['Analytics']
+    #swagger.summary = 'Get build duration trend across recent builds'
+    #swagger.requestBody = {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['product', 'type'],
+            properties: {
+              product: { type: 'string' },
+              type: { type: 'string' },
+              limit: { type: 'integer', default: 20 },
+              team: { type: 'string' },
+              version: { type: 'string' },
+              browser: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[200] = {
+      description: 'Build duration history in chronological order',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                build: { type: 'integer' },
+                start_time: { type: 'string', format: 'date-time' },
+                durationMs: { type: 'integer' }
+              }
+            }
+          }
+        }
+      }
+    }
+  */
+});
+
 router.post('/analytics/slowest-tests', (req, res) => {
   /*
     #swagger.tags = ['Analytics']
@@ -1990,6 +2081,241 @@ router.post('/system/setting', (req, res) => {
       }
     }
     #swagger.responses[200] = { description: 'System setting created' }
+  */
+});
+
+// ─── AI Analysis ─────────────────────────────────────────────────────────────
+
+router.post('/ai/analyze-test/:testId', (req, res) => {
+  /*
+    #swagger.tags = ['AI']
+    #swagger.summary = 'Run AI root cause analysis for a failing test'
+    #swagger.parameters['testId'] = { in: 'path', required: true, schema: { type: 'string' } }
+    #swagger.responses[200] = {
+      description: 'AI analysis result',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              result: { type: 'string' },
+              cached: { type: 'boolean' },
+              provider: { type: 'string' },
+              model: { type: 'string' },
+              siblingTestIds: { type: 'array', items: { type: 'string' } }
+            }
+          }
+        }
+      }
+    }
+  */
+});
+
+router.patch('/ai/analysis/feedback', (req, res) => {
+  /*
+    #swagger.tags = ['AI']
+    #swagger.summary = 'Record human-confirmed cause for AI accuracy tracking'
+    #swagger.requestBody = {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['test_id'],
+            properties: {
+              test_id: { type: 'string' },
+              human_caused_by: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[200] = {
+      description: 'Feedback recorded',
+      content: { 'application/json': { schema: { type: 'object', properties: { ok: { type: 'boolean' }, updated: { type: 'boolean' } } } } }
+    }
+  */
+});
+
+router.get('/ai/analyses', (req, res) => {
+  /*
+    #swagger.tags = ['AI']
+    #swagger.summary = 'Fetch all AI analysis records for a product/type'
+    #swagger.parameters['product'] = { in: 'query', required: true, schema: { type: 'string' } }
+    #swagger.parameters['type'] = { in: 'query', required: true, schema: { type: 'string' } }
+    #swagger.responses[200] = {
+      description: 'AI analysis records',
+      content: { 'application/json': { schema: { type: 'array', items: { type: 'object' } } } }
+    }
+  */
+});
+
+router.get('/ai/ping', (req, res) => {
+  /*
+    #swagger.tags = ['AI']
+    #swagger.summary = 'Check if AI provider is configured and reachable'
+    #swagger.responses[200] = {
+      description: 'AI provider status',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              configured: { type: 'boolean' },
+              provider: { type: 'string' },
+              model: { type: 'string' },
+              reply: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+  */
+});
+
+// ─── Preset ───────────────────────────────────────────────────────────────────
+
+router.get('/preset', (req, res) => {
+  /*
+    #swagger.tags = ['Preset']
+    #swagger.summary = 'Get all presets'
+    #swagger.responses[200] = {
+      description: 'List of presets',
+      content: { 'application/json': { schema: { type: 'array', items: { type: 'object' } } } }
+    }
+  */
+});
+
+router.post('/preset', (req, res) => {
+  /*
+    #swagger.tags = ['Preset']
+    #swagger.summary = 'Create a preset'
+    #swagger.requestBody = {
+      required: true,
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            required: ['name', 'lanes'],
+            properties: {
+              name: { type: 'string' },
+              description: { type: 'string' },
+              lanes: { type: 'array', items: { type: 'object' } }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[201] = { description: 'Preset created' }
+  */
+});
+
+router.put('/preset/:id', (req, res) => {
+  /*
+    #swagger.tags = ['Preset']
+    #swagger.summary = 'Update a preset'
+    #swagger.parameters['id'] = { in: 'path', required: true, schema: { type: 'string' } }
+    #swagger.responses[200] = { description: 'Preset updated' }
+  */
+});
+
+router.delete('/preset/:id', (req, res) => {
+  /*
+    #swagger.tags = ['Preset']
+    #swagger.summary = 'Delete a preset'
+    #swagger.parameters['id'] = { in: 'path', required: true, schema: { type: 'string' } }
+    #swagger.responses[200] = { description: 'Preset deleted' }
+  */
+});
+
+// ─── User Preference ──────────────────────────────────────────────────────────
+
+router.post('/user/preference/update/dashboard', (req, res) => {
+  /*
+    #swagger.tags = ['Preference']
+    #swagger.summary = 'Update dashboard preferences for a user'
+    #swagger.requestBody = {
+      required: true,
+      content: { 'application/json': { schema: { type: 'object', required: ['user'], properties: { user: { type: 'string' } } } } }
+    }
+    #swagger.responses[200] = { description: 'Updated user object' }
+  */
+});
+
+router.post('/user/preference/update/report', (req, res) => {
+  /*
+    #swagger.tags = ['Preference']
+    #swagger.summary = 'Update report preferences for a user'
+    #swagger.requestBody = {
+      required: true,
+      content: { 'application/json': { schema: { type: 'object', required: ['user'], properties: { user: { type: 'string' } } } } }
+    }
+    #swagger.responses[200] = { description: 'Updated user object' }
+  */
+});
+
+router.post('/user/preference/update/language', (req, res) => {
+  /*
+    #swagger.tags = ['Preference']
+    #swagger.summary = 'Update language preference for a user'
+    #swagger.requestBody = {
+      required: true,
+      content: { 'application/json': { schema: { type: 'object', required: ['user'], properties: { user: { type: 'string' }, language: { type: 'string' } } } } }
+    }
+    #swagger.responses[200] = { description: 'Updated user object' }
+  */
+});
+
+router.post('/user/preference/update/theme', (req, res) => {
+  /*
+    #swagger.tags = ['Preference']
+    #swagger.summary = 'Update theme preference for a user'
+    #swagger.requestBody = {
+      required: true,
+      content: { 'application/json': { schema: { type: 'object', required: ['user'], properties: { user: { type: 'string' } } } } }
+    }
+    #swagger.responses[200] = { description: 'Updated user object' }
+  */
+});
+
+// ─── User Favorite ────────────────────────────────────────────────────────────
+
+router.get('/user/favorite/:id', (req, res) => {
+  /*
+    #swagger.tags = ['UserFavorite']
+    #swagger.summary = 'Get favorites for a user'
+    #swagger.parameters['id'] = { in: 'path', required: true, description: 'User ID', schema: { type: 'string' } }
+    #swagger.responses[200] = { description: 'User favorites object' }
+  */
+});
+
+router.post('/user/favorite', (req, res) => {
+  /*
+    #swagger.tags = ['UserFavorite']
+    #swagger.summary = 'Create or update user favorites'
+    #swagger.requestBody = {
+      required: true,
+      content: { 'application/json': { schema: { type: 'object', required: ['userid'], properties: { userid: { type: 'string' } } } } }
+    }
+    #swagger.responses[200] = { description: 'Saved favorites' }
+  */
+});
+
+router.put('/user/favorite/:id', (req, res) => {
+  /*
+    #swagger.tags = ['UserFavorite']
+    #swagger.summary = 'Update user favorites by user ID'
+    #swagger.parameters['id'] = { in: 'path', required: true, description: 'User ID', schema: { type: 'string' } }
+    #swagger.responses[200] = { description: 'Updated favorites' }
+  */
+});
+
+router.delete('/user/favorite/:id', (req, res) => {
+  /*
+    #swagger.tags = ['UserFavorite']
+    #swagger.summary = 'Delete a favorites record'
+    #swagger.parameters['id'] = { in: 'path', required: true, schema: { type: 'string' } }
+    #swagger.responses[200] = { description: 'Delete result' }
   */
 });
 

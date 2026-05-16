@@ -1,7 +1,7 @@
 express = require('express')
 router = express.Router()
 getSystemSetting = require('../utils/getSystemSetting')
-v = require('../../version.json');
+v = require('../../package.json');
 
 router.get '/version', (req, res, next) ->
   getSystemSetting req, "SYSTEM_SETTING", false, (setting) ->
