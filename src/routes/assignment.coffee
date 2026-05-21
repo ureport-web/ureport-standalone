@@ -77,7 +77,6 @@ router.post '/',  (req, res, next) ->
         (item, callback) ->
           Assignment.hasSameFailure(req.body, item, callback)
         (err,assignment) ->
-          # console.log(assignment)
           if(assignment)
             Assignment.appendAssignment(assignment, req.body)
             assignment.save (err, rs) ->

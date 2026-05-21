@@ -1,5 +1,6 @@
 nodemailer = require('nodemailer');
 getSystemSetting = require('./getSystemSetting')
+logger = require('./logger')
 emailTransporter = undefined;
 
 renderTemplate = (user, confirmationUrl) ->
@@ -16,7 +17,7 @@ renderTemplate = (user, confirmationUrl) ->
 module.exports = (req, user, token) ->
   getSystemSetting req, "SYSTEM_SETTING", false, (setting) ->
     if !setting?.notification?.email?.user || !setting?.notification?.email?.password
-      console.log("Email not configured, skipping confirmation email")
+      logger.info("Email not configured, skipping confirmation email")
       return
 
     sender = setting.notification.email.user
@@ -24,7 +25,7 @@ module.exports = (req, user, token) ->
     confirmationUrl = baseUrl + '/confirm-email/' + token
 
     if !emailTransporter
-      console.log("creating confirmation email transporter")
+      logger.debug("creating confirmation email transporter")
       emailTransporter = nodemailer.createTransport(
         service: 'Gmail'
         auth:
@@ -41,7 +42,7 @@ module.exports = (req, user, token) ->
     },
     (error, info) ->
       if error
-        console.log error
+        logger.error error
       else
-        console.log 'Confirmation email sent: ' + info.response
+        logger.info 'Confirmation email sent: ' + info.response
       return

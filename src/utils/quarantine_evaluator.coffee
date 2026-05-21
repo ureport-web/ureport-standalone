@@ -9,6 +9,7 @@ Setting = require('../models/setting')
 TestRelation = require('../models/test_relation')
 ObjectId = require('mongoose').Types.ObjectId
 matcher = require('./notification_rule_matcher')
+logger = require('./logger')
 
 normalizeConditions = (threshold) ->
   if Array.isArray(threshold.conditions) and threshold.conditions.length > 0
@@ -177,7 +178,7 @@ evaluateQuarantineRules = (build) ->
                   try
                     candidateUids = filterByNamePattern(candidateUids, namePattern)
                   catch e
-                    console.error '[quarantine] invalid name_pattern regex:', namePattern, e
+                    logger.error '[quarantine] invalid name_pattern regex:', namePattern, e
                     return
 
                 # Filter by relation conditions (reuse notification rule matcher)
@@ -243,9 +244,9 @@ evaluateQuarantineRules = (build) ->
                       { upsert: true, new: true, runValidators: false },
                       (uErr, doc) ->
                         if uErr
-                          console.error '[quarantine] upsert error uid=' + item.uid, uErr
+                          logger.error '[quarantine] upsert error uid=' + item.uid, uErr
                         else if doc
-                          console.log '[quarantine] quarantined uid=' + item.uid + ' by rule "' + rule.name + '"'
+                          logger.info '[quarantine] quarantined uid=' + item.uid + ' by rule "' + rule.name + '"'
                     )
 
               # --- Auto-resolve: re-check active quarantined UIDs ---
@@ -304,7 +305,7 @@ evaluateQuarantineRules = (build) ->
                       { new: true },
                       (rErr, doc) ->
                         if doc
-                          console.log '[quarantine] auto-resolved uid=' + q.uid
+                          logger.info '[quarantine] auto-resolved uid=' + q.uid
                     )
 
 module.exports = { evaluateQuarantineRules, matchesScope, evaluateThreshold, hasConsecutivePasses, filterByNamePattern }

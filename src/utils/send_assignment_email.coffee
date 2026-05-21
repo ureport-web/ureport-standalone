@@ -1,6 +1,7 @@
 nodemailer = require('nodemailer');
 User = require('../models/user')
 getSystemSetting = require('./getSystemSetting')
+logger = require('./logger')
 emailTransporter = undefined;
 
 renderTemplate = (req, user, assignment) ->
@@ -31,13 +32,13 @@ prepareSendEmail = (req, res, user,assignment) ->
         (setting) ->
 
           if(!setting.notification?.email?.user || !setting.notification?.email?.password)
-            console.log("Email not configured, skipping assignment email")
+            logger.info("Email not configured, skipping assignment email")
             return
 
           sender = setting.notification.email.user
 
           if(!emailTransporter)
-            console.log("creating transporter")
+            logger.debug("creating transporter")
             emailTransporter = nodemailer.createTransport(
               service: 'Gmail'
               auth:
@@ -54,9 +55,9 @@ prepareSendEmail = (req, res, user,assignment) ->
           },
           (error, info) ->
             if error
-              console.log error
+              logger.error error
             else
-              console.log 'Message sent: ' + info.response
+              logger.info 'Message sent: ' + info.response
             return
       )
     res.on('finish', sendemailOnFinish);

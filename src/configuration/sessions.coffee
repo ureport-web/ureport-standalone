@@ -4,16 +4,17 @@ mongoose = require('mongoose')
 MongoStore = require('connect-mongo')(session)
 
 config = require('config')
+logger = require('../utils/logger')
 
 mongoose = require('mongoose');
 if(process.env.DBHost != undefined)
-    console.log("Connect to db " + process.env.DBHost)
+    logger.info("Connect to db " + process.env.DBHost)
     mongoose.connect(process.env.DBHost, {
         useNewUrlParser: true,
         useUnifiedTopology: true
     });
 else
-    console.log("Connect to db " + config.DBHost)
+    logger.info("Connect to db " + config.DBHost)
     mongoose.connect(config.DBHost, {
         useNewUrlParser: true,
         useUnifiedTopology: true

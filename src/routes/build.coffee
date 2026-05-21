@@ -17,6 +17,7 @@ Setting = require('../models/setting')
 TestRelation = require('../models/test_relation')
 User = require('../models/user')
 sendBuildNotification = require('../utils/send_build_notification_email')
+logger = require('../utils/logger')
 QuarantinedTest = require('../models/quarantined_test')
 evaluator = require('../utils/quarantine_evaluator')
 
@@ -616,6 +617,8 @@ router.post '/total',  (req, res, next) ->
 
 # purge
 router.post '/purge/calculate',  (req, res, next) ->
+    if (!AccessControl.canAccessUpdateAny(req.user.role, component))
+      return res.status(403).json({"error": "You don't have permission to perform this action"})
     if(!req.body.product)
       res.status(400)
       return res.json {error: "Product is mandatory"}
@@ -658,28 +661,21 @@ router.post '/purge/calculate',  (req, res, next) ->
         '$lt': new Date(untilDate)
       }
 
-    try
-      Build.aggregate()
-      .match(query)
-      .lookup({
-        from: "tests",
-        localField: "_id",
-        foreignField: "build",
-        as: "total_tests"
-      })
-      .project({ 
-        total_tests: { $size: "$total_tests" }
-      })
-      .exec((err, builds) ->
-        if err
-          next err
-        if(builds)
-          res.json builds
-        else
-          res.json {error: "cannot find any builds"}
-      );
-    catch error
-      console.log("Exception: ",error)
+    Build.find(query).select('_id').lean().exec((err, builds) ->
+      if err
+        return next err
+      if not builds or builds.length is 0
+        return res.json []
+      buildIds = builds.map((b) -> b._id)
+      testCountPromise = Test.countDocuments({ build: { '$in': buildIds } })
+      testCountPromise.then(
+        (testCount) ->
+          res.json { builds: buildIds, test_count: testCount }
+      ).catch(
+        (err2) ->
+          next err2
+      )
+    )
 
 
 cleanupOrphanedQuarantineRecords = (purgedBuilds) ->
@@ -694,7 +690,7 @@ cleanupOrphanedQuarantineRecords = (purgedBuilds) ->
       remainingIds = (remaining or []).map (b) -> b._id
       if remainingIds.length == 0
         QuarantinedTest.deleteMany({ product: product, type: type }).exec (err) ->
-          if err then console.error '[quarantine] cleanup error', err
+          if err then logger.error '[quarantine] cleanup error', err
       else
         Test.distinct('uid', { build: { $in: remainingIds } }).exec (err, existingUids) ->
           return if err
@@ -706,7 +702,7 @@ cleanupOrphanedQuarantineRecords = (purgedBuilds) ->
             return unless toDelete.length
             ids = toDelete.map (q) -> q._id
             QuarantinedTest.deleteMany({ _id: { $in: ids } }).exec (err) ->
-              if err then console.error '[quarantine] cleanup error', err
+              if err then logger.error '[quarantine] cleanup error', err
 
 router.post '/purge',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role,component))
@@ -1010,24 +1006,24 @@ fireNotificationRules = (req, res, build, statusSummary) ->
             checkDone()
         else
           TestRelation.find({ product: build.product, type: build.type }).exec (relErr, allRelations) ->
-            console.log '[notify] rule "' + rule.name + '": found ' + (allRelations?.length or 0) + ' TestRelations for ' + build.product + '/' + build.type
+            logger.debug '[notify] rule "' + rule.name + '": found ' + (allRelations?.length or 0) + ' TestRelations for ' + build.product + '/' + build.type
             if allRelations?.length
               sample = allRelations[0]
-              console.log '[notify] first relation sample: uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
+              logger.debug '[notify] first relation sample: uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
 
             matchedRelations = matcher.matchesRule(rule, allRelations or [])
 
-            console.log '[notify] rule "' + rule.name + '": ' + matchedRelations.length + ' relations matched out of ' + (allRelations?.length or 0)
+            logger.debug '[notify] rule "' + rule.name + '": ' + matchedRelations.length + ' relations matched out of ' + (allRelations?.length or 0)
             if matchedRelations.length > 0
               sample = matchedRelations[0]
-              console.log '[notify] sample match uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
+              logger.debug '[notify] sample match uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
 
             unless matchedRelations.length
               checkDone()
               return
 
             matchedUIDs = matchedRelations.map (tr) -> tr.uid
-            console.log '[notify] rule "' + rule.name + '": querying tests with uids=' + JSON.stringify(matchedUIDs) + ' query=' + JSON.stringify(testQuery)
+            logger.debug '[notify] rule "' + rule.name + '": querying tests with uids=' + JSON.stringify(matchedUIDs) + ' query=' + JSON.stringify(testQuery)
 
             if search
               testQuery.$or = [
@@ -1042,7 +1038,7 @@ fireNotificationRules = (req, res, build, statusSummary) ->
                 testQuery.uid = { $in: matchedUIDs, $nin: quarantinedUids }
 
             Test.find(testQuery).limit(1).exec (testErr, tests) ->
-              console.log '[notify] rule "' + rule.name + '": test query found ' + (tests?.length or 0) + ' tests (testErr=' + testErr + ')'
+              logger.debug '[notify] rule "' + rule.name + '": test query found ' + (tests?.length or 0) + ' tests (testErr=' + testErr + ')'
               matchedRules.push rule if tests?.length
               checkDone()
 

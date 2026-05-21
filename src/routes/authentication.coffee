@@ -8,6 +8,7 @@ signature = require('cookie-signature');
 nodemailer = require('nodemailer')
 getSystemSetting = require('../utils/getSystemSetting')
 sendConfirmationEmail = require('../utils/send_confirmation_email')
+logger = require('../utils/logger')
 
 router.post '/login', (req, res, next) -> 
     passport.authenticate('local', (err, user, info) -> 
@@ -146,7 +147,7 @@ router.post '/forgot', (req, res, next) ->
         (token, user, done) ->
             getSystemSetting req, "SYSTEM_SETTING", false, (setting) ->
                 if !setting?.notification?.email?.user or !setting?.notification?.email?.password
-                    console.log("Email not configured, skipping password reset email")
+                    logger.info("Email not configured, skipping password reset email")
                     return done(null)
                 sender = setting.notification.email.user
                 baseUrl = setting.notification.url or (req.protocol + '://' + req.get('host'))
@@ -164,7 +165,7 @@ router.post '/forgot', (req, res, next) ->
                     text: 'Click the link to reset your password: ' + resetUrl
                     html: '<p>You requested a password reset. Click below to set a new password (link expires in 1 hour):</p><p><a href="' + resetUrl + '">Reset Password</a></p><p>If you did not request this, ignore this email.</p>'
                 transporter.sendMail mailOptions, (err, info) ->
-                    if err then console.log err
+                    if err then logger.error err
                     done(null)
         ], (err) ->
             if err
