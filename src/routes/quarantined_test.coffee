@@ -22,6 +22,7 @@ router.post '/filter', (req, res, next) ->
 router.put '/:id', (req, res, next) ->
   update = { is_active: false, resolved_at: new Date() }
   update.is_exempt = true if req.body.is_exempt == true
+  update.is_exempt = false if req.body.is_exempt == false
   QuarantinedTest.findOneAndUpdate(
     { _id: new ObjectId(req.params.id) },
     update,
