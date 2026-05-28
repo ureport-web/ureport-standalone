@@ -32,6 +32,9 @@ ac.grant('viewer')
     .createAny('investigate')  #Tested
     .updateAny('investigate')  #Tested
     .deleteOwn('investigate')
+    .createAny('relation')
+    .updateAny('relation')
+    .deleteAny('relation')
   .grant('admin')
     .createAny('dashboard_template')
     .updateOwn('dashboard_template')

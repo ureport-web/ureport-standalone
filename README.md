@@ -32,7 +32,33 @@ Once data is in, uReport does the heavy lifting:
 - **Quarantine system** suppresses known-flaky noise automatically; entries expire after 90 days
 - **Auto-analysis** re-tags repeated failures based on previous investigations — no manual re-triage
 
-## ⚡ Quick Start (under 2 minutes)
+## ⚡ Quick Start
+
+### Option A — Docker (recommended, no prerequisites)
+
+```bash
+docker-compose up --build
+```
+
+`--build` compiles the app image from the included `Dockerfile` — no pre-built image to pull.
+
+Open `http://localhost:8080`. Default credentials: **admin / changeme**, **demo / 1234**.
+
+MongoDB is bundled — no separate install needed. Data persists in a named Docker volume.
+
+**Custom credentials or external DB:** copy `.env.example` to `.env` and edit before running.
+
+```bash
+cp .env.example .env
+# edit .env, then:
+docker-compose up --build
+```
+
+> Credentials set in `.env` only take effect on the **first** startup (when the DB is empty).
+
+---
+
+### Option B — Bare metal
 
 **Prerequisites:** Node.js ≥ 18, MongoDB ≥ 3.0
 
@@ -44,6 +70,8 @@ Once data is in, uReport does the heavy lifting:
 6. Open `http://localhost:4100` in your browser.
 
 Default credentials: **admin / 1234**
+
+---
 
 Send your first results with an official reporter — see [Sending Test Data](#sending-test-data) below.
 
@@ -180,15 +208,31 @@ Top-level view of all test execution lanes grouped by product, showing live pass
 
 ## Configuration
 
-| Key        | Description                                        | Default                       |
-| ---------- | -------------------------------------------------- | ----------------------------- |
-| `DBHost`   | MongoDB connection string                          | `mongodb://localhost/ureport` |
-| `PORT`     | HTTP port the server listens on                    | `4100`                        |
-| `NODE_ENV` | Runtime environment (`development` / `production`) | `development`                 |
+### Server / DB
+
+| Key        | Description                                                    | Default                       |
+| ---------- | -------------------------------------------------------------- | ----------------------------- |
+| `DBHost`   | MongoDB connection string (env var overrides config file)      | `mongodb://localhost/ureport` |
+| `PORT`     | HTTP port the server listens on                                | `4100`                        |
+| `NODE_ENV` | Runtime environment (`dev` / `production` / `docker`)         | `dev`                         |
 
 **Development:** edit `config/dev.json`.
 
 **Production:** set `NODE_ENV=production` and supply `DBHost` as an environment variable (or edit `config/production.json`). In production the server runs as a cluster (2–4 workers).
+
+**Docker:** `NODE_ENV=docker` is set automatically by `docker-compose.yml`. It uses `config/docker.json` which points to the bundled MongoDB service.
+
+### Seed / init credentials (Docker only)
+
+These env vars are read by `initialize.js` at first startup when the DB is empty:
+
+| Variable         | Default              |
+| ---------------- | -------------------- |
+| `ADMIN_EMAIL`    | `admin@example.com`  |
+| `ADMIN_PASSWORD` | `changeme`           |
+| `DEMO_PASSWORD`  | `1234`               |
+
+Set them in `.env` (copy from `.env.example`) before the first `docker-compose up`.
 
 ## Sending Test Data
 

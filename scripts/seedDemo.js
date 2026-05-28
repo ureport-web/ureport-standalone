@@ -15,6 +15,8 @@ const Dashboard = require("../src/models/dashboard");
 const Setting = require("../src/models/setting");
 const InvestigatedTest = require("../src/models/investigated_test");
 const QuarantinedTest = require("../src/models/quarantined_test");
+const Preset = require("../src/models/preset");
+const AiAnalysis = require("../src/models/ai_analysis");
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -1360,9 +1362,9 @@ function generateTestData(uid, type, status, durationMs, buildNum) {
 
 // ─── Main seed ────────────────────────────────────────────────────────────────
 
-async function seedProductLine(product, type, uids, stabilityKey, metaMap) {
+async function seedProductLine(product, type, uids, stabilityKey, metaMap, { browser = null, skipRelations = false } = {}) {
   console.log(
-    `\n  Seeding ${product}/${type} (${uids.length} tests × ${NUM_BUILDS} builds)...`,
+    `\n  Seeding ${product}/${type}${browser ? `/${browser}` : ""} (${uids.length} tests × ${NUM_BUILDS} builds)...`,
   );
 
   const now = Date.now();
@@ -1387,9 +1389,11 @@ async function seedProductLine(product, type, uids, stabilityKey, metaMap) {
     return rel;
   });
 
-  await TestRelation.deleteMany({ product, type });
-  await TestRelation.insertMany(relations);
-  console.log(`    ✓ ${relations.length} test relations`);
+  if (!skipRelations) {
+    await TestRelation.deleteMany({ product, type });
+    await TestRelation.insertMany(relations);
+    console.log(`    ✓ ${relations.length} test relations`);
+  }
 
   // ── Builds + Tests ──
   let totalBuilds = 0;
@@ -1407,6 +1411,7 @@ async function seedProductLine(product, type, uids, stabilityKey, metaMap) {
       product,
       type,
       build: buildNum,
+      ...(browser ? { browser } : {}),
       stage: "CI",
       platform: "linux",
       platform_version: "22.04",
@@ -2221,6 +2226,130 @@ async function seedQuarantinedTests() {
   );
 }
 
+// ─── Presets ──────────────────────────────────────────────────────────────────
+
+async function seedPresets() {
+  await Preset.deleteMany({});
+  const presets = [
+    {
+      name: "All Suites",
+      description: "Backend, Frontend, and E2E lanes for the Acme product",
+      lanes: [
+        { product: PRODUCT, type: "backend" },
+        { product: PRODUCT, type: "frontend" },
+        { product: PRODUCT, type: "e2e" },
+      ],
+    },
+    {
+      name: "Cross-Browser E2E",
+      description: "E2E suite across all supported browsers",
+      lanes: E2E_BROWSERS.map((b) => ({ product: PRODUCT, type: "e2e", browser: b })),
+    },
+    {
+      name: "Frontend by Browser",
+      description: "Frontend tests on Chrome and Firefox",
+      lanes: FE_BROWSERS.map((b) => ({ product: PRODUCT, type: "frontend", browser: b })),
+    },
+  ];
+  await Preset.insertMany(presets);
+  console.log(`\n  ✓ ${presets.length} presets seeded`);
+}
+
+// ─── AI Analysis ──────────────────────────────────────────────────────────────
+
+async function seedAiAnalysis() {
+  await AiAnalysis.deleteMany({ product: PRODUCT });
+
+  const RESULT_POOL = [
+    {
+      root_cause_category: "Code Defect",
+      confidence: 91,
+      what_failed: "Assertion on HTTP response status code",
+      why_it_failed: "API endpoint returns 422 instead of 400 for missing required fields after the v2 schema migration.",
+      fix: "Update the request payload validation in the route handler to align with v2 schema; update the test assertion to expect 422 or fix the API to return 400.",
+      flakiness_signal: "regression",
+      related_patterns: ["Status code mismatch after schema migration", "Validation response inconsistency"],
+    },
+    {
+      root_cause_category: "Test Flakiness",
+      confidence: 74,
+      what_failed: "Element not found within timeout",
+      why_it_failed: "Selector waits for a button that renders asynchronously; timing varies by 200–800ms depending on CI load.",
+      fix: "Replace fixed-timeout wait with an explicit `waitForSelector` with a 5s timeout, or add a data-testid attribute for reliable targeting.",
+      flakiness_signal: "intermittent",
+      related_patterns: ["Race condition on async render", "Flaky selector timeout"],
+    },
+    {
+      root_cause_category: "Environment Issue",
+      confidence: 88,
+      what_failed: "Database connection refused",
+      why_it_failed: "Test DB container not healthy when the suite started; connection pool exhausted before retry logic kicked in.",
+      fix: "Add a health-check readiness gate before running the suite, or increase the DB connection retry window.",
+      flakiness_signal: "consistent",
+      related_patterns: ["DB not ready at suite start", "Connection pool exhaustion"],
+    },
+    {
+      root_cause_category: "Configuration Error",
+      confidence: 82,
+      what_failed: "JWT verification failed",
+      why_it_failed: "The test environment uses a different JWT_SECRET than the value the token was signed with; likely a missing env var in the CI pipeline.",
+      fix: "Ensure JWT_SECRET is set to the same value in both the app startup config and the test runner environment.",
+      flakiness_signal: "new",
+      related_patterns: ["Secret mismatch between environments", "Auth token verification failure"],
+    },
+    {
+      root_cause_category: "Test Data Issue",
+      confidence: 79,
+      what_failed: "Expected product ID not found",
+      why_it_failed: "Test relies on a specific product fixture that was deleted from the shared staging DB by another test suite.",
+      fix: "Isolate test data: create the fixture within the test itself and tear it down in afterEach, or use a dedicated test product namespace.",
+      flakiness_signal: "consistent",
+      related_patterns: ["Shared test data mutation", "Missing fixture"],
+    },
+    {
+      root_cause_category: "Infrastructure Issue",
+      confidence: 85,
+      what_failed: "Request timeout after 30s",
+      why_it_failed: "CI runner ran out of memory mid-test; OS swapped out the Node process causing all in-flight requests to time out.",
+      fix: "Increase CI runner memory allocation, or add resource limits to prevent memory starvation.",
+      flakiness_signal: "regression",
+      related_patterns: ["OOM-induced timeout", "CI resource contention"],
+    },
+  ];
+
+  const types = ["backend", "frontend", "e2e"];
+  const docs = [];
+
+  for (const type of types) {
+    const latestBuild = await Build.findOne({ product: PRODUCT, type })
+      .sort({ build: -1 })
+      .lean();
+    if (!latestBuild) continue;
+
+    const failingTests = await Test.find({ build: latestBuild._id, status: "FAIL" })
+      .limit(5)
+      .lean();
+
+    failingTests.forEach((test, i) => {
+      const template = RESULT_POOL[i % RESULT_POOL.length];
+      const hash = [...test.uid].reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) >>> 0, 0).toString(16).padStart(8, "0");
+      docs.push({
+        test_id: test._id,
+        uid: test.uid,
+        product: PRODUCT,
+        type,
+        input_hash: hash + hash,
+        result: template,
+        provider: "demo",
+        model: "seeded",
+      });
+    });
+  }
+
+  if (docs.length) await AiAnalysis.insertMany(docs);
+  console.log(`\n  ✓ ${docs.length} AI analysis results seeded`);
+}
+
 // ─── Run ──────────────────────────────────────────────────────────────────────
 
 async function confirm(question) {
@@ -2255,6 +2384,8 @@ async function main() {
   console.log("    • quarantinedtests  — cleared for product, then re-seeded");
   console.log("    • settings       — cleared for product, then re-seeded");
   console.log("    • dashboards     — cleared for user+name pattern, then re-seeded");
+  console.log("    • presets          — cleared, then re-seeded");
+  console.log("    • aianalysis       — cleared for product, then re-seeded");
   console.log("─────────────────────────────────────────");
 
   const answer = await confirm("\nProceed? (yes/no): ");
@@ -2274,6 +2405,9 @@ async function main() {
   console.log("  ✓ Cleared builds and tests");
   await QuarantinedTest.deleteMany({ product: PRODUCT });
   console.log("  ✓ Cleared quarantined tests");
+  await Preset.deleteMany({});
+  await AiAnalysis.deleteMany({ product: PRODUCT });
+  console.log("  ✓ Cleared presets and AI analysis");
 
   await seedProductLine(
     PRODUCT,
@@ -2282,18 +2416,24 @@ async function main() {
     "backend",
     BACKEND_META,
   );
-  await seedProductLine(
-    PRODUCT,
-    "frontend",
-    FRONTEND_UIDS,
-    "frontend",
-    FRONTEND_META,
-  );
-  await seedProductLine(PRODUCT, "e2e", E2E_UIDS, "e2e", E2E_META);
+  for (let i = 0; i < FE_BROWSERS.length; i++) {
+    await seedProductLine(PRODUCT, "frontend", FRONTEND_UIDS, "frontend", FRONTEND_META, {
+      browser: FE_BROWSERS[i],
+      skipRelations: i > 0,
+    });
+  }
+  for (let i = 0; i < E2E_BROWSERS.length; i++) {
+    await seedProductLine(PRODUCT, "e2e", E2E_UIDS, "e2e", E2E_META, {
+      browser: E2E_BROWSERS[i],
+      skipRelations: i > 0,
+    });
+  }
   await seedInvestigatedTests();
   await seedQuarantinedTests();
   await seedSetting();
   await seedDashboards();
+  await seedPresets();
+  await seedAiAnalysis();
 
   const buildCount = await Build.countDocuments({ product: PRODUCT });
   const testCount = await Test.countDocuments();

@@ -8,7 +8,7 @@ toMatch = (val) -> if Array.isArray(val) then { $in: val } else val
 
 buildMatchFromBody = (body, sinceDate) ->
   { product, type, team, version, browser, device, platform, platform_version, stage } = body
-  match = { product, type, start_time: { $gte: sinceDate } }
+  match = { product, type, is_archive: false, start_time: { $gte: sinceDate } }
   if team then match.team = toMatch(team)
   if version then match.version = toMatch(version)
   if browser then match.browser = toMatch(browser)
@@ -80,8 +80,9 @@ router.post '/pass-rate-history', (req, res, next) ->
   { product, type, limit = 20 } = req.body
   if !product or !type then return res.status(400).json({ error: 'product and type are required' })
 
-  buildMatch = buildMatchFromBody(req.body, new Date(0))
-  delete buildMatch.start_time
+  since = req.body.since || 90
+  sinceDate = new Date(Date.now() - since * 24 * 60 * 60 * 1000)
+  buildMatch = buildMatchFromBody(req.body, sinceDate)
   lim = parseInt(limit)
 
   # Group by lane dimensions (same approach as /build/search), collect per-lane history,
@@ -98,6 +99,8 @@ router.post '/pass-rate-history', (req, res, next) ->
     { $group: {
       _id: '$posIndex',
       build: { $first: '$entries.build' },
+      builds: { $addToSet: '$entries.build' },
+      configCount: { $sum: 1 },
       start_time: { $min: '$entries.start_time' },
       totalPass: { $sum: '$entries.pass' },
       totalTotal: { $sum: '$entries.total' }
@@ -109,7 +112,7 @@ router.post '/pass-rate-history', (req, res, next) ->
     builds = builds.reverse()  # chronological order (oldest first)
     rates = builds.map (b) ->
       passRate = if b.totalPass and b.totalTotal then Math.floor(b.totalPass / b.totalTotal * 100) else 0
-      { build: b.build, start_time: b.start_time, passRate }
+      { build: b.build, builds: b.builds, configCount: b.configCount, start_time: b.start_time, passRate, totalTests: b.totalTotal }
 
     if rates.length >= 3
       mean = rates.reduce(((s, r) -> s + r.passRate), 0) / rates.length
@@ -127,8 +130,9 @@ router.post '/build-duration-history', (req, res, next) ->
   { product, type, limit = 20 } = req.body
   if !product or !type then return res.status(400).json({ error: 'product and type are required' })
 
-  buildMatch = buildMatchFromBody(req.body, new Date(0))
-  delete buildMatch.start_time
+  since = req.body.since || 90
+  sinceDate = new Date(Date.now() - since * 24 * 60 * 60 * 1000)
+  buildMatch = buildMatchFromBody(req.body, sinceDate)
   lim = parseInt(limit)
 
   Build.aggregate([
@@ -141,10 +145,19 @@ router.post '/build-duration-history', (req, res, next) ->
     { $project: { entries: { $slice: ['$entries', lim] } } },
     { $unwind: { path: '$entries', includeArrayIndex: 'posIndex' } },
     { $group: {
-      _id: '$posIndex',
-      build: { $first: '$entries.build' },
+      _id: { pos: '$posIndex', build: '$entries.build' },
       start_time: { $min: '$entries.start_time' },
-      end_time: { $max: '$entries.end_time' }
+      end_time: { $max: '$entries.end_time' },
+      count: { $sum: 1 }
+    }},
+    { $sort: { '_id.pos': 1, count: -1 } },
+    { $group: {
+      _id: '$_id.pos',
+      build: { $first: '$_id.build' },
+      builds: { $push: '$_id.build' },
+      configCount: { $sum: '$count' },
+      start_time: { $first: '$start_time' },
+      end_time: { $first: '$end_time' }
     }},
     { $sort: { _id: 1 } },
     { $limit: lim }
@@ -154,7 +167,9 @@ router.post '/build-duration-history', (req, res, next) ->
       .filter (b) -> b.start_time and b.end_time
       .map (b) ->
         durationMs = new Date(b.end_time).getTime() - new Date(b.start_time).getTime()
-        { build: b.build, start_time: b.start_time, durationMs }
+        return null if durationMs <= 0
+        { build: b.build, builds: b.builds, configCount: b.configCount, start_time: b.start_time, durationMs }
+      .filter (b) -> b isnt null
     res.json results.reverse()  # chronological order
 
 module.exports = router

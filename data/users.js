@@ -1,8 +1,8 @@
 users = [{
     _id: "608f72cfbde204263332366a",
     username : "admin",
-    email:"replace.your.email@emai.com",
-    password : "1234",
+    email: process.env.ADMIN_EMAIL || "admin@example.com",
+    password : process.env.ADMIN_PASSWORD || "changeme",
     settings : {
         language : "en",
         theme : {
@@ -26,7 +26,7 @@ users = [{
     _id: "608f72cfbde204263332366b",
     username : "demo",
     email:"demo@demo.com",
-    password : "1234",
+    password : process.env.DEMO_PASSWORD || "1234",
     settings : {
         language : "en",
         theme : {
