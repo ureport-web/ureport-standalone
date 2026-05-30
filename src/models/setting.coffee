@@ -7,6 +7,7 @@ quarantineConditionSchema = new Schema(
   {
     mode: { type: String }
     failures: { type: Number }
+    fail_rate: { type: Number }
   }
   { _id: false }
 )
@@ -64,6 +65,7 @@ quarantineRuleSchema = new Schema(
 quarantineRulesSchema = new Schema(
   {
     builds: { type: Number }
+    min_builds: { type: Number }
     min_pass_rate: { type: Number }
     rules: [quarantineRuleSchema]
   }

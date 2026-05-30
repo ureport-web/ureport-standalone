@@ -23,7 +23,7 @@ logger = require('../utils/logger')
 
 AccessControl = require('../utils/ac_grants')
 component = 'test'
-testCache = new NodeCache({ stdTTL: 0 , maxKeys: 10000 })
+testCache = new NodeCache({ stdTTL: 86400, maxKeys: 10000 })
 
 router.get '/:id',  (req, res, next) ->
     Test.findOne({

@@ -1,0 +1,1 @@
+import{U as o}from"./chunk-3PARTN42.js";var e=class t{token=null;isSharedMode(){return!!this.token}static \u0275fac=function(n){return new(n||t)};static \u0275prov=o({token:t,factory:t.\u0275fac,providedIn:"root"})};export{e as a};

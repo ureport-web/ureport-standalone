@@ -19,6 +19,7 @@ quarantinedTestSchema = new Schema(
   },
   rule_id: String,
   rule_name: String,
+  triggered_mode: String,
   quarantined_at: { type: Date, default: Date.now },
   fail_snapshot: Number,
   build_snapshot: Number,

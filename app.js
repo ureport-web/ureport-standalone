@@ -234,7 +234,7 @@ if (config !== undefined) {
   // list of endpoints for readonly page
   const noauth = require("./src/routes/noauth/noauth");
   const shared = require("./src/routes/shared/shared");
-  const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
+  const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200, standardHeaders: true, legacyHeaders: false });
   const forgotLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false });
   app.use("/api/login", loginLimiter);
   app.use("/api/forgot", forgotLimiter);
@@ -283,6 +283,9 @@ if (config !== undefined) {
       return next(err);
     }
     console.error("Internal Error:", err);
+    if (err && err.name === 'ValidationError') {
+      return res.status(500).json({ error: err });
+    }
     res.status(500).json({ error: 'Internal server error' });
   });
 } else {

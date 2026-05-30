@@ -24,12 +24,14 @@ matchesScope = (rule, build) ->
     build[f] == scope[f]
 
 # Determine which UIDs should be quarantined given per-build failure results.
+# condition: { mode, failures, fail_rate }
 # results: [{ uid, build, failed }]  (failed = 0 or 1)
 # qualifyingBuildIds: ordered array (most-recent-first) of build id strings
-# mode: 'total' | 'consecutive'
-# requiredFailures: number
-# Returns array of { uid, failCount, buildCount }
-evaluateThreshold = (mode, results, qualifyingBuildIds, requiredFailures) ->
+# Returns array of { uid, failCount, buildCount, mode }
+evaluateThreshold = (condition, results, qualifyingBuildIds) ->
+  mode = condition.mode or 'total'
+  requiredFailures = condition.failures or 3
+  requiredFailRate = condition.fail_rate or 0
   buildIdStrs = qualifyingBuildIds.map (id) -> id.toString()
 
   uidResultMap = {}
@@ -47,7 +49,17 @@ evaluateThreshold = (mode, results, qualifyingBuildIds, requiredFailures) ->
       uidResults = uidResultMap[uid] or []
       failCount = uidResults.reduce ((sum, r) -> sum + r.failed), 0
       if failCount + 1 >= requiredFailures
-        toQuarantine.push { uid: uid, failCount: failCount, buildCount: uidResults.length }
+        toQuarantine.push { uid: uid, failCount: failCount, buildCount: uidResults.length, mode: 'total' }
+  else if mode == 'ratio'
+    return [] if requiredFailRate <= 0
+    totalBuilds = qualifyingBuildIds.length
+    return [] if totalBuilds == 0
+    candidateUids.forEach (uid) ->
+      uidResults = uidResultMap[uid] or []
+      failCount = uidResults.reduce ((sum, r) -> sum + r.failed), 0
+      actualFailRate = (failCount / totalBuilds) * 100
+      if actualFailRate >= requiredFailRate
+        toQuarantine.push { uid: uid, failCount: failCount, buildCount: totalBuilds, mode: 'ratio' }
   else
     # consecutive mode — walk qualifying build IDs most-recent-first
     candidateUids.forEach (uid) ->
@@ -63,7 +75,7 @@ evaluateThreshold = (mode, results, qualifyingBuildIds, requiredFailures) ->
           i = buildIdStrs.length # break equivalent
         i++
       if streak + 1 >= requiredFailures
-        toQuarantine.push { uid: uid, failCount: streak, buildCount: streak }
+        toQuarantine.push { uid: uid, failCount: streak, buildCount: streak, mode: 'consecutive' }
 
   toQuarantine
 
@@ -100,6 +112,7 @@ evaluateQuarantineRules = (build) ->
     return unless enabledRules.length
 
     globalBuilds = setting.quarantine_rules.builds or 10
+    globalMinBuilds = setting.quarantine_rules.min_builds or 0
     globalMinPassRate = Math.max(setting.quarantine_rules.min_pass_rate or 70, 50)
 
     # Get failed UIDs from the current build (last status per uid)
@@ -171,6 +184,9 @@ evaluateQuarantineRules = (build) ->
 
                 qualifyingBuildIds = qualifyingBuilds.slice(0, globalBuilds).map (b) -> b._id
 
+                # BR7: skip rule if not enough qualifying build history
+                return if globalMinBuilds > 0 and qualifyingBuildIds.length < globalMinBuilds
+
                 # Filter failedUids by name_pattern (regex on uid)
                 namePattern = rule.filter?.name_pattern
                 candidateUids = failedUids.slice()
@@ -216,7 +232,7 @@ evaluateQuarantineRules = (build) ->
                   conditions = normalizeConditions(threshold)
                   uidBestMap = {}
                   conditions.forEach (cond) ->
-                    hits = evaluateThreshold(cond.mode or 'total', testResults, qualifyingBuildIds, cond.failures or 3)
+                    hits = evaluateThreshold(cond, testResults, qualifyingBuildIds)
                     hits.forEach (item) ->
                       existing = uidBestMap[item.uid]
                       if !existing or item.failCount > existing.failCount
@@ -237,6 +253,7 @@ evaluateQuarantineRules = (build) ->
                           quarantined_at: new Date(),
                           fail_snapshot: item.failCount,
                           build_snapshot: qualifyingBuildIds.length,
+                          triggered_mode: item.mode or 'total',
                           is_active: true
                         },
                         $unset: { resolved_at: '' }

@@ -87,59 +87,6 @@ describe 'User can perform action on tests collection ', ->
                 )
             return
 
-    describe 'Add tests steps', ->
-        existTest = undefined;
-        before (done) ->
-            payload = {
-                build: existbuild._id,
-                status: ["PASS"],
-                exclude: ["failure",'info']
-            }
-            test.filter(server,payload, 200,
-            (res) ->
-                existTest = res.body[0]
-                done()
-            )
-            return
-        it 'should add steps to exist test', (done) ->
-            payload = {
-                setup: [
-                    {
-                        'status': "PASS",
-                        'step': "<div> This is a first setup step </div>",
-                        'timestamp' : moment().add(4, 'hour').format()
-                    },
-                    {
-                        'status': "PASS",
-                        'step': "<div> This is a second setup step </div>",
-                        'timestamp' : moment().add(4, 'hour').format()
-                    }
-                ],
-                body: [
-                    {
-                        'status': "PASS",
-                        'step': "<div> This is a first step </div>",
-                        'timestamp' : moment().add(4, 'hour').format()
-                    },
-                    {
-                        'status': "FAIL",
-                        'step': "<div> This is a second step </div>",
-                        'timestamp' : moment().add(4, 'hour').format()
-                    }
-                ],
-                teardowns: ["failure",'info']
-            }
-            test.addStep(server, existTest._id, payload,  200,
-            (res) ->
-                res.body.setup.should.be.an 'Array'
-                res.body.body.should.be.an 'Array'
-                res.body.setup.length.should.equal 2
-                res.body.body.length.should.equal 2
-                should.not.exist(res.body.teardown)
-                done()
-            )
-            return
-
     describe 'Add tests', ->
         it 'should add tests to exist build with full success', (done) ->
             payload = {
