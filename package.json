@@ -13,7 +13,7 @@
     "version:patch": "npm version patch --no-git-tag-version",
     "version:minor": "npm version minor --no-git-tag-version",
     "version:major": "npm version major --no-git-tag-version",
-    "prepare": "husky"
+    "prepare": "[ \"$NODE_ENV\" = \"production\" ] || husky"
   },
   "keywords": [
     "automation",
