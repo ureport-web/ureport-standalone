@@ -67,6 +67,7 @@ quarantineRulesSchema = new Schema(
     builds: { type: Number }
     min_builds: { type: Number }
     min_pass_rate: { type: Number }
+    max_window_days: { type: Number }
     rules: [quarantineRuleSchema]
   }
   { _id: false }
