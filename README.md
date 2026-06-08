@@ -129,26 +129,34 @@ Any failing test can be analyzed by an LLM with a single click from the test det
 
 ---
 
-### 🔌 MCP Server — Use ureport with Claude Code
+### 🔌 MCP Server — AI Assistant Integration
 
-ureport ships a [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server, letting you query your test data directly from Claude Code or any MCP-compatible AI assistant — no browser required.
+ureport ships a built-in [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server at `POST /mcp`, letting you query your test data in plain English from any MCP-compatible AI assistant — no browser required.
+
+**MCP is not Claude-only.** Any compatible client works: Claude Desktop, Claude Code, Cursor, Windsurf, Cline, Continue.dev, and others.
 
 **Available tools:**
 
-| Tool                  | Description                                                                                       |
-| --------------------- | ------------------------------------------------------------------------------------------------- |
-| `list_builds`         | List recent builds with filters (product, type, version, browser, platform, team, stage)          |
-| `get_tests`           | Get tests for a build with advanced filtering (status, name, tag, component, team, custom fields) |
-| `get_statistics`      | Pass/fail stats and pass rate trends across recent builds                                         |
-| `get_relation_fields` | Discover available metadata fields before filtering                                               |
+| Tool                  | Description                                                                                        |
+| --------------------- | -------------------------------------------------------------------------------------------------- |
+| `list_presets`        | List all saved presets — call this first to discover valid preset names                            |
+| `list_builds`         | List recent builds matching a saved preset                                                         |
+| `search_builds`       | List recent builds using explicit filters (product, type, platform, team, browser, etc.)           |
+| `get_statistics`      | Pass/fail stats and pass rate trends for builds matching a preset                                  |
+| `search_statistics`   | Pass/fail stats using explicit filters                                                             |
+| `get_relation_fields` | Discover available tags, components, teams, and custom fields before using `get_tests`             |
+| `get_tests`           | Get individual test results with rich filtering: status, name, tag, partner code, XRAY ID, etc.   |
 
-**Example prompts you can use in Claude Code:**
+**Example prompts:**
 
-- "Show me the last 10 builds for product X and their pass rates"
-- "List all failing tests in build #1234"
-- "What's the failure trend for the checkout team over the last 20 builds?"
+- *"Show me the latest nightly build results"*
+- *"What's the pass rate trend over the last 20 builds for the PythonAPI preset?"*
+- *"Find all failing tests for partner code AC in the latest nightly run"*
+- *"Search for XRAY-768 across all tests"*
+- *"Show me tests tagged with Payment Auth/Capture that failed on Safari"*
+- *"Which builds have more than 5 failures today?"*
 
-**Setup:** configure your MCP client to point at your ureport backend — the MCP endpoint is `POST <ureport-backend-url>/mcp`.
+**Setup:** point your MCP client at `POST <ureport-backend-url>/mcp`. See [`docs/mcp.md`](docs/mcp.md) for full tool reference, connection config, and query examples.
 
 ---
 

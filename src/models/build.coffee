@@ -272,6 +272,7 @@ buildSchema.statics.manipulateOutage = (build, payload) ->
 		else
 			build.outages = [outage]
 buildSchema.index({ product: 1, type: 1, start_time: -1 }, { background: true })
+buildSchema.index({ start_time: -1 }, { background: true })
 
 Build = mongoose.model('Build', buildSchema);
 

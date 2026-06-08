@@ -37,19 +37,22 @@ if (config !== undefined) {
   const User = require("./src/models/user");
   app = express();
 
+  // Redirect root to nextgen UI
+  app.get("/docs", (req, res) => res.redirect("/nextgen/docs"));
+
   // set static file to dist folder.
   app.use("", express.static(path.join(__dirname, "public")));
   app.use(
     "/nextgen",
-    express.static(path.join(__dirname, "public/nextgen/browser"))
+    express.static(path.join(__dirname, "public/nextgen/browser")),
   );
 
   //API doc
-  if (process.env.UREPORT_IS_DEMO !== 'true') {
+  if (process.env.UREPORT_IS_DEMO !== "true") {
     app.use(
       "/api-docs",
       swaggerUi.serve,
-      swaggerUi.setup(swaggerDocument, options)
+      swaggerUi.setup(swaggerDocument, options),
     );
   }
 
@@ -57,7 +60,7 @@ if (config !== undefined) {
    * sessions
    */
 
-  app.set('trust proxy', 1);
+  app.set("trust proxy", 1);
   app.use(cookieParser());
   // This middleware will check if user's cookie is still saved in browser and user is not set, then automatically log the user out.
   // This usually happens when you stop your express server after login, your cookie still remains saved in the browser.
@@ -92,14 +95,14 @@ if (config !== undefined) {
     bodyParser.json({
       limit: "50mb",
       type: "application/json",
-    })
+    }),
   );
   app.use(
     bodyParser.urlencoded({
       parameterLimit: 100000,
       limit: "50mb",
       extended: true,
-    })
+    }),
   );
   /*
    * loging
@@ -116,7 +119,7 @@ if (config !== undefined) {
       skip: function (req, res) {
         return res.statusCode < 400;
       },
-    })
+    }),
   );
 
   // log all requests to access.log
@@ -126,7 +129,7 @@ if (config !== undefined) {
         interval: "1d", // rotate daily
         path: logDirectory,
       }),
-    })
+    }),
   );
 
   /**
@@ -148,26 +151,33 @@ if (config !== undefined) {
   const Dashboard = require("./src/models/dashboard");
 
   var isShareTokenMid = async (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers["authorization"];
+    if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.slice(7);
       try {
-        const dashboard = await Dashboard.findOne({ share_token: token }).exec();
+        const dashboard = await Dashboard.findOne({
+          share_token: token,
+        }).exec();
         if (dashboard) {
           req.sharedDashboard = dashboard;
           return next();
         }
-      } catch (err) { return next(err); }
+      } catch (err) {
+        return next(err);
+      }
     }
-    return res.status(401).json({ message: 'Invalid or missing share token.' });
+    return res.status(401).json({ message: "Invalid or missing share token." });
   };
 
   var isAuthenticatedMid = async (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers["authorization"];
+    if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.slice(7);
       try {
-        const user = await User.findOne({ apiToken: token, status: 'active' }).exec();
+        const user = await User.findOne({
+          apiToken: token,
+          status: "active",
+        }).exec();
         if (user) {
           req.user = user;
           return next();
@@ -175,10 +185,10 @@ if (config !== undefined) {
       } catch (err) {
         return next(err);
       }
-      return res.status(401).json({ message: 'Invalid or expired API token.' });
+      return res.status(401).json({ message: "Invalid or expired API token." });
     }
     if (req.isAuthenticated()) return next();
-    res.redirect('/api/unauthorized');
+    res.redirect("/api/unauthorized");
   };
 
   // skip authorization if it is test environment
@@ -234,8 +244,18 @@ if (config !== undefined) {
   // list of endpoints for readonly page
   const noauth = require("./src/routes/noauth/noauth");
   const shared = require("./src/routes/shared/shared");
-  const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200, standardHeaders: true, legacyHeaders: false });
-  const forgotLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false });
+  const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 200,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  const forgotLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
   app.use("/api/login", loginLimiter);
   app.use("/api/forgot", forgotLimiter);
   app.use("/api/reset", forgotLimiter);
@@ -283,10 +303,10 @@ if (config !== undefined) {
       return next(err);
     }
     console.error("Internal Error:", err);
-    if (err && err.name === 'ValidationError') {
+    if (err && err.name === "ValidationError") {
       return res.status(500).json({ error: err });
     }
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   });
 } else {
   console.error("Cannot find configuration file, Server will not be started.");

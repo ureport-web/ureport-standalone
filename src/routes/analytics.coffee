@@ -172,4 +172,96 @@ router.post '/build-duration-history', (req, res, next) ->
       .filter (b) -> b isnt null
     res.json results.reverse()  # chronological order
 
+parseSinceDuration = (since) ->
+  if !since then return new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  if typeof since is 'string' and /^\d+d$/.test(since)
+    days = parseInt(since)
+    return new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+  if typeof since is 'number'
+    return new Date(Date.now() - since * 24 * 60 * 60 * 1000)
+  return new Date(since)
+
+_topFailuresCache = { data: null, expires: 0 }
+_unstableCache = { data: null, expires: 0 }
+CACHE_TTL = 2 * 60 * 60 * 1000
+
+router.post '/global-top-failures', (req, res, next) ->
+  { since, limit = 10 } = req.body
+  now = Date.now()
+  if _topFailuresCache.data and now < _topFailuresCache.expires
+    return res.json _topFailuresCache.data
+
+  sinceDate = parseSinceDuration(since)
+  lim = parseInt(limit)
+
+  Build.find({ start_time: { $gte: sinceDate }, is_archive: false })
+  .select('_id product type').lean().exec (err, builds) ->
+    if err then return next(err)
+    if builds.length is 0 then return res.json []
+
+    buildMap = {}
+    buildIds = builds.map (b) ->
+      buildMap[b._id.toString()] = { product: b.product, type: b.type }
+      b._id
+
+    Test.aggregate([
+      { $match: { build: { $in: buildIds }, status: 'FAIL', is_rerun: false } },
+      { $group: {
+        _id: '$uid',
+        name: { $first: '$name' },
+        failCount: { $sum: 1 },
+        lastFailedAt: { $max: '$start_time' },
+        lastBuild: { $last: '$build' }
+      }},
+      { $sort: { failCount: -1 } },
+      { $limit: lim }
+    ]).exec (err, results) ->
+      if err then return next(err)
+
+      data = results.map (r) ->
+        lane = buildMap[r.lastBuild?.toString()] or {}
+        {
+          test_uid: r._id
+          test_name: r.name
+          product: lane.product or ''
+          type: lane.type or ''
+          fail_count: r.failCount
+          last_failed: r.lastFailedAt
+        }
+
+      _topFailuresCache.data = data
+      _topFailuresCache.expires = Date.now() + CACHE_TTL
+      res.json data
+
+router.post '/global-unstable-count', (req, res, next) ->
+  { since } = req.body
+  now = Date.now()
+  if _unstableCache.data isnt null and now < _unstableCache.expires
+    return res.json _unstableCache.data
+
+  sinceDate = parseSinceDuration(since)
+
+  Build.find({ start_time: { $gte: sinceDate }, is_archive: false })
+  .select('_id').lean().exec (err, builds) ->
+    if err then return next(err)
+    if builds.length is 0
+      result = { count: 0 }
+      _unstableCache.data = result
+      _unstableCache.expires = Date.now() + CACHE_TTL
+      return res.json result
+
+    buildIds = builds.map (b) -> b._id
+
+    Test.aggregate([
+      { $match: { build: { $in: buildIds }, status: { $in: ['PASS', 'FAIL'] }, is_rerun: false } },
+      { $group: { _id: '$uid', statuses: { $addToSet: '$status' } } },
+      { $match: { statuses: { $all: ['PASS', 'FAIL'] } } },
+      { $count: 'count' }
+    ]).exec (err, results) ->
+      if err then return next(err)
+      result = { count: if results.length > 0 then results[0].count else 0 }
+      _unstableCache.data = result
+      _unstableCache.expires = Date.now() + CACHE_TTL
+      res.json result
+
 module.exports = router

@@ -21,6 +21,28 @@ logger = require('../utils/logger')
 QuarantinedTest = require('../models/quarantined_test')
 evaluator = require('../utils/quarantine_evaluator')
 
+router.get '/active-lanes', (req, res, next) ->
+  days = parseInt(req.query.days) || 7
+  sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+  Build.aggregate([
+    { $match: { start_time: { $gte: sinceDate }, is_archive: false } },
+    { $group: {
+      _id: {
+        product: '$product', type: '$type', team: '$team',
+        browser: '$browser', device: '$device', platform: '$platform',
+        platform_version: '$platform_version', stage: '$stage'
+      }
+    }},
+    { $project: {
+      _id: 0,
+      product: '$_id.product', type: '$_id.type', team: '$_id.team',
+      browser: '$_id.browser', device: '$_id.device', platform: '$_id.platform',
+      platform_version: '$_id.platform_version', stage: '$_id.stage'
+    }}
+  ]).exec (err, lanes) ->
+    if err then return next(err)
+    res.json lanes
+
 router.get '/:id',  (req, res, next) ->
   Build.findOne({_id: req.params.id}).
   exec((err, build) ->
@@ -237,8 +259,14 @@ router.post '/status/latest',  (req, res, next) ->
     return res.status(403).json({"error": "You don't have permission to perform this action "+ component})
 
   query = req.body.query
+  since = req.body.since
+
+  matchQuery = { $or: query }
+  if since
+    matchQuery.start_time = { '$gte': new Date(since) }
+
   Build.aggregate()
-  .match({ $or : query })
+  .match(matchQuery)
   .group(
     { 
       _id:  {
