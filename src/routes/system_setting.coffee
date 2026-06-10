@@ -4,6 +4,7 @@ moment = require('moment');
 
 SystemSetting = require('../models/system_setting')
 getSystemSetting = require('../utils/getSystemSetting')
+{ validateLicense, invalidateCache, setCachedState } = require('../utils/license')
 
 ObjectId = require('mongoose').Types.ObjectId;
 async = require("async")
@@ -20,6 +21,7 @@ maskCredentials = (setting) ->
   if obj.notification?.email?.password
     obj.notification = JSON.parse(JSON.stringify(obj.notification))
     obj.notification.email.password = MASKED
+  if obj.license_key then obj.license_key = MASKED
   obj
 
 guardCredentials = (body, existing) ->
@@ -29,6 +31,16 @@ guardCredentials = (body, existing) ->
   if body.notification?.email
     if !body.notification.email.password or body.notification.email.password is MASKED
       body.notification.email.password = existing?.notification?.email?.password or ''
+  if body.license_key is MASKED
+    body.license_key = existing?.license_key or undefined
+  body
+
+applyLicenseKey = (body, existing) ->
+  newKey = body.license_key
+  if newKey and newKey isnt MASKED and newKey isnt (existing?.license_key or '')
+    invalidateCache()
+    state = validateLicense(newKey)
+    setCachedState(state)
   body
 
 router.get '/:name',  (req, res, next) ->
@@ -81,6 +93,7 @@ router.put '/:id',  (req, res, next) ->
 
     if systemSetting
       guardCredentials(req.body, systemSetting)
+      applyLicenseKey(req.body, systemSetting)
       #perform update
       SystemSetting.updateSetting(systemSetting, req.body)
       systemSetting.save (err, results) ->
@@ -103,6 +116,7 @@ router.post '/',  (req, res, next) ->
     if err
       return next(err)
     guardCredentials(req.body, existing)
+    applyLicenseKey(req.body, existing)
     SystemSetting.findOneAndUpdate({name: 'SYSTEM_SETTING'}, req.body,
       {
         upsert: true,

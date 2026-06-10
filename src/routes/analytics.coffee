@@ -181,20 +181,22 @@ parseSinceDuration = (since) ->
     return new Date(Date.now() - since * 24 * 60 * 60 * 1000)
   return new Date(since)
 
-_topFailuresCache = { data: null, expires: 0 }
-_unstableCache = { data: null, expires: 0 }
+_topFailuresCache = {}
+_unstableCache = {}
 CACHE_TTL = 2 * 60 * 60 * 1000
 
 router.post '/global-top-failures', (req, res, next) ->
   { since, limit = 10 } = req.body
+  cacheKey = "#{since}:#{limit}"
   now = Date.now()
-  if _topFailuresCache.data and now < _topFailuresCache.expires
-    return res.json _topFailuresCache.data
+  if _topFailuresCache[cacheKey]?.data and now < _topFailuresCache[cacheKey].expires
+    return res.json _topFailuresCache[cacheKey].data
 
   sinceDate = parseSinceDuration(since)
   lim = parseInt(limit)
 
   Build.find({ start_time: { $gte: sinceDate }, is_archive: false })
+  .sort({ start_time: -1 }).limit(1000)
   .select('_id product type').lean().exec (err, builds) ->
     if err then return next(err)
     if builds.length is 0 then return res.json []
@@ -229,25 +231,25 @@ router.post '/global-top-failures', (req, res, next) ->
           last_failed: r.lastFailedAt
         }
 
-      _topFailuresCache.data = data
-      _topFailuresCache.expires = Date.now() + CACHE_TTL
+      _topFailuresCache[cacheKey] = { data: data, expires: Date.now() + CACHE_TTL }
       res.json data
 
 router.post '/global-unstable-count', (req, res, next) ->
   { since } = req.body
+  cacheKey = since
   now = Date.now()
-  if _unstableCache.data isnt null and now < _unstableCache.expires
-    return res.json _unstableCache.data
+  if _unstableCache[cacheKey]?.data isnt undefined and now < _unstableCache[cacheKey].expires
+    return res.json _unstableCache[cacheKey].data
 
   sinceDate = parseSinceDuration(since)
 
   Build.find({ start_time: { $gte: sinceDate }, is_archive: false })
+  .sort({ start_time: -1 }).limit(1000)
   .select('_id').lean().exec (err, builds) ->
     if err then return next(err)
     if builds.length is 0
       result = { count: 0 }
-      _unstableCache.data = result
-      _unstableCache.expires = Date.now() + CACHE_TTL
+      _unstableCache[cacheKey] = { data: result, expires: Date.now() + CACHE_TTL }
       return res.json result
 
     buildIds = builds.map (b) -> b._id
@@ -260,8 +262,7 @@ router.post '/global-unstable-count', (req, res, next) ->
     ]).exec (err, results) ->
       if err then return next(err)
       result = { count: if results.length > 0 then results[0].count else 0 }
-      _unstableCache.data = result
-      _unstableCache.expires = Date.now() + CACHE_TTL
+      _unstableCache[cacheKey] = { data: result, expires: Date.now() + CACHE_TTL }
       res.json result
 
 module.exports = router

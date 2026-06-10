@@ -21,6 +21,10 @@ logger = require('../utils/logger')
 QuarantinedTest = require('../models/quarantined_test')
 evaluator = require('../utils/quarantine_evaluator')
 
+# NOTE: Lane quota is enforced on the frontend only (applyLaneQuota in license.service.ts).
+# Backend intentionally returns the full unfiltered list — lanes are derived aggregations,
+# not stored objects, so server-side slicing would be fragile and order-sensitive.
+# Risk: API scraping exposes lane names beyond quota. Accepted trade-off.
 router.get '/active-lanes', (req, res, next) ->
   days = parseInt(req.query.days) || 7
   sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
@@ -261,6 +265,9 @@ router.post '/status/latest',  (req, res, next) ->
   query = req.body.query
   since = req.body.since
 
+  if !query or !Array.isArray(query) or query.length is 0
+    return res.status(400).json { message: 'query must be a non-empty array' }
+
   matchQuery = { $or: query }
   if since
     matchQuery.start_time = { '$gte': new Date(since) }
@@ -268,7 +275,7 @@ router.post '/status/latest',  (req, res, next) ->
   Build.aggregate()
   .match(matchQuery)
   .group(
-    { 
+    {
       _id:  {
         product:  "$product",
         type: "$type",
@@ -288,13 +295,13 @@ router.post '/status/latest',  (req, res, next) ->
   })
   .exec((err, cols) ->
     if err
-      next err
+      return next err
 
     if(cols != undefined && cols.length > 0)
       res.json cols
     else
       res.status(404)
-      res.json { message: 'Cannot find' }  
+      res.json { message: 'Cannot find' }
   );
   # res.json req.body
 
@@ -475,6 +482,10 @@ router.get '/entity/read',  (req, res, next) ->
         res.json rs
   )
 
+# NOTE: Lane quota is enforced on the frontend only (applyLaneQuota in license.service.ts).
+# Backend intentionally returns the full unfiltered list — lanes are derived aggregations,
+# not stored objects, so server-side slicing would be fragile and order-sensitive.
+# Risk: API scraping exposes lane names beyond quota. Accepted trade-off.
 router.get '/entity/producttype',  (req, res, next) ->
   entities = ['product','type']
   async.map(entities,
@@ -491,6 +502,10 @@ router.get '/entity/producttype',  (req, res, next) ->
         res.json rs
   )
 
+# NOTE: Lane quota is enforced on the frontend only (applyLaneQuota in license.service.ts).
+# Backend intentionally returns the full unfiltered list — lanes are derived aggregations,
+# not stored objects, so server-side slicing would be fragile and order-sensitive.
+# Risk: API scraping exposes lane names beyond quota. Accepted trade-off.
 router.post '/entity/recommend',  (req, res, next) ->
   if(!req.body.product)
     res.status(400)
@@ -811,11 +826,29 @@ router.post '/:page/:perPage',  (req, res, next) ->
     Build.find(query, {}, pagnition)
     .limit(size)
     .sort(sort)
-    .exec((err, builds) ->
-      if err
-        return next(err)
-      res.json builds
-    );
+    .exec (err, builds) ->
+      return next(err) if err
+      return res.json [] if not builds.length
+
+      async.map builds, (build, cb) ->
+        prevQuery = { start_time: { $lt: build.start_time } }
+        prevQuery.product = build.product if build.product
+        prevQuery.type = build.type if build.type
+        prevQuery.version = build.version if build.version
+        prevQuery.team = build.team if build.team
+        prevQuery.browser = build.browser if build.browser
+        prevQuery.device = build.device if build.device
+        prevQuery.platform = build.platform if build.platform
+        prevQuery.platform_version = build.platform_version if build.platform_version
+        prevQuery.stage = build.stage if build.stage
+        Build.findOne(prevQuery).sort({start_time: -1}).select('_id build start_time status').exec (prevErr, prev) ->
+          return cb(prevErr) if prevErr
+          obj = build.toObject()
+          obj.aggregate_previous_runs = if prev then [prev] else []
+          cb null, obj
+      , (mapErr, results) ->
+        return next(mapErr) if mapErr
+        res.json results
 
 router.post '/search', (req, res, next) ->
   if(!req.body.specificQueries)

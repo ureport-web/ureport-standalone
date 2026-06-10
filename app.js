@@ -298,6 +298,17 @@ if (config !== undefined) {
     res.sendFile(path.join(__dirname, "public/nextgen/browser/index.html"));
   });
 
+  // Init license state from DB after mongoose connects
+  const { initLicense } = require('./src/utils/license');
+  const mongoose = require('mongoose');
+  if (mongoose.connection.readyState === 1) {
+    initLicense(() => console.log('License initialized'));
+  } else {
+    mongoose.connection.once('open', () => {
+      initLicense(() => console.log('License initialized'));
+    });
+  }
+
   app.use(function (err, req, res, next) {
     if (res.headersSent) {
       return next(err);

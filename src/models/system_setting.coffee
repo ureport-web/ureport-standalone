@@ -16,6 +16,7 @@ systemSettingSchema = new Schema(
 	issue_tracking: Schema.Types.Mixed,
 	tc_management: Schema.Types.Mixed,
 	ai: Schema.Types.Mixed,
+	license_key: { type: String },
 )
 
 systemSettingSchema.statics.updateSetting = (setting, payload) ->
@@ -34,4 +35,6 @@ systemSettingSchema.statics.updateSetting = (setting, payload) ->
 			setting.tc_management = payload.tc_management
 		if(payload.ai != undefined)
 			setting.ai = payload.ai
+		if(payload.license_key != undefined)
+			setting.license_key = payload.license_key
 module.exports = mongoose.model('SystemSetting', systemSettingSchema)
