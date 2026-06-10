@@ -7,6 +7,7 @@ ObjectId = require('mongoose').Types.ObjectId;
 async = require("async")
 
 AccessControl = require('../utils/ac_grants')
+{ getLicenseState } = require('../utils/license')
 component = 'setting'
 
 router.get '/:id',  (req, res, next) ->
@@ -33,6 +34,9 @@ router.get '/find/all',  (req, res, next) ->
 router.post '/',  (req, res, next) ->
   if (!AccessControl.canAccessCreateAny(req.user.role,component))
       return res.status(403).json({"error": "You don't have permission to perform this action"})
+  if req.body.notification?.rules?.length > 0
+    unless getLicenseState().features.includes('notifications')
+      return res.status(403).json({ error: 'Notification rules require a Pro license' })
   setting = new Setting(req.body)
   setting.save((err, setting) ->
     if err
@@ -50,6 +54,9 @@ router.post '/',  (req, res, next) ->
 router.put '/:id',  (req, res, next) ->
   if (!AccessControl.canAccessUpdateAny(req.user.role,component))
       return res.status(403).json({"error": "You don't have permission to perform this action"})
+  if req.body.notification?.rules?.length > 0
+    unless getLicenseState().features.includes('notifications')
+      return res.status(403).json({ error: 'Notification rules require a Pro license' })
   Setting.findOne({_id: req.params.id}).
   exec((err, setting) ->
     if err

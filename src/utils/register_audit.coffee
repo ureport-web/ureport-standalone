@@ -1,4 +1,5 @@
 Audit = require('../models/audit')
+logger = require('./logger')
 
 module.exports = (req, res, audit_type, action) ->
     addAudit = ->
@@ -15,7 +16,7 @@ module.exports = (req, res, audit_type, action) ->
         })
         audit.save((err, rs) ->
             if(err)
-                console.log("cannot create audit", err)
+                logger.error("cannot create audit", err)
             return
         );
 

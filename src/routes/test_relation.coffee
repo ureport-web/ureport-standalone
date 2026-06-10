@@ -5,7 +5,7 @@ TestRelation = require('../models/test_relation')
 async = require("async")
 ObjectId = require('mongoose').Types.ObjectId;
 AccessControl = require('../utils/ac_grants')
-component = 'dependency'
+component = 'relation'
 
 router.get '/:id',  (req, res, next) ->
     TestRelation.findOne({

@@ -54,10 +54,54 @@ createMcpServer = ->
       finalQuery = Object.assign({}, baseQuery, { '$or': orClauses })
       callback(null, finalQuery)
 
+  buildResultsFromQuery = (query, limit) ->
+    buildsPromise = new Promise((resolve, reject) ->
+      Build.find(query)
+        .sort({ start_time: -1 })
+        .limit(limit)
+        .select('_id build version product type status start_time end_time browser device platform platform_version team stage')
+        .exec((err, builds) ->
+          if err then return reject(err)
+          resolve(builds)
+        )
+    )
+    Promise.all([getFrontendUrl(), buildsPromise]).then(([frontendUrl, builds]) ->
+      items = builds.map((b) ->
+        id: b._id.toString()
+        url: buildLaunchUrl(frontendUrl, b)
+        build_number: b.build
+        version: b.version or ''
+        status: b.status or {}
+        start_time: b.start_time
+        end_time: b.end_time
+        browser: b.browser or ''
+        device: b.device or ''
+        platform: b.platform or ''
+        platform_version: b.platform_version or ''
+        team: b.team or ''
+        stage: b.stage or ''
+      )
+      { content: [{ type: 'text', text: JSON.stringify(items, null, 2) }] }
+    )
+
   server.tool('list_builds',
-    'List recent builds. Filter by any combination of product, type, version, browser, platform, team, or stage. Alternatively, provide a preset name to use a saved lane configuration — when preset is given, all other field params are ignored. All string filters are case-insensitive.',
+    'List recent builds using a saved preset. Always call list_presets first to get available preset names, then call this tool with the chosen preset name. Do NOT guess or infer a preset name — it must come from the list_presets result.',
     {
-      preset:   z.string().optional()
+      preset: z.string()
+      limit:  z.number().int().min(1).max(50).optional().default(50)
+    },
+    ({ preset, limit }) ->
+      new Promise((resolve, reject) ->
+        resolvePreset(preset, (err, query) ->
+          if err then return reject(err)
+          resolve(query)
+        )
+      ).then((query) -> buildResultsFromQuery(query, limit))
+  )
+
+  server.tool('search_builds',
+    'List recent builds using explicit filters. Use this only when the user has provided specific, exact filter values (product, type, version, browser, platform, team, stage). For general requests like "show me builds", use list_presets + list_builds instead. All string filters are case-insensitive.',
+    {
       product:  z.string().optional()
       type:     z.string().optional()
       version:  z.string().optional()
@@ -67,52 +111,27 @@ createMcpServer = ->
       stage:    z.string().optional()
       limit:    z.number().int().min(1).max(50).optional().default(10)
     },
-    ({ preset, product, type, version, browser, platform, team, stage, limit }) ->
-      queryPromise = if preset
-        new Promise((resolve, reject) ->
-          resolvePreset(preset, (err, q) ->
-            if err then return reject(err)
-            resolve(q)
-          )
-        )
-      else
-        q = {}
-        if product  then q.product  = ciExact(product)
-        if type     then q.type     = ciExact(type)
-        if version  then q.version  = ciPrefix(version)
-        if browser  then q.browser  = ciContains(browser)
-        if platform then q.platform = ciExact(platform)
-        if team     then q.team     = ciExact(team)
-        if stage    then q.stage    = ciExact(stage)
-        Promise.resolve(q)
-      queryPromise.then((query) ->
-        buildsPromise = new Promise((resolve, reject) ->
-          Build.find(query)
-            .sort({ start_time: -1 })
-            .limit(limit)
-            .select('_id build version product type status start_time end_time browser device platform platform_version team stage')
-            .exec((err, builds) ->
-              if err then return reject(err)
-              resolve(builds)
-            )
-        )
-        Promise.all([getFrontendUrl(), buildsPromise]).then(([frontendUrl, builds]) ->
-          items = builds.map((b) ->
-            id: b._id.toString()
-            url: buildLaunchUrl(frontendUrl, b)
-            build_number: b.build
-            version: b.version or ''
-            status: b.status or {}
-            start_time: b.start_time
-            end_time: b.end_time
-            browser: b.browser or ''
-            device: b.device or ''
-            platform: b.platform or ''
-            platform_version: b.platform_version or ''
-            team: b.team or ''
-            stage: b.stage or ''
-          )
-          { content: [{ type: 'text', text: JSON.stringify(items, null, 2) }] }
+    ({ product, type, version, browser, platform, team, stage, limit }) ->
+      q = {}
+      if product  then q.product  = ciExact(product)
+      if type     then q.type     = ciExact(type)
+      if version  then q.version  = ciPrefix(version)
+      if browser  then q.browser  = ciContains(browser)
+      if platform then q.platform = ciExact(platform)
+      if team     then q.team     = ciExact(team)
+      if stage    then q.stage    = ciExact(stage)
+      buildResultsFromQuery(q, limit)
+  )
+
+  server.tool('list_presets',
+    'List all saved presets. Returns preset names and descriptions. Call this before list_builds or get_statistics when the user wants to filter by preset but has not specified a preset name. If the result is an empty array, inform the user that no presets are configured and ask them to specify filters directly (product, type, platform, team, etc.).',
+    {},
+    () ->
+      new Promise((resolve, reject) ->
+        Preset.find({}).select('name description').sort({ name: 1 }).exec((err, presets) ->
+          if err then return reject(err)
+          items = presets.map((p) -> { name: p.name, description: p.description or '' })
+          resolve({ content: [{ type: 'text', text: JSON.stringify(items, null, 2) }] })
         )
       )
   )
@@ -147,7 +166,7 @@ createMcpServer = ->
           if team      then rq['teams.name']      = ciContains(team)
           if file      then rq.file               = ciContains(file)
           if path      then rq.path               = ciContains(path)
-          if custom_key and custom_value
+          if custom_key and custom_value and /^[a-zA-Z0-9_]+$/.test(custom_key)
             rq['customs.' + custom_key] = ciExact(custom_value)
           TestRelation.find(rq).select('uid').exec((err, relations) ->
             if err then return reject(err)
@@ -312,10 +331,67 @@ createMcpServer = ->
       )
   )
 
+  statisticsFromQuery = (query, builds) ->
+    resultsPromise = new Promise((resolve, reject) ->
+      Build.find(query)
+        .sort({ start_time: -1 })
+        .limit(builds)
+        .select('_id build version product type status start_time browser device platform platform_version team stage')
+        .exec((err, results) ->
+          if err then return reject(err)
+          resolve(results)
+        )
+    )
+    Promise.all([getFrontendUrl(), resultsPromise]).then(([frontendUrl, results]) ->
+      buildStats = results.map((b) ->
+        total = (b.status and b.status.total) or 0
+        pass = (b.status and b.status.pass) or 0
+        fail = (b.status and b.status.fail) or 0
+        {
+          build_number: b.build
+          url: buildLaunchUrl(frontendUrl, b)
+          version: b.version or ''
+          total: total
+          pass: pass
+          fail: fail
+          pass_rate: if total > 0 then Math.round((pass / total) * 1000) / 10 else null
+          start_time: b.start_time
+        }
+      )
+      totalBuilds = buildStats.length
+      avgPassRate = if totalBuilds > 0
+        rates = buildStats.filter((b) -> b.pass_rate isnt null).map((b) -> b.pass_rate)
+        if rates.length > 0
+          sum = rates.reduce(((a, b) -> a + b), 0)
+          Math.round(sum / rates.length * 10) / 10
+        else null
+      else null
+      {
+        content: [{
+          type: 'text'
+          text: JSON.stringify({ total_builds: totalBuilds, avg_pass_rate: avgPassRate, builds: buildStats }, null, 2)
+        }]
+      }
+    )
+
   server.tool('get_statistics',
-    'Get pass/fail statistics for recent builds. Filter by any combination of product, type, version, browser, platform, team, or stage. Alternatively, provide a preset name to use a saved lane configuration — when preset is given, all other field params are ignored. All string filters are case-insensitive.',
+    'Get pass/fail statistics for recent builds using a saved preset. Always call list_presets first to get available preset names, then call this tool with the chosen preset name. Do NOT guess or infer a preset name — it must come from the list_presets result.',
     {
-      preset:   z.string().optional()
+      preset: z.string()
+      builds: z.number().int().min(1).max(50).optional().default(50)
+    },
+    ({ preset, builds }) ->
+      new Promise((resolve, reject) ->
+        resolvePreset(preset, (err, q) ->
+          if err then return reject(err)
+          resolve(q)
+        )
+      ).then((query) -> statisticsFromQuery(query, builds))
+  )
+
+  server.tool('search_statistics',
+    'Get pass/fail statistics using explicit filters. Use this only when the user has provided specific, exact filter values (product, type, version, browser, platform, team, stage). For general requests, use list_presets + get_statistics instead. All string filters are case-insensitive.',
+    {
       product:  z.string().optional()
       type:     z.string().optional()
       version:  z.string().optional()
@@ -325,72 +401,22 @@ createMcpServer = ->
       stage:    z.string().optional()
       builds:   z.number().int().min(1).max(50).optional().default(10)
     },
-    ({ preset, product, type, version, browser, platform, team, stage, builds }) ->
-      queryPromise = if preset
-        new Promise((resolve, reject) ->
-          resolvePreset(preset, (err, q) ->
-            if err then return reject(err)
-            resolve(q)
-          )
-        )
-      else
-        q = {}
-        if product  then q.product  = ciExact(product)
-        if type     then q.type     = ciExact(type)
-        if version  then q.version  = ciPrefix(version)
-        if browser  then q.browser  = ciContains(browser)
-        if platform then q.platform = ciExact(platform)
-        if team     then q.team     = ciExact(team)
-        if stage    then q.stage    = ciExact(stage)
-        Promise.resolve(q)
-      queryPromise.then((query) ->
-        resultsPromise = new Promise((resolve, reject) ->
-          Build.find(query)
-            .sort({ start_time: -1 })
-            .limit(builds)
-            .select('_id build version product type status start_time browser device platform platform_version team stage')
-            .exec((err, results) ->
-              if err then return reject(err)
-              resolve(results)
-            )
-        )
-        Promise.all([getFrontendUrl(), resultsPromise]).then(([frontendUrl, results]) ->
-          buildStats = results.map((b) ->
-            total = (b.status and b.status.total) or 0
-            pass = (b.status and b.status.pass) or 0
-            fail = (b.status and b.status.fail) or 0
-            {
-              build_number: b.build
-              url: buildLaunchUrl(frontendUrl, b)
-              version: b.version or ''
-              total: total
-              pass: pass
-              fail: fail
-              pass_rate: if total > 0 then Math.round((pass / total) * 1000) / 10 else null
-              start_time: b.start_time
-            }
-          )
-          totalBuilds = buildStats.length
-          avgPassRate = if totalBuilds > 0
-            rates = buildStats.filter((b) -> b.pass_rate isnt null).map((b) -> b.pass_rate)
-            if rates.length > 0
-              sum = rates.reduce(((a, b) -> a + b), 0)
-              Math.round(sum / rates.length * 10) / 10
-            else null
-          else null
-          {
-            content: [{
-              type: 'text'
-              text: JSON.stringify({ total_builds: totalBuilds, avg_pass_rate: avgPassRate, builds: buildStats }, null, 2)
-            }]
-          }
-        )
-      )
+    ({ product, type, version, browser, platform, team, stage, builds }) ->
+      q = {}
+      if product  then q.product  = ciExact(product)
+      if type     then q.type     = ciExact(type)
+      if version  then q.version  = ciPrefix(version)
+      if browser  then q.browser  = ciContains(browser)
+      if platform then q.platform = ciExact(platform)
+      if team     then q.team     = ciExact(team)
+      if stage    then q.stage    = ciExact(stage)
+      statisticsFromQuery(q, builds)
   )
 
   server
 
 router.post '/', (req, res) ->
+  req.headers['accept'] = 'application/json, text/event-stream'
   server = createMcpServer()
   transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
   res.on('close', -> transport.close())

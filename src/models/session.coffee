@@ -1,5 +1,6 @@
 mongoose = require('mongoose')
 ObjectId = mongoose.Types.ObjectId;
+logger = require('../utils/logger')
 Schema = mongoose.Schema
 
 sessionSchema = new Schema(
@@ -15,10 +16,10 @@ sessionSchema.statics.poll = (username) ->
   Session.findOne(session: $regex: username).exec (err, sess) ->
     #already have a valid session
     if sess
-      console.warn 'User already has a session'
+      logger.info 'User already has a session'
       return 'True'
     else
-      console.warn 'A session has to be created for the user'
+      logger.info 'A session has to be created for the user'
       return 'False'
   
 

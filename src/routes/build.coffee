@@ -17,8 +17,35 @@ Setting = require('../models/setting')
 TestRelation = require('../models/test_relation')
 User = require('../models/user')
 sendBuildNotification = require('../utils/send_build_notification_email')
+logger = require('../utils/logger')
 QuarantinedTest = require('../models/quarantined_test')
 evaluator = require('../utils/quarantine_evaluator')
+
+# NOTE: Lane quota is enforced on the frontend only (applyLaneQuota in license.service.ts).
+# Backend intentionally returns the full unfiltered list — lanes are derived aggregations,
+# not stored objects, so server-side slicing would be fragile and order-sensitive.
+# Risk: API scraping exposes lane names beyond quota. Accepted trade-off.
+router.get '/active-lanes', (req, res, next) ->
+  days = parseInt(req.query.days) || 7
+  sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+  Build.aggregate([
+    { $match: { start_time: { $gte: sinceDate }, is_archive: false } },
+    { $group: {
+      _id: {
+        product: '$product', type: '$type', team: '$team',
+        browser: '$browser', device: '$device', platform: '$platform',
+        platform_version: '$platform_version', stage: '$stage'
+      }
+    }},
+    { $project: {
+      _id: 0,
+      product: '$_id.product', type: '$_id.type', team: '$_id.team',
+      browser: '$_id.browser', device: '$_id.device', platform: '$_id.platform',
+      platform_version: '$_id.platform_version', stage: '$_id.stage'
+    }}
+  ]).exec (err, lanes) ->
+    if err then return next(err)
+    res.json lanes
 
 router.get '/:id',  (req, res, next) ->
   Build.findOne({_id: req.params.id}).
@@ -236,10 +263,19 @@ router.post '/status/latest',  (req, res, next) ->
     return res.status(403).json({"error": "You don't have permission to perform this action "+ component})
 
   query = req.body.query
+  since = req.body.since
+
+  if !query or !Array.isArray(query) or query.length is 0
+    return res.status(400).json { message: 'query must be a non-empty array' }
+
+  matchQuery = { $or: query }
+  if since
+    matchQuery.start_time = { '$gte': new Date(since) }
+
   Build.aggregate()
-  .match({ $or : query })
+  .match(matchQuery)
   .group(
-    { 
+    {
       _id:  {
         product:  "$product",
         type: "$type",
@@ -259,13 +295,13 @@ router.post '/status/latest',  (req, res, next) ->
   })
   .exec((err, cols) ->
     if err
-      next err
+      return next err
 
     if(cols != undefined && cols.length > 0)
       res.json cols
     else
       res.status(404)
-      res.json { message: 'Cannot find' }  
+      res.json { message: 'Cannot find' }
   );
   # res.json req.body
 
@@ -446,6 +482,10 @@ router.get '/entity/read',  (req, res, next) ->
         res.json rs
   )
 
+# NOTE: Lane quota is enforced on the frontend only (applyLaneQuota in license.service.ts).
+# Backend intentionally returns the full unfiltered list — lanes are derived aggregations,
+# not stored objects, so server-side slicing would be fragile and order-sensitive.
+# Risk: API scraping exposes lane names beyond quota. Accepted trade-off.
 router.get '/entity/producttype',  (req, res, next) ->
   entities = ['product','type']
   async.map(entities,
@@ -462,6 +502,10 @@ router.get '/entity/producttype',  (req, res, next) ->
         res.json rs
   )
 
+# NOTE: Lane quota is enforced on the frontend only (applyLaneQuota in license.service.ts).
+# Backend intentionally returns the full unfiltered list — lanes are derived aggregations,
+# not stored objects, so server-side slicing would be fragile and order-sensitive.
+# Risk: API scraping exposes lane names beyond quota. Accepted trade-off.
 router.post '/entity/recommend',  (req, res, next) ->
   if(!req.body.product)
     res.status(400)
@@ -616,6 +660,8 @@ router.post '/total',  (req, res, next) ->
 
 # purge
 router.post '/purge/calculate',  (req, res, next) ->
+    if (!AccessControl.canAccessUpdateAny(req.user.role, component))
+      return res.status(403).json({"error": "You don't have permission to perform this action"})
     if(!req.body.product)
       res.status(400)
       return res.json {error: "Product is mandatory"}
@@ -658,28 +704,21 @@ router.post '/purge/calculate',  (req, res, next) ->
         '$lt': new Date(untilDate)
       }
 
-    try
-      Build.aggregate()
-      .match(query)
-      .lookup({
-        from: "tests",
-        localField: "_id",
-        foreignField: "build",
-        as: "total_tests"
-      })
-      .project({ 
-        total_tests: { $size: "$total_tests" }
-      })
-      .exec((err, builds) ->
-        if err
-          next err
-        if(builds)
-          res.json builds
-        else
-          res.json {error: "cannot find any builds"}
-      );
-    catch error
-      console.log("Exception: ",error)
+    Build.find(query).select('_id').lean().exec((err, builds) ->
+      if err
+        return next err
+      if not builds or builds.length is 0
+        return res.json []
+      buildIds = builds.map((b) -> b._id)
+      testCountPromise = Test.countDocuments({ build: { '$in': buildIds } })
+      testCountPromise.then(
+        (testCount) ->
+          res.json { builds: buildIds, test_count: testCount }
+      ).catch(
+        (err2) ->
+          next err2
+      )
+    )
 
 
 cleanupOrphanedQuarantineRecords = (purgedBuilds) ->
@@ -694,7 +733,7 @@ cleanupOrphanedQuarantineRecords = (purgedBuilds) ->
       remainingIds = (remaining or []).map (b) -> b._id
       if remainingIds.length == 0
         QuarantinedTest.deleteMany({ product: product, type: type }).exec (err) ->
-          if err then console.error '[quarantine] cleanup error', err
+          if err then logger.error '[quarantine] cleanup error', err
       else
         Test.distinct('uid', { build: { $in: remainingIds } }).exec (err, existingUids) ->
           return if err
@@ -706,7 +745,7 @@ cleanupOrphanedQuarantineRecords = (purgedBuilds) ->
             return unless toDelete.length
             ids = toDelete.map (q) -> q._id
             QuarantinedTest.deleteMany({ _id: { $in: ids } }).exec (err) ->
-              if err then console.error '[quarantine] cleanup error', err
+              if err then logger.error '[quarantine] cleanup error', err
 
 router.post '/purge',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role,component))
@@ -787,11 +826,29 @@ router.post '/:page/:perPage',  (req, res, next) ->
     Build.find(query, {}, pagnition)
     .limit(size)
     .sort(sort)
-    .exec((err, builds) ->
-      if err
-        return next(err)
-      res.json builds
-    );
+    .exec (err, builds) ->
+      return next(err) if err
+      return res.json [] if not builds.length
+
+      async.map builds, (build, cb) ->
+        prevQuery = { start_time: { $lt: build.start_time } }
+        prevQuery.product = build.product if build.product
+        prevQuery.type = build.type if build.type
+        prevQuery.version = build.version if build.version
+        prevQuery.team = build.team if build.team
+        prevQuery.browser = build.browser if build.browser
+        prevQuery.device = build.device if build.device
+        prevQuery.platform = build.platform if build.platform
+        prevQuery.platform_version = build.platform_version if build.platform_version
+        prevQuery.stage = build.stage if build.stage
+        Build.findOne(prevQuery).sort({start_time: -1}).select('_id build start_time status').exec (prevErr, prev) ->
+          return cb(prevErr) if prevErr
+          obj = build.toObject()
+          obj.aggregate_previous_runs = if prev then [prev] else []
+          cb null, obj
+      , (mapErr, results) ->
+        return next(mapErr) if mapErr
+        res.json results
 
 router.post '/search', (req, res, next) ->
   if(!req.body.specificQueries)
@@ -1010,24 +1067,24 @@ fireNotificationRules = (req, res, build, statusSummary) ->
             checkDone()
         else
           TestRelation.find({ product: build.product, type: build.type }).exec (relErr, allRelations) ->
-            console.log '[notify] rule "' + rule.name + '": found ' + (allRelations?.length or 0) + ' TestRelations for ' + build.product + '/' + build.type
+            logger.debug '[notify] rule "' + rule.name + '": found ' + (allRelations?.length or 0) + ' TestRelations for ' + build.product + '/' + build.type
             if allRelations?.length
               sample = allRelations[0]
-              console.log '[notify] first relation sample: uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
+              logger.debug '[notify] first relation sample: uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
 
             matchedRelations = matcher.matchesRule(rule, allRelations or [])
 
-            console.log '[notify] rule "' + rule.name + '": ' + matchedRelations.length + ' relations matched out of ' + (allRelations?.length or 0)
+            logger.debug '[notify] rule "' + rule.name + '": ' + matchedRelations.length + ' relations matched out of ' + (allRelations?.length or 0)
             if matchedRelations.length > 0
               sample = matchedRelations[0]
-              console.log '[notify] sample match uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
+              logger.debug '[notify] sample match uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
 
             unless matchedRelations.length
               checkDone()
               return
 
             matchedUIDs = matchedRelations.map (tr) -> tr.uid
-            console.log '[notify] rule "' + rule.name + '": querying tests with uids=' + JSON.stringify(matchedUIDs) + ' query=' + JSON.stringify(testQuery)
+            logger.debug '[notify] rule "' + rule.name + '": querying tests with uids=' + JSON.stringify(matchedUIDs) + ' query=' + JSON.stringify(testQuery)
 
             if search
               testQuery.$or = [
@@ -1042,7 +1099,7 @@ fireNotificationRules = (req, res, build, statusSummary) ->
                 testQuery.uid = { $in: matchedUIDs, $nin: quarantinedUids }
 
             Test.find(testQuery).limit(1).exec (testErr, tests) ->
-              console.log '[notify] rule "' + rule.name + '": test query found ' + (tests?.length or 0) + ' tests (testErr=' + testErr + ')'
+              logger.debug '[notify] rule "' + rule.name + '": test query found ' + (tests?.length or 0) + ' tests (testErr=' + testErr + ')'
               matchedRules.push rule if tests?.length
               checkDone()
 

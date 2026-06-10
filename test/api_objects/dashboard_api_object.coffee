@@ -82,4 +82,26 @@ module.exports = {
       else
         res.should.have.status expectStatus
         cb(res)
+
+  share : (server, cookies, id, expectStatus, cb) ->
+    req = chai.request(server).post(endpoint+"/"+id+"/share")
+    req.cookies = cookies;
+    req.end (err, res) ->
+      if err
+        err.should.have.status expectStatus
+        cb(err.response)
+      else
+        res.should.have.status expectStatus
+        cb(res)
+
+  unshare : (server, cookies, id, expectStatus, cb) ->
+    req = chai.request(server).delete(endpoint+"/"+id+"/share")
+    req.cookies = cookies;
+    req.end (err, res) ->
+      if err
+        err.should.have.status expectStatus
+        cb(err.response)
+      else
+        res.should.have.status expectStatus
+        cb(res)
 }

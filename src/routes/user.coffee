@@ -1,8 +1,11 @@
 express = require('express')
 router = express.Router()
+
+escapeRegex = (s) -> s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 bcrypt = require('bcrypt')
 User = require('../models/user')
 UserBilling = require('../models/userBilling')
+{ getLicenseState } = require('../utils/license')
 
 AccessControl = require('../utils/ac_grants')
 component = 'user'
@@ -27,7 +30,9 @@ router.post '/:page/:perPage',  (req, res, next) ->
 
     query = {}
     if(req.body.filter)
-        query.username = {'$regex': req.body.filter}
+        query.username = {'$regex': escapeRegex(req.body.filter)}
+    if(req.body.status)
+        query.status = req.body.status
 
     pagnition = {
         skip: size * page
@@ -48,10 +53,15 @@ router.post '/:page/:perPage',  (req, res, next) ->
     );
 
 router.post '/total',  (req, res, next) ->
+    if (!AccessControl.canAccessReadAny(req.user.role, component))
+        return res.status(403).json({"error": "You don't have permission to perform this action"})
+
     query = {}
 
     if(req.body.filter)
-        query.uid = {'$regex': req.body.filter}
+        query.username = {'$regex': escapeRegex(req.body.filter)}
+    if(req.body.status)
+        query.status = req.body.status
     # invTest filter and condition
     User.find(query)
     .count()
@@ -70,7 +80,7 @@ router.post '/search', (req, res, next) ->
         res.status(400)
         return res.json {error: "Please provide a user name"}
 
-    regex = new RegExp(req.body.username.trim())
+    regex = new RegExp(escapeRegex(req.body.username.trim()))
     User.find({
       username: { $regex: regex, $options: 'i' }
     }, { password:0, apiToken:0 }).
@@ -161,35 +171,45 @@ router.get '/pending',  (req, res, next) ->
 router.put '/approve/:id',  (req, res, next) ->
   if (!AccessControl.canAccessUpdateAny(req.user.role, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
-  
-  User.findById(req.params.id)
-  .exec((err, user) ->
+
+  User.findOne({_id: req.params.id}).exec (err, user) ->
     if err
       return next(err)
     if !user
       return res.status(404).json({ error: "User not found" })
-    
-    user.status = 'active'
-    user.save (err, rs) ->
-      if err
-        return next(err)
-      rs.password = undefined
-      rs.apiToken = undefined
-      res.json rs
-  );
+
+    state = getLicenseState()
+    if state.seats isnt null
+      User.countDocuments({ status: 'active' }).exec (err, count) ->
+        if err then return next(err)
+        if count >= state.seats
+          return res.status(403).json({ error: 'User seat limit reached', limit: state.seats })
+        user.status = 'active'
+        user.save (err, rs) ->
+          if err then return next(err)
+          rs.password = undefined
+          rs.apiToken = undefined
+          res.json rs
+    else
+      user.status = 'active'
+      user.save (err, rs) ->
+        if err
+          return next(err)
+        rs.password = undefined
+        rs.apiToken = undefined
+        res.json rs
 
 # Reject user
 router.put '/reject/:id',  (req, res, next) ->
   if (!AccessControl.canAccessUpdateAny(req.user.role, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
-  
-  User.findById(req.params.id)
-  .exec((err, user) ->
+
+  User.findOne({_id: req.params.id}).exec (err, user) ->
     if err
       return next(err)
     if !user
       return res.status(404).json({ error: "User not found" })
-    
+
     user.status = 'rejected'
     user.save (err, rs) ->
       if err
@@ -197,7 +217,25 @@ router.put '/reject/:id',  (req, res, next) ->
       rs.password = undefined
       rs.apiToken = undefined
       res.json rs
-  );
+
+# Admin reset password (no current password required)
+router.put '/reset-password/:username', (req, res, next) ->
+  if req.user.role isnt 'admin'
+    return res.status(403).json({ error: 'Only admins can reset passwords' })
+  { newPassword } = req.body
+  if !newPassword
+    return res.status(400).json({ error: 'newPassword is required' })
+
+  User.findOne({ username: req.params.username }).exec (err, user) ->
+    if err
+      return next(err)
+    if !user
+      return res.status(404).json({ error: 'User not found' })
+    user.password = newPassword
+    user.save (err) ->
+      if err
+        return next(err)
+      res.json({ message: 'Password reset successfully' })
 
 router.post '/change-password', (req, res, next) ->
   { currentPassword, newPassword } = req.body

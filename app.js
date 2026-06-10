@@ -5,6 +5,7 @@ config = require("config");
 const path = require("path");
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const rateLimit = require("express-rate-limit");
 
 // swaggerUI
 const swaggerUi = require("swagger-ui-express");
@@ -36,21 +37,30 @@ if (config !== undefined) {
   const User = require("./src/models/user");
   app = express();
 
+  // Redirect root to nextgen UI
+  app.get("/docs", (req, res) => res.redirect("/nextgen/docs"));
+
   // set static file to dist folder.
-  app.use("/nextgen", express.static(path.join(__dirname, "public/nextgen/browser")));
-  app.get("/", (req, res) => res.redirect("/nextgen/"));
+  app.use("", express.static(path.join(__dirname, "public")));
+  app.use(
+    "/nextgen",
+    express.static(path.join(__dirname, "public/nextgen/browser")),
+  );
 
   //API doc
-  app.use(
-    "/api-docs",
-    swaggerUi.serve,
-    swaggerUi.setup(swaggerDocument, options),
-  );
+  if (process.env.UREPORT_IS_DEMO !== "true") {
+    app.use(
+      "/api-docs",
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerDocument, options),
+    );
+  }
 
   /**
    * sessions
    */
 
+  app.set("trust proxy", 1);
   app.use(cookieParser());
   // This middleware will check if user's cookie is still saved in browser and user is not set, then automatically log the user out.
   // This usually happens when you stop your express server after login, your cookie still remains saved in the browser.
@@ -194,8 +204,7 @@ if (config !== undefined) {
   app.use("/api/setting", isAuthenticatedMid);
   app.use("/api/assignment", isAuthenticatedMid);
   app.use("/api/tracking", isAuthenticatedMid);
-  app.use("/api/search", isAuthenticatedMid);
-  app.use("/api/dependency", isAuthenticatedMid);
+  app.use("/api/quarantine", isAuthenticatedMid);
 
   app.get("/api/unauthorized", (req, res) => {
     res.status(401);
@@ -226,15 +235,30 @@ if (config !== undefined) {
   const assignment = require("./src/routes/assignment");
   const user = require("./src/routes/user");
   const userFav = require("./src/routes/user_favorite");
-  const trackingJIRA = require("./src/routes/tracking/jira");
-  const searching = require("./src/routes/search/solr");
-  const dependency = require("./src/routes/dependency");
-  const dependencyRelation = require("./src/routes/dependency_relation");
   const analytics = require("./src/routes/analytics");
+  const quarantine = require("./src/routes/quarantined_test");
+  const aiAnalysis = require("./src/routes/ai_analysis");
+  const preset = require("./src/routes/preset");
+  const mcp = require("./src/routes/mcp");
 
   // list of endpoints for readonly page
   const noauth = require("./src/routes/noauth/noauth");
   const shared = require("./src/routes/shared/shared");
+  const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 200,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  const forgotLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  app.use("/api/login", loginLimiter);
+  app.use("/api/forgot", forgotLimiter);
+  app.use("/api/reset", forgotLimiter);
   app.use("/api", version);
   app.use("/api", authenticate);
   app.use("/api/setting", setting);
@@ -250,12 +274,14 @@ if (config !== undefined) {
   app.use("/api/user", user);
   app.use("/api/user/preference", preference);
   app.use("/api/user/favorite", userFav);
-  app.use("/api/tracking/jira", trackingJIRA);
-  app.use("/api/search", searching);
-  app.use("/api/dependency", dependency);
-  app.use("/api/dependency_relation", dependencyRelation);
   app.use("/api/analytics", isAuthenticatedMid);
   app.use("/api/analytics", analytics);
+  app.use("/api/quarantine", quarantine);
+  app.use("/api/preset", isAuthenticatedMid);
+  app.use("/api/preset", preset);
+  app.use("/api/ai", isAuthenticatedMid);
+  app.use("/api/ai", aiAnalysis);
+  app.use("/mcp", isAuthenticatedMid, mcp);
 
   app.use("/api/noauth", noauth);
 
@@ -272,14 +298,26 @@ if (config !== undefined) {
     res.sendFile(path.join(__dirname, "public/nextgen/browser/index.html"));
   });
 
+  // Init license state from DB after mongoose connects
+  const { initLicense } = require('./src/utils/license');
+  const mongoose = require('mongoose');
+  if (mongoose.connection.readyState === 1) {
+    initLicense(() => console.log('License initialized'));
+  } else {
+    mongoose.connection.once('open', () => {
+      initLicense(() => console.log('License initialized'));
+    });
+  }
+
   app.use(function (err, req, res, next) {
     if (res.headersSent) {
       return next(err);
     }
-    console.log("Internal Error:", err);
-    res.status(500).json({
-      error: err,
-    });
+    console.error("Internal Error:", err);
+    if (err && err.name === "ValidationError") {
+      return res.status(500).json({ error: err });
+    }
+    res.status(500).json({ error: "Internal server error" });
   });
 } else {
   console.error("Cannot find configuration file, Server will not be started.");

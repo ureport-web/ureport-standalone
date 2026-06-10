@@ -102,7 +102,7 @@ userSchema = new Schema(
             status : Schema.Types.Mixed
           }, {_id: false})
     }, {_id: false})
-)
+, { timestamps: true })
 
 userSchema.pre 'save', (next) ->
   user = this
@@ -136,14 +136,17 @@ userSchema.statics.updateOne = (user, payload) ->
     if(payload.position)
       user.position = payload.position
 
-    if(payload.settings && payload.settings.language)
-      user.settings.language = payload.settings.language
-    if(payload.settings && payload.settings.theme)
-      user.settings.theme  = payload.settings.theme 
-    if(payload.settings && payload.settings.report)
-      user.settings.report = payload.settings.report
-    if(payload.settings && payload.settings.dashboard)
-      user.settings.dashboard = payload.settings.dashboard
+    if(payload.settings)
+      if(!user.settings)
+        user.settings = {}
+      if(payload.settings.language)
+        user.settings.language = payload.settings.language
+      if(payload.settings.theme)
+        user.settings.theme  = payload.settings.theme
+      if(payload.settings.report)
+        user.settings.report = payload.settings.report
+      if(payload.settings.dashboard)
+        user.settings.dashboard = payload.settings.dashboard
 
 userSchema.statics.findByName = (username, callback) ->
   User.findOne({username: username}).exec (err, user) ->

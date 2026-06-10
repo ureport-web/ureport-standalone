@@ -5,6 +5,7 @@ moment = require('moment');
 Dashboard = require('../models/dashboard')
 ObjectId = require('mongoose').Types.ObjectId;
 async = require("async")
+{ getLicenseState } = require('../utils/license')
 
 AccessControl = require('../utils/ac_grants')
 component = 'dashboard'
@@ -59,7 +60,7 @@ router.post '/',  (req, res, next) ->
     return res.status(403).json({"error": "You don't have permission to perform this action"})
 
   if(req.body._id != undefined)
-    condition = { _id: new ObjectId(req.body._id) }  
+    condition = { _id: new ObjectId(req.body._id) }
     Dashboard.findOneAndUpdate(condition, req.body, { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true },
       (err, rs) ->
         if err
@@ -67,12 +68,23 @@ router.post '/',  (req, res, next) ->
         res.json rs
     );
   else
-    dashboard = new Dashboard(req.body)
-    dashboard.save((err, rs) ->
-      if err
-        return next(err)
-      res.json rs
-    );
+    state = getLicenseState()
+    if state.dashboards isnt null
+      Dashboard.countDocuments({ user: req.body.user }).exec (err, count) ->
+        if err then return next(err)
+        if count >= state.dashboards
+          return res.status(403).json({ error: 'Dashboard limit reached', limit: state.dashboards })
+        dashboard = new Dashboard(req.body)
+        dashboard.save (err, rs) ->
+          if err then return next(err)
+          res.json rs
+    else
+      dashboard = new Dashboard(req.body)
+      dashboard.save((err, rs) ->
+        if err
+          return next(err)
+        res.json rs
+      );
 
 # Update dashboard
 router.put '/:id',  (req, res, next) ->
@@ -127,6 +139,8 @@ router.post '/:id/share', (req, res, next) ->
     if dashboard
       if (!AccessControl.canAccessUpdateAnyIfOwn(req.user, dashboard.user.toString(), component))
         return res.status(403).json({"error": "You don't have permission to perform this action"})
+      unless getLicenseState().features.includes('dashboard_sharing')
+        return res.status(403).json({ error: 'Dashboard sharing requires a Pro license' })
       dashboard.share_token = crypto.randomBytes(32).toString('hex')
       dashboard.save((err, rs) ->
         if err
@@ -147,6 +161,8 @@ router.delete '/:id/share', (req, res, next) ->
     if dashboard
       if (!AccessControl.canAccessUpdateAnyIfOwn(req.user, dashboard.user.toString(), component))
         return res.status(403).json({"error": "You don't have permission to perform this action"})
+      unless getLicenseState().features.includes('dashboard_sharing')
+        return res.status(403).json({ error: 'Dashboard sharing requires a Pro license' })
       dashboard.share_token = null
       dashboard.save((err, rs) ->
         if err

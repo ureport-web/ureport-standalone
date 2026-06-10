@@ -2,8 +2,6 @@ process.env.NODE_ENV = 'test'
 mongoose = require('mongoose')
 config = require('config')
 
-process.env.PORT = process.env.PORT
-
 Promise = require("bluebird")
 async = require("async")
 

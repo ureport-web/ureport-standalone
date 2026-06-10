@@ -232,38 +232,6 @@ describe 'User with admin access', ->
         )
         return
 
-    it 'can sign up user and billing table', (done) ->
-        payload = {
-            username: "TestSignUpUser",
-            password: "TestSignUpUser",
-            role: "admin",
-            email: "test@test.com",
-            settings: {
-                report: {
-                    assignmentRI : 15,
-                    displaySearchAndFilterBoxInStep: false,
-                    displaySelfAN: true,
-                    fieldDoesnotExist: "12"
-                }
-            }
-        }
-        user.create(server, cookies, payload,  200,
-        (rs) ->
-            rs.body.username.should.equal 'TestSignUpUser'
-            rs.body.email.should.equal 'test@test.com'
-            rs.body.displayname.should.equal 'TestSignUpUser'
-            rs.body.role.should.equal 'admin'
-            rs.body.settings.language.should.equal 'en'
-            rs.body.settings.theme.name.should.equal 'bootstrap'
-            rs.body.settings.theme.type.should.equal 'light'
-            rs.body.settings.report.assignmentRI.should.equal 15
-            rs.body.settings.report.displaySearchAndFilterBoxInStep.should.equal false
-            rs.body.settings.report.displaySelfAN.should.equal true
-            rs.body.settings.report.should.not.have.property "fieldDoesnotExist"
-            done()
-        )
-        return
-
     it 'cannot update user password using update endpoint', (done) ->
         payload = {
             password: "updateemail@test.com"

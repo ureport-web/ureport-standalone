@@ -4,6 +4,7 @@ moment = require('moment');
 
 SystemSetting = require('../models/system_setting')
 getSystemSetting = require('../utils/getSystemSetting')
+{ validateLicense, invalidateCache, setCachedState } = require('../utils/license')
 
 ObjectId = require('mongoose').Types.ObjectId;
 async = require("async")
@@ -17,31 +18,33 @@ maskCredentials = (setting) ->
   if obj.ai
     obj.ai = Object.assign({}, obj.ai)
     if obj.ai.api_key               then obj.ai.api_key               = MASKED
-    if obj.ai.aws_access_key_id     then obj.ai.aws_access_key_id     = MASKED
-    if obj.ai.aws_secret_access_key then obj.ai.aws_secret_access_key = MASKED
-    if obj.ai.aws_session_token     then obj.ai.aws_session_token     = MASKED
   if obj.notification?.email?.password
     obj.notification = JSON.parse(JSON.stringify(obj.notification))
     obj.notification.email.password = MASKED
+  if obj.license_key then obj.license_key = MASKED
   obj
 
 guardCredentials = (body, existing) ->
   if body.ai
     if !body.ai.api_key or body.ai.api_key is MASKED
       body.ai.api_key = existing?.ai?.api_key or ''
-    if !body.ai.aws_access_key_id or body.ai.aws_access_key_id is MASKED
-      body.ai.aws_access_key_id = existing?.ai?.aws_access_key_id or ''
-    if !body.ai.aws_secret_access_key or body.ai.aws_secret_access_key is MASKED
-      body.ai.aws_secret_access_key = existing?.ai?.aws_secret_access_key or ''
-    if !body.ai.aws_session_token or body.ai.aws_session_token is MASKED
-      body.ai.aws_session_token = existing?.ai?.aws_session_token or ''
   if body.notification?.email
     if !body.notification.email.password or body.notification.email.password is MASKED
       body.notification.email.password = existing?.notification?.email?.password or ''
+  if body.license_key is MASKED
+    body.license_key = existing?.license_key or undefined
+  body
+
+applyLicenseKey = (body, existing) ->
+  newKey = body.license_key
+  if newKey and newKey isnt MASKED and newKey isnt (existing?.license_key or '')
+    invalidateCache()
+    state = validateLicense(newKey)
+    setCachedState(state)
   body
 
 router.get '/:name',  (req, res, next) ->
-  if (!AccessControl.canAccessDeleteAny(req.user.role,component))
+  if (!AccessControl.canAccessReadAny(req.user.role,component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
   if(!req.params.name)
     res.status(400)
@@ -90,6 +93,7 @@ router.put '/:id',  (req, res, next) ->
 
     if systemSetting
       guardCredentials(req.body, systemSetting)
+      applyLicenseKey(req.body, systemSetting)
       #perform update
       SystemSetting.updateSetting(systemSetting, req.body)
       systemSetting.save (err, results) ->
@@ -112,6 +116,7 @@ router.post '/',  (req, res, next) ->
     if err
       return next(err)
     guardCredentials(req.body, existing)
+    applyLicenseKey(req.body, existing)
     SystemSetting.findOneAndUpdate({name: 'SYSTEM_SETTING'}, req.body,
       {
         upsert: true,

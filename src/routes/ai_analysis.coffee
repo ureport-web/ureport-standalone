@@ -8,6 +8,7 @@ AiAnalysis = require('../models/ai_analysis')
 InvestigatedTest = require('../models/investigated_test')
 aiProviderFactory = require('../utils/ai_provider_factory')
 aiService = require('../utils/ai_service')
+logger = require('../utils/logger')
 
 deduplicateSiblings = (siblings) ->
   byUid = {}
@@ -41,7 +42,7 @@ insertSiblingRecords = (siblings, inputHash, result, provider, model, product, t
     )
     return if not toInsert.length
     AiAnalysis.insertMany(toInsert, { ordered: false }, (err) ->
-      if err then console.error('Failed to backfill sibling AI analyses:', err)
+      if err then logger.warn('Failed to backfill sibling AI analyses:', err)
     )
   )
 
@@ -96,7 +97,7 @@ router.post '/analyze-test/:testId', (req, res, next) ->
                   model: cached.model
                 })
                 newRecord.save((err) ->
-                  if err then console.error('Failed to save AiAnalysis for cache-hit test_id:', err)
+                  if err then logger.warn('Failed to save AiAnalysis for cache-hit test_id:', err)
                 )
               if not errorMsg
                 return res.json({ result: cached.result, cached: true, provider: cached.provider, model: cached.model, siblingTestIds: [] })
@@ -159,7 +160,7 @@ router.post '/analyze-test/:testId', (req, res, next) ->
                 record.save((err, saved) ->
                   if err
                     # Don't fail if save fails — still return result
-                    console.error('Failed to save AiAnalysis:', err)
+                    logger.warn('Failed to save AiAnalysis:', err)
 
                   if not errorMsg
                     return res.json({ result: result, cached: false, provider: providerName, model: modelName, siblingTestIds: [] })
@@ -223,17 +224,30 @@ router.get '/analyses', (req, res, next) ->
   )
 
 ###
+ * GET /api/ai/configured
+ * Lightweight check — returns whether an AI provider is configured (no AI call made)
+###
+router.get '/configured', (req, res, next) ->
+  aiProviderFactory.getProvider((err, provider, providerName) ->
+    if err then return next(err)
+    res.json({ configured: !!provider, provider: providerName or null })
+  )
+
+###
  * GET /api/ai/ping
- * Check if AI is configured
+ * Check if AI is configured and reachable
 ###
 router.get '/ping', (req, res, next) ->
-  aiProviderFactory.getProvider((err, provider, providerName) ->
+  aiProviderFactory.getProvider((err, provider, providerName, model) ->
     if err
       return next(err)
-    if provider
-      res.json({ configured: true, provider: providerName })
-    else
-      res.json({ configured: false, provider: null })
+    if not provider
+      return res.json({ configured: false, provider: null })
+    provider.chat('You are a test assistant.', 'Reply with only the word PONG.', (chatErr, reply) ->
+      if chatErr
+        return res.status(502).json({ configured: true, provider: providerName, error: chatErr.message or String(chatErr) })
+      res.json({ configured: true, provider: providerName, model: model, reply: reply?.trim() })
+    )
   )
 
 module.exports = router

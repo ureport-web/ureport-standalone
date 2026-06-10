@@ -4,6 +4,8 @@ buildUserMessage = (testData, historyTests, investigatedTests) ->
   lines = []
 
   lines.push("Test name: " + (testData.name or testData.uid or 'Unknown'))
+  if testData.file
+    lines.push("Test file: " + testData.file)
   lines.push("")
 
   if testData.failure
@@ -45,11 +47,11 @@ buildUserMessage = (testData, historyTests, investigatedTests) ->
 
   # Run history
   if historyTests and historyTests.length > 0
-    lines.push("Recent run history (most recent first):")
+    lines.push("Run history (most recent first):")
     for t in historyTests
-      statusLine = "  - " + (t.status or 'UNKNOWN')
+      statusLine = "  " + (t.status or 'UNKNOWN')
       if t.failure and t.failure.error_message
-        statusLine += ": " + t.failure.error_message.substring(0, 100)
+        statusLine += ": " + t.failure.error_message.substring(0, 250)
       lines.push(statusLine)
     lines.push("")
 
@@ -62,15 +64,17 @@ buildUserMessage = (testData, historyTests, investigatedTests) ->
     lines.push("")
 
   lines.push("Based on the above, respond with a JSON object with these fields:")
-  lines.push('{"root_cause_category": "Code Defect | Test Flakiness | Environment Issue | Configuration Error | Test Data Issue | Infrastructure Issue", "confidence": 0-100, "explanation": "2-3 sentence explanation", "suggested_fix": "one actionable thing to try", "related_patterns": ["pattern1", "pattern2"]}')
+  lines.push('{"root_cause_category": "Code Defect | Test Flakiness | Environment Issue | Configuration Error | Test Data Issue | Infrastructure Issue", "confidence": 0-100, "what_failed": "specific assertion, selector, API call, or step that failed", "why_it_failed": "root cause reasoning referencing the error/stack/steps", "fix": "concrete actionable fix (not generic)", "flakiness_signal": "consistent | intermittent | regression | new", "related_patterns": ["pattern1", "pattern2"]}')
 
   return lines.join('\n')
 
+logger = require('./logger')
+
 analyzeTestFailure = (provider, testData, historyTests, investigatedTests, callback) ->
   userMessage = buildUserMessage(testData, historyTests, investigatedTests)
-  console.log('[AI] Sending prompt payload:')
-  console.log('[AI] SYSTEM:', SYSTEM_PROMPT)
-  console.log('[AI] USER MESSAGE:\n' + userMessage)
+  logger.debug('[AI] Sending prompt payload:')
+  logger.debug('[AI] SYSTEM:', SYSTEM_PROMPT)
+  logger.debug('[AI] USER MESSAGE:\n' + userMessage)
   provider.chat(SYSTEM_PROMPT, userMessage, (err, text) ->
     if err
       return callback(err, null)

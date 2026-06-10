@@ -8,6 +8,8 @@ signature = require('cookie-signature');
 nodemailer = require('nodemailer')
 getSystemSetting = require('../utils/getSystemSetting')
 sendConfirmationEmail = require('../utils/send_confirmation_email')
+logger = require('../utils/logger')
+{ getLicenseState } = require('../utils/license')
 
 router.post '/login', (req, res, next) -> 
     passport.authenticate('local', (err, user, info) -> 
@@ -20,15 +22,18 @@ router.post '/login', (req, res, next) ->
         # Check user status
         if user.status != 'active'
             return res.status(403).json({ message: 'Account not active. Please contact administrator.' })
-        req.login user, (err) -> 
-            if (err) 
+        req.session.regenerate (err) ->
+            if (err)
                 return next(err)
-            # Sign the session ID with the same secret used by express-session
-            signedSessionId = 's:' + signature.sign(req.sessionID, 'uReport')
-            return res.json({
-                session: req.session,
-                sessionId: signedSessionId
-            })
+            req.login user, (err) ->
+                if (err)
+                    return next(err)
+                # Sign the session ID with the same secret used by express-session
+                signedSessionId = 's:' + signature.sign(req.sessionID, 'uReport')
+                return res.json({
+                    session: req.session,
+                    sessionId: signedSessionId
+                })
     )(req, res, next);
 
 router.post '/signup', (req, res, next) ->
@@ -56,28 +61,42 @@ router.post '/signup', (req, res, next) ->
             newUser.confirmationToken = confirmToken
             newUser.confirmationTokenExpires = new Date(Date.now() + 24 * 3600000)
 
-        newUser.save (err) ->
-            if err
-                if err.code == 11000
-                    return res.status(400).json({ message: 'Username already exists' })
-                return res.status(500).json({ message: err.message || 'Error creating user' })
+        saveUser = ->
+            newUser.save (err) ->
+                if err
+                    if err.code == 11000
+                        return res.status(400).json({ message: 'Username already exists' })
+                    return res.status(500).json({ message: err.message || 'Error creating user' })
 
-            if hasEmailConfig && !isAdminCreating
-                sendConfirmationEmail(req, newUser, confirmToken)
-                res.json({
-                    message: 'Please check your email to confirm your account.',
-                    requiresEmailConfirmation: true
-                })
-            else if isAdminCreating
-                res.json({
-                    message: 'User created successfully.',
-                    requiresEmailConfirmation: false
-                })
+                if hasEmailConfig && !isAdminCreating
+                    sendConfirmationEmail(req, newUser, confirmToken)
+                    res.json({
+                        message: 'Please check your email to confirm your account.',
+                        requiresEmailConfirmation: true
+                    })
+                else if isAdminCreating
+                    res.json({
+                        message: 'User created successfully.',
+                        requiresEmailConfirmation: false
+                    })
+                else
+                    res.json({
+                        message: 'Account created. Waiting for admin approval.',
+                        requiresEmailConfirmation: false
+                    })
+
+        if isAdminCreating
+            state = getLicenseState()
+            if state.seats isnt null
+                User.countDocuments({ status: 'active' }).exec (err, count) ->
+                    if err then return next(err)
+                    if count >= state.seats
+                        return res.status(403).json({ error: 'User seat limit reached', limit: state.seats })
+                    saveUser()
             else
-                res.json({
-                    message: 'Account created. Waiting for admin approval.',
-                    requiresEmailConfirmation: false
-                })
+                saveUser()
+        else
+            saveUser()
 
 router.get '/confirm-email/:token', (req, res, next) ->
     User.findOne({
@@ -86,12 +105,24 @@ router.get '/confirm-email/:token', (req, res, next) ->
     }).exec (err, user) ->
         if err then return next(err)
         if !user then return res.status(400).json({ message: 'Invalid or expired confirmation token.' })
-        user.status = 'active'
-        user.confirmationToken = undefined
-        user.confirmationTokenExpires = undefined
-        user.save (err) ->
-            if err then return next(err)
-            res.json({ message: 'Email confirmed! You can now log in.' })
+
+        state = getLicenseState()
+        activateUser = ->
+            user.status = 'active'
+            user.confirmationToken = undefined
+            user.confirmationTokenExpires = undefined
+            user.save (err) ->
+                if err then return next(err)
+                res.json({ message: 'Email confirmed! You can now log in.' })
+
+        if state.seats isnt null
+            User.countDocuments({ status: 'active' }).exec (err, count) ->
+                if err then return next(err)
+                if count >= state.seats
+                    return res.status(403).json({ message: 'Seat limit reached. Please contact your administrator.' })
+                activateUser()
+        else
+            activateUser()
 
 router.post '/logout', (req, res, next) ->
     req.logout()
@@ -133,9 +164,11 @@ router.post '/forgot', (req, res, next) ->
                 token = buf.toString('hex')
                 done(err, token)
         (token, done) ->
-            User.findOne { email: req.body.email }, (err, user) ->
+            identifier = req.body.identifier or ''
+            query = if identifier.indexOf('@') >= 0 then { email: identifier } else { username: identifier }
+            User.findOne query, (err, user) ->
                 if !user
-                    return res.json { msg: 'No account with that email address exists.' }
+                    return res.json { msg: 'No account with that email or username exists.' }
                 user.resetPasswordToken = token
                 user.resetPasswordExpires = Date.now() + 3600000
                 user.save (err) ->
@@ -143,7 +176,7 @@ router.post '/forgot', (req, res, next) ->
         (token, user, done) ->
             getSystemSetting req, "SYSTEM_SETTING", false, (setting) ->
                 if !setting?.notification?.email?.user or !setting?.notification?.email?.password
-                    console.log("Email not configured, skipping password reset email")
+                    logger.info("Email not configured, skipping password reset email")
                     return done(null)
                 sender = setting.notification.email.user
                 baseUrl = setting.notification.url or (req.protocol + '://' + req.get('host'))
@@ -161,7 +194,7 @@ router.post '/forgot', (req, res, next) ->
                     text: 'Click the link to reset your password: ' + resetUrl
                     html: '<p>You requested a password reset. Click below to set a new password (link expires in 1 hour):</p><p><a href="' + resetUrl + '">Reset Password</a></p><p>If you did not request this, ignore this email.</p>'
                 transporter.sendMail mailOptions, (err, info) ->
-                    if err then console.log err
+                    if err then logger.error err
                     done(null)
         ], (err) ->
             if err

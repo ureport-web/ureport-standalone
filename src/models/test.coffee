@@ -53,6 +53,7 @@ testSchema.index({build: 1, uid: 1});
 testSchema.index({build: 1});
 testSchema.index({uid: 1});
 testSchema.index({ "failure.error_message": 1});
+testSchema.index({ build: 1, status: 1, is_rerun: 1 });
 
 testSchema.statics.buildBuildsQuery = (rs, buildIds) ->
 	async.each(buildIds,

@@ -1,15 +1,16 @@
 express = require('express')
 moment = require('moment')
 router = express.Router()
+crypto = require('crypto')
 # file upload
 multer  = require('multer')
 storage = multer.diskStorage({
   destination: (req, file, cb) ->
     cb(null, 'dist/assets/images/uploads')
   filename: (req, file, cb) ->
-    cb(null, file.fieldname + '-' + Date.now())
+    cb(null, crypto.randomBytes(16).toString('hex'))
 })
-upload = multer({ storage: storage })
+upload = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 } })
 
 Test = require('../models/test')
 getSystemSetting = require('../utils/getSystemSetting')
@@ -18,10 +19,11 @@ async = require("async")
 ObjectId = require('mongoose').Types.ObjectId;
 registerAudit = require('../utils/register_audit')
 NodeCache = require('node-cache')
+logger = require('../utils/logger')
 
 AccessControl = require('../utils/ac_grants')
 component = 'test'
-testCache = new NodeCache({ stdTTL: 0 , maxKeys: 10000 })
+testCache = new NodeCache({ stdTTL: 86400, maxKeys: 10000 })
 
 router.get '/:id',  (req, res, next) ->
     Test.findOne({
@@ -35,7 +37,7 @@ router.post '/single', upload.single('image'), (req, res, next) ->
     if (!AccessControl.canAccessCreateAny(req.user.role,component))
         return res.status(403).json({"error": "You don't have permission to perform this action"})
     if(req.file && req.file.mimetype)
-        if(req.file.mimetype == 'image/jpg' || req.file.mimetype == 'image/png')
+        if req.file.mimetype in ['image/jpg', 'image/jpeg', 'image/png']
             try 
                 res.status(200)
                 res.json {msg:"success"}
@@ -237,16 +239,16 @@ router.post '/filter/all',  (req, res, next) ->
             else
                 uncachedBuildIds.push(buildId)
         catch err
-            console.log("Cache get error for #{buildId}:", err)
+            logger.warn("Cache get error for #{buildId}:", err)
             uncachedBuildIds.push(buildId)
     
     cacheTime = Date.now() - cacheStartTime
-    console.log("Uncached build IDs:", uncachedBuildIds)
+    logger.debug("Uncached build IDs:", uncachedBuildIds)
         
     # If all builds are cached, return immediately
     if uncachedBuildIds.length == 0
         totalTime = Date.now() - startTime
-        console.log("All builds found in cache - Total response time: #{totalTime}ms")
+        logger.debug("All builds found in cache - Total response time: #{totalTime}ms")
         return res.json cachedResults
 
     # Query only uncached builds
@@ -274,7 +276,7 @@ router.post '/filter/all',  (req, res, next) ->
     .sort({uid:1})
     .exec((err, tests) ->
         dbTime = Date.now() - dbStartTime
-        console.log("DB query took #{dbTime}ms")
+        logger.debug("DB query took #{dbTime}ms")
         if(err)
             return next err
         
@@ -291,13 +293,13 @@ router.post '/filter/all',  (req, res, next) ->
             try
                 testCache.set(cacheKey, buildTests)
             catch err
-                console.log("Cache set error for #{buildId}:", err)
+                logger.warn("Cache set error for #{buildId}:", err)
         
         # Combine cached and new results
         allResults = cachedResults.concat(tests)
         totalTime = Date.now() - startTime
-        console.log("Total response time: #{totalTime}ms (Cache: #{cacheTime}ms, DB: #{dbTime}ms)")
-        console.log("Cache stats:", testCache.getStats())
+        logger.debug("Total response time: #{totalTime}ms (Cache: #{cacheTime}ms, DB: #{dbTime}ms)")
+        logger.debug("Cache stats:", testCache.getStats())
         res.json allResults
     )
 

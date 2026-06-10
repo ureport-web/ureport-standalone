@@ -1,5 +1,6 @@
 nodemailer = require('nodemailer');
 getSystemSetting = require('./getSystemSetting')
+logger = require('./logger')
 emailTransporter = undefined;
 
 renderTemplate = (recipientUsers, build, statusSummary, ruleNames, frontendUrl) ->
@@ -69,13 +70,13 @@ module.exports = (req, res, recipientUsers, build, statusSummary, ruleNames) ->
   getSystemSetting(req, "SYSTEM_SETTING", false,
     (setting) ->
       if(!setting.notification?.email?.user || !setting.notification?.email?.password)
-        console.log("Email not configured, skipping build notification email")
+        logger.info("Email not configured, skipping build notification email")
         return
 
       sender = setting.notification.email.user
 
       if(!emailTransporter)
-        console.log("creating transporter for build notification email")
+        logger.debug("creating transporter for build notification email")
         emailTransporter = nodemailer.createTransport(
           service: 'Gmail'
           auth:
@@ -99,8 +100,8 @@ module.exports = (req, res, recipientUsers, build, statusSummary, ruleNames) ->
         },
         (error, info) ->
           if error
-            console.log error
+            logger.error error
           else
-            console.log 'Build notification sent to ' + user.email + ': ' + info.response
+            logger.info 'Build notification sent to ' + user.email + ': ' + info.response
           return
   )

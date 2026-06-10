@@ -19,15 +19,28 @@ quarantinedTestSchema = new Schema(
   },
   rule_id: String,
   rule_name: String,
+  triggered_mode: String,
   quarantined_at: { type: Date, default: Date.now },
   fail_snapshot: Number,
   build_snapshot: Number,
   is_active: { type: Boolean, default: true },
   is_exempt: { type: Boolean, default: false },
-  resolved_at: { type: Date, default: null }
+  resolved_at: { type: Date, default: null },
+  scope: {
+    version:          { type: String, default: '' },
+    team:             { type: String, default: '' },
+    browser:          { type: String, default: '' },
+    device:           { type: String, default: '' },
+    platform:         { type: String, default: '' },
+    platform_version: { type: String, default: '' },
+    stage:            { type: String, default: '' }
+  }
 )
 
-quarantinedTestSchema.index({ uid: 1, product: 1, type: 1 }, { unique: true })
+quarantinedTestSchema.index(
+  { uid: 1, product: 1, type: 1, 'scope.version': 1, 'scope.team': 1, 'scope.browser': 1, 'scope.device': 1, 'scope.platform': 1, 'scope.platform_version': 1, 'scope.stage': 1 },
+  { unique: true }
+)
 quarantinedTestSchema.index({ resolved_at: 1 }, { expireAfterSeconds: 7776000 })
 
 module.exports = mongoose.model('QuarantinedTest', quarantinedTestSchema)

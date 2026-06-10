@@ -16,9 +16,7 @@ const users = require('./data/users');
 const templates = require('./data/templates');
 const settings = require('./data/settings');
 
-const dbHost = env === 'production'
-  ? process.env.DBHost
-  : config.DBHost;
+const dbHost = process.env.DBHost || config.DBHost;
 
 if (!dbHost) {
   console.error('DBHost is not set.');
@@ -29,12 +27,18 @@ mongoose.connect(dbHost, { useNewUrlParser: true });
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
 
-Promise.all([
-  User.create(users),
-  DashboardTemplate.create(templates),
-  Setting.create(settings),
-]).then(() => {
+(async () => {
+  const userCount = await User.countDocuments();
+  if (userCount > 0) {
+    console.log('Already initialized, skipping.');
+    return;
+  }
+  await User.create(users);
+  await DashboardTemplate.create(templates);
+  await Setting.create(settings);
   console.log('Initialization complete.');
+})().then(() => {
+  mongoose.disconnect();
   process.exit();
 }).catch((err) => {
   console.error(err.message);
