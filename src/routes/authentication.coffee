@@ -6,6 +6,7 @@ async = require('async');
 crypto = require('crypto');
 signature = require('cookie-signature');
 nodemailer = require('nodemailer')
+mongoose = require('mongoose')
 getSystemSetting = require('../utils/getSystemSetting')
 sendConfirmationEmail = require('../utils/send_confirmation_email')
 logger = require('../utils/logger')
@@ -22,18 +23,30 @@ router.post '/login', (req, res, next) ->
         # Check user status
         if user.status != 'active'
             return res.status(403).json({ message: 'Account not active. Please contact administrator.' })
-        req.session.regenerate (err) ->
-            if (err)
-                return next(err)
-            req.login user, (err) ->
-                if (err)
-                    return next(err)
-                # Sign the session ID with the same secret used by express-session
-                signedSessionId = 's:' + signature.sign(req.sessionID, 'uReport')
-                return res.json({
-                    session: req.session,
-                    sessionId: signedSessionId
-                })
+        # Terminate all existing sessions for this user
+        sessionColl = mongoose.connection.db.collection('sessions')
+        userIdStr = user._id.toString()
+        sessionColl.find({ session: { $regex: userIdStr } }).toArray (findErr, docs) ->
+            updates = (docs or []).map (doc) ->
+                try
+                    data = JSON.parse(doc.session)
+                    data.terminated = true
+                    sessionColl.updateOne({ _id: doc._id }, { $set: { session: JSON.stringify(data) } })
+                catch e
+                    Promise.resolve()
+            Promise.all(updates).then ->
+                req.session.regenerate (err) ->
+                    if (err)
+                        return next(err)
+                    req.login user, (err) ->
+                        if (err)
+                            return next(err)
+                        # Sign the session ID with the same secret used by express-session
+                        signedSessionId = 's:' + signature.sign(req.sessionID, 'uReport')
+                        return res.json({
+                            session: req.session,
+                            sessionId: signedSessionId
+                        })
     )(req, res, next);
 
 router.post '/signup', (req, res, next) ->
@@ -126,7 +139,8 @@ router.get '/confirm-email/:token', (req, res, next) ->
 
 router.post '/logout', (req, res, next) ->
     req.logout()
-    res.json { msg:  'You are log out'}
+    req.session.destroy (err) ->
+        res.json { msg: 'You are log out' }
 
 router.post '/token', (req, res, next) ->
   if !req.isAuthenticated()

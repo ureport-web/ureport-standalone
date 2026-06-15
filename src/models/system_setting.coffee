@@ -17,6 +17,7 @@ systemSettingSchema = new Schema(
 	tc_management: Schema.Types.Mixed,
 	ai: Schema.Types.Mixed,
 	license_key: { type: String },
+	framework_presets: Schema.Types.Mixed,
 )
 
 systemSettingSchema.statics.updateSetting = (setting, payload) ->
@@ -37,4 +38,7 @@ systemSettingSchema.statics.updateSetting = (setting, payload) ->
 			setting.ai = payload.ai
 		if(payload.license_key != undefined)
 			setting.license_key = payload.license_key
+		if(payload.framework_presets != undefined)
+			setting.framework_presets = payload.framework_presets
+			setting.markModified('framework_presets')
 module.exports = mongoose.model('SystemSetting', systemSettingSchema)

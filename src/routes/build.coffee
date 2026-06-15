@@ -11,6 +11,7 @@ async = require("async")
 registerAudit = require('../utils/register_audit')
 AccessControl = require('../utils/ac_grants')
 matcher = require('../utils/notification_rule_matcher')
+{ getLicenseState } = require('../utils/license')
 component = 'build'
 
 Setting = require('../models/setting')
@@ -1008,6 +1009,7 @@ fireNotificationRules = (req, res, build, statusSummary) ->
 
     Setting.findOne({ product: build.product, type: build.type }).exec (err, setting) ->
       return unless setting?.notification?.rules?.length
+      return unless getLicenseState().features.includes('notifications')
       enabledRules = setting.notification.rules.filter (r) -> r.enabled
       return unless enabledRules.length
 

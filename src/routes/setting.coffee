@@ -36,7 +36,8 @@ router.post '/',  (req, res, next) ->
       return res.status(403).json({"error": "You don't have permission to perform this action"})
   if req.body.notification?.rules?.length > 0
     unless getLicenseState().features.includes('notifications')
-      return res.status(403).json({ error: 'Notification rules require a Pro license' })
+      if req.body.notification
+        delete req.body.notification.rules
   setting = new Setting(req.body)
   setting.save((err, setting) ->
     if err
@@ -54,9 +55,6 @@ router.post '/',  (req, res, next) ->
 router.put '/:id',  (req, res, next) ->
   if (!AccessControl.canAccessUpdateAny(req.user.role,component))
       return res.status(403).json({"error": "You don't have permission to perform this action"})
-  if req.body.notification?.rules?.length > 0
-    unless getLicenseState().features.includes('notifications')
-      return res.status(403).json({ error: 'Notification rules require a Pro license' })
   Setting.findOne({_id: req.params.id}).
   exec((err, setting) ->
     if err

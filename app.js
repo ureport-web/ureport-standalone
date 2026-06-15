@@ -170,6 +170,11 @@ if (config !== undefined) {
   };
 
   var isAuthenticatedMid = async (req, res, next) => {
+    // Detect kicked session
+    if (req.session && req.session.terminated) {
+      req.session.destroy(() => {});
+      return res.status(401).json({ code: 'SESSION_TERMINATED', message: 'Signed out — another login was detected.' });
+    }
     const authHeader = req.headers["authorization"];
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.slice(7);
