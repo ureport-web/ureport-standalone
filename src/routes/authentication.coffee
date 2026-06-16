@@ -34,7 +34,7 @@ router.post '/login', (req, res, next) ->
             return next(err)
         if (!user)
             createAuthAudit(req, 'LOGIN_FAIL', 'Login Failed', req.body.username)
-            return res.redirect('/login')
+            return res.status(401).json({ message: 'Invalid username or password' })
         # Check user status
         if user.status != 'active'
             createAuthAudit(req, 'LOGIN_FAIL', 'Login Failed - Account Inactive', user.username)
