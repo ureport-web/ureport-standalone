@@ -11,17 +11,33 @@ getSystemSetting = require('../utils/getSystemSetting')
 sendConfirmationEmail = require('../utils/send_confirmation_email')
 logger = require('../utils/logger')
 { getLicenseState } = require('../utils/license')
+Audit = require('../models/audit')
 
-router.post '/login', (req, res, next) -> 
-    passport.authenticate('local', (err, user, info) -> 
-        if (info)
-            return next(info)
+createAuthAudit = (req, audit_type, action, username) ->
+    ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() or req.ip or ""
+    audit = new Audit({
+        audit_type: audit_type,
+        action: action,
+        uid: username or "",
+        product: 'SYSTEM',
+        type: 'AUTH',
+        username: username or "",
+        entity_type: 'auth',
+        ip: ip
+    })
+    audit.save (err) ->
+        return
+
+router.post '/login', (req, res, next) ->
+    passport.authenticate('local', (err, user, info) ->
         if (err)
             return next(err)
         if (!user)
+            createAuthAudit(req, 'LOGIN_FAIL', 'Login Failed', req.body.username)
             return res.redirect('/login')
         # Check user status
         if user.status != 'active'
+            createAuthAudit(req, 'LOGIN_FAIL', 'Login Failed - Account Inactive', user.username)
             return res.status(403).json({ message: 'Account not active. Please contact administrator.' })
         # Terminate all existing sessions for this user
         sessionColl = mongoose.connection.db.collection('sessions')
@@ -41,6 +57,7 @@ router.post '/login', (req, res, next) ->
                     req.login user, (err) ->
                         if (err)
                             return next(err)
+                        createAuthAudit(req, 'LOGIN', 'Login Success', user.username)
                         # Sign the session ID with the same secret used by express-session
                         signedSessionId = 's:' + signature.sign(req.sessionID, 'uReport')
                         return res.json({
@@ -138,6 +155,8 @@ router.get '/confirm-email/:token', (req, res, next) ->
             activateUser()
 
 router.post '/logout', (req, res, next) ->
+    username = if req.user then req.user.username else ""
+    createAuthAudit(req, 'LOGOUT', 'Logout', username)
     req.logout()
     req.session.destroy (err) ->
         res.json { msg: 'You are log out' }

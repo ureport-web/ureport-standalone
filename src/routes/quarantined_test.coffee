@@ -2,6 +2,7 @@ express = require('express')
 router = express.Router()
 QuarantinedTest = require('../models/quarantined_test')
 ObjectId = require('mongoose').Types.ObjectId
+registerAudit = require('../utils/register_audit')
 
 SCOPE_FIELDS = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage']
 
@@ -57,6 +58,7 @@ router.post '/filter', (req, res, next) ->
 
 # PUT /:id — manual resolve (set is_active: false, optionally is_exempt: true)
 router.put '/:id', (req, res, next) ->
+  registerAudit(req, res, 'QUARANTINE_RESOLVE', 'Resolve Quarantine', 'quarantine', { uid: req.params.id, product: 'SYSTEM', type: 'QUARANTINE' })
   update = { is_active: false, resolved_at: new Date() }
   update.is_exempt = true if req.body.is_exempt == true
   update.is_exempt = false if req.body.is_exempt == false
@@ -75,6 +77,7 @@ router.put '/:id', (req, res, next) ->
 
 # DELETE /:id — hard delete
 router.delete '/:id', (req, res, next) ->
+  registerAudit(req, res, 'RELEASE', 'Release Quarantine', 'quarantine', { uid: req.params.id, product: 'SYSTEM', type: 'QUARANTINE' })
   QuarantinedTest.findOneAndRemove({ _id: new ObjectId(req.params.id) }).exec (err, doc) ->
     if err
       return next err

@@ -210,6 +210,7 @@ if (config !== undefined) {
   app.use("/api/assignment", isAuthenticatedMid);
   app.use("/api/tracking", isAuthenticatedMid);
   app.use("/api/quarantine", isAuthenticatedMid);
+  app.use("/api/audit", isAuthenticatedMid);
 
   app.get("/api/unauthorized", (req, res) => {
     res.status(401);
@@ -305,12 +306,25 @@ if (config !== undefined) {
 
   // Init license state from DB after mongoose connects
   const { initLicense } = require('./src/utils/license');
+  const applyAuditTTL = require('./src/utils/apply_audit_ttl');
+  const SystemSetting = require('./src/models/system_setting');
   const mongoose = require('mongoose');
+
+  const initAuditTTL = () => {
+    SystemSetting.findOne({ name: 'SYSTEM_SETTING' }).exec((err, setting) => {
+      if (!err && setting && setting.audit_retention_days) {
+        applyAuditTTL(setting.audit_retention_days);
+      }
+    });
+  };
+
   if (mongoose.connection.readyState === 1) {
     initLicense(() => console.log('License initialized'));
+    initAuditTTL();
   } else {
     mongoose.connection.once('open', () => {
       initLicense(() => console.log('License initialized'));
+      initAuditTTL();
     });
   }
 

@@ -171,6 +171,7 @@ router.delete '/:id',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role,component))
       return res.status(403).json({"error": "You don't have permission to perform this action"})
 
+  registerAudit(req, res, 'BUILD_DELETE', 'Delete Build', 'build', { uid: req.params.id, product: 'UNKNOWN', type: 'UNKNOWN' })
   Build.deleteOne({_id: req.params.id}).
   exec((err, build) ->
     if err

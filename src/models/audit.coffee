@@ -29,8 +29,22 @@ auditSchema = new Schema(
 	},
 	username: String,
 	origin: Schema.Types.Mixed,
-	failure: Schema.Types.Mixed
+	failure: Schema.Types.Mixed,
+	entity_type: { type: String, default: 'test' },
+	ip: { type: String, default: '' }
 )
 
 
+DEFAULT_RETENTION_DAYS = 90
+
+# TTL index — auto-purge after default retention period.
+# Update dynamically via applyAuditTTL utility when system setting changes.
+auditSchema.index({ create_at: 1 }, { expireAfterSeconds: DEFAULT_RETENTION_DAYS * 86400 })
+
+# Compound indexes for admin/filter query performance
+auditSchema.index({ username: 1, create_at: -1 })
+auditSchema.index({ entity_type: 1, create_at: -1 })
+auditSchema.index({ audit_type: 1, create_at: -1 })
+
 module.exports = mongoose.model('audits', auditSchema)
+module.exports.DEFAULT_RETENTION_DAYS = DEFAULT_RETENTION_DAYS

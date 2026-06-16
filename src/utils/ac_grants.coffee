@@ -51,6 +51,7 @@ ac.grant('viewer')
     .updateAny('user')
     .deleteAny('user')
     .deleteAny('test')
+    .readAny('audit')
 
 ac.canAccessCreateAnyIfOwn = (user, userId, component) ->
   return user._id.toString() == userId.toString() && ac.can(user.role).createOwn(component).granted
