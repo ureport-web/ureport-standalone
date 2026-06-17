@@ -1,7 +1,5 @@
 {
   "routes": {
-    "/nextgen/": {},
-    "/nextgen/contact": {},
-    "/nextgen/docs": {}
+    "/nextgen/": {}
   }
 }
