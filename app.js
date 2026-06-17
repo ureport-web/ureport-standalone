@@ -38,6 +38,7 @@ if (config !== undefined) {
   app = express();
 
   // Redirect root to nextgen UI
+  app.get("/", (req, res) => res.redirect("/nextgen"));
   app.get("/docs", (req, res) => res.redirect("/nextgen/docs"));
 
   // set static file to dist folder.

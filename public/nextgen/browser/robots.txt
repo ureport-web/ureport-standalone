@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /nextgen/
+Allow: /nextgen/docs
+Allow: /nextgen/contact
+Disallow: /api/
+Disallow: /nextgen/overview
+Disallow: /nextgen/dashboards
+Disallow: /nextgen/launches
+Disallow: /nextgen/settings
+Disallow: /nextgen/users
+Disallow: /nextgen/admin/
+
+Sitemap: https://ureportlab.com/sitemap.xml
