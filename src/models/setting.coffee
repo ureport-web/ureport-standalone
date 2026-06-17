@@ -105,6 +105,7 @@ settingSchema = new Schema(
 	)],
 	notification: Schema.Types.Mixed,
 	quarantine_rules: quarantineRulesSchema,
+	default_framework: { type: String },
 	investigated_setting: Schema(
 		{	
 			sharePL: [Schema(
@@ -165,5 +166,8 @@ settingSchema.statics.update = (setting, payload) ->
 			setting.notification = payload.notification
 		if(payload.quarantine_rules != undefined)
 			setting.quarantine_rules = payload.quarantine_rules
+		if(payload.default_framework != undefined)
+			setting.default_framework = payload.default_framework
+			setting.markModified('default_framework')
 
 module.exports = mongoose.model('Setting', settingSchema)

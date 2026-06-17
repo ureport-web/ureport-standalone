@@ -8,6 +8,7 @@ UserBilling = require('../models/userBilling')
 { getLicenseState } = require('../utils/license')
 
 AccessControl = require('../utils/ac_grants')
+registerAudit = require('../utils/register_audit')
 component = 'user'
 
 router.post '/:page/:perPage',  (req, res, next) ->
@@ -97,9 +98,11 @@ router.put '/update/:username',  (req, res, next) ->
       return res.status(403).json({"error": "You don't have permission"})
   if(req.body.password)
     return res.status(400).json({"error": "Cannot update password through user update, please use /reset to update the password"})
-  
+
   if(req.user.role !='admin' && req.body.role)
     return res.status(400).json({"error": "You are not admin, and you cannot update the role field."})
+  if(req.body.role)
+    registerAudit(req, res, 'USER_ROLE_CHANGE', 'User Role Changed', 'user', { uid: req.params.username, product: 'SYSTEM', type: 'USER' })
 
   # in case user update username, we need to see if the new username exist or not in the system
   if(req.body.username && req.body.username != req.params.username)
@@ -147,6 +150,7 @@ router.delete '/:id',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
 
+  registerAudit(req, res, 'USER_DELETE', 'Delete User', 'user', { uid: req.params.id, product: 'SYSTEM', type: 'USER' })
   User.deleteOne({_id: req.params.id}).
   exec((err, rs) ->
     if err
@@ -171,6 +175,7 @@ router.get '/pending',  (req, res, next) ->
 router.put '/approve/:id',  (req, res, next) ->
   if (!AccessControl.canAccessUpdateAny(req.user.role, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
+  registerAudit(req, res, 'USER_APPROVE', 'Approve User', 'user', { uid: req.params.id, product: 'SYSTEM', type: 'USER' })
 
   User.findOne({_id: req.params.id}).exec (err, user) ->
     if err
@@ -203,6 +208,7 @@ router.put '/approve/:id',  (req, res, next) ->
 router.put '/reject/:id',  (req, res, next) ->
   if (!AccessControl.canAccessUpdateAny(req.user.role, component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
+  registerAudit(req, res, 'USER_REJECT', 'Reject User', 'user', { uid: req.params.id, product: 'SYSTEM', type: 'USER' })
 
   User.findOne({_id: req.params.id}).exec (err, user) ->
     if err
@@ -222,6 +228,7 @@ router.put '/reject/:id',  (req, res, next) ->
 router.put '/reset-password/:username', (req, res, next) ->
   if req.user.role isnt 'admin'
     return res.status(403).json({ error: 'Only admins can reset passwords' })
+  registerAudit(req, res, 'PASSWORD_RESET', 'Admin Password Reset', 'user', { uid: req.params.username, product: 'SYSTEM', type: 'USER' })
   { newPassword } = req.body
   if !newPassword
     return res.status(400).json({ error: 'newPassword is required' })

@@ -11,6 +11,7 @@ async = require("async")
 registerAudit = require('../utils/register_audit')
 AccessControl = require('../utils/ac_grants')
 matcher = require('../utils/notification_rule_matcher')
+{ getLicenseState } = require('../utils/license')
 component = 'build'
 
 Setting = require('../models/setting')
@@ -170,6 +171,7 @@ router.delete '/:id',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role,component))
       return res.status(403).json({"error": "You don't have permission to perform this action"})
 
+  registerAudit(req, res, 'BUILD_DELETE', 'Delete Build', 'build', { uid: req.params.id, product: 'UNKNOWN', type: 'UNKNOWN' })
   Build.deleteOne({_id: req.params.id}).
   exec((err, build) ->
     if err
@@ -1008,6 +1010,7 @@ fireNotificationRules = (req, res, build, statusSummary) ->
 
     Setting.findOne({ product: build.product, type: build.type }).exec (err, setting) ->
       return unless setting?.notification?.rules?.length
+      return unless getLicenseState().features.includes('notifications')
       enabledRules = setting.notification.rules.filter (r) -> r.enabled
       return unless enabledRules.length
 

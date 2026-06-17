@@ -5,6 +5,7 @@ moment = require('moment');
 SystemSetting = require('../models/system_setting')
 getSystemSetting = require('../utils/getSystemSetting')
 { validateLicense, invalidateCache, setCachedState } = require('../utils/license')
+applyAuditTTL = require('../utils/apply_audit_ttl')
 
 ObjectId = require('mongoose').Types.ObjectId;
 async = require("async")
@@ -99,6 +100,8 @@ router.put '/:id',  (req, res, next) ->
       systemSetting.save (err, results) ->
         if err
           next err
+        if req.body.audit_retention_days != undefined
+          applyAuditTTL(req.body.audit_retention_days)
         req.app.locals.systemSettingCache.set(systemSetting.name, systemSetting)
         .then( (result) ->
             return next(result.err) if result.err
@@ -127,6 +130,8 @@ router.post '/',  (req, res, next) ->
         if err
           return next(err)
 
+        if req.body.audit_retention_days != undefined
+          applyAuditTTL(req.body.audit_retention_days)
         req.app.locals.systemSettingCache.set(systemSetting.name, systemSetting)
         .then( (result) ->
             return next(result.err) if result.err

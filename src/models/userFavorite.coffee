@@ -53,7 +53,10 @@ userFavoriteSchema = new Schema(
     )
   ],
   ceses: [Schema(
-    {	
+    {
+      _id: {
+        type: String
+      },
       name: {
         type: String
       },
@@ -63,8 +66,8 @@ userFavoriteSchema = new Schema(
       script: {
         type: String
       }
-    }, 
-    {_id: true}
+    },
+    {_id: false}
     )
   ],
   workspaces: [Schema(

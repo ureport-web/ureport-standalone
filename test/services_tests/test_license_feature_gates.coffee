@@ -56,7 +56,7 @@ describe 'PUT /setting/:id — notification rules license gate', ->
     done()
     return
 
-  it 'returns 403 with community license when notification rules present', (done) ->
+  it 'returns 200 with community license when notification rules present (save allowed, trigger is blocked)', (done) ->
     setCachedState({ seats: 5, lanes: 3, dashboards: 3, features: [], valid: true, plan: 'community', isCommunity: true })
     req = chai.request(server).put('/api/setting/' + testSettingId)
     req.cookies = adminCookies
@@ -65,8 +65,7 @@ describe 'PUT /setting/:id — notification rules license gate', ->
       type: 'gate-test-type'
       notification: { rules: [{ event: 'build_fail', channel: 'email', recipients: ['a@b.com'] }] }
     }).end (err, res) ->
-      res.should.have.status 403
-      res.body.error.should.equal 'Notification rules require a Pro license'
+      res.should.have.status 200
       done()
     return
 

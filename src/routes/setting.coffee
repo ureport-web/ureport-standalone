@@ -8,6 +8,7 @@ async = require("async")
 
 AccessControl = require('../utils/ac_grants')
 { getLicenseState } = require('../utils/license')
+registerAudit = require('../utils/register_audit')
 component = 'setting'
 
 router.get '/:id',  (req, res, next) ->
@@ -34,9 +35,11 @@ router.get '/find/all',  (req, res, next) ->
 router.post '/',  (req, res, next) ->
   if (!AccessControl.canAccessCreateAny(req.user.role,component))
       return res.status(403).json({"error": "You don't have permission to perform this action"})
+  registerAudit(req, res, 'SETTING_CREATE', 'Create Setting', 'setting', { uid: (req.body.product or '') + '/' + (req.body.type or ''), product: req.body.product or 'UNKNOWN', type: req.body.type or 'UNKNOWN' })
   if req.body.notification?.rules?.length > 0
     unless getLicenseState().features.includes('notifications')
-      return res.status(403).json({ error: 'Notification rules require a Pro license' })
+      if req.body.notification
+        delete req.body.notification.rules
   setting = new Setting(req.body)
   setting.save((err, setting) ->
     if err
@@ -54,9 +57,7 @@ router.post '/',  (req, res, next) ->
 router.put '/:id',  (req, res, next) ->
   if (!AccessControl.canAccessUpdateAny(req.user.role,component))
       return res.status(403).json({"error": "You don't have permission to perform this action"})
-  if req.body.notification?.rules?.length > 0
-    unless getLicenseState().features.includes('notifications')
-      return res.status(403).json({ error: 'Notification rules require a Pro license' })
+  registerAudit(req, res, 'SETTING_UPDATE', 'Update Setting', 'setting', { uid: req.params.id, product: req.body.product or 'UNKNOWN', type: req.body.type or 'UNKNOWN' })
   Setting.findOne({_id: req.params.id}).
   exec((err, setting) ->
     if err
@@ -77,6 +78,7 @@ router.put '/:id',  (req, res, next) ->
 router.delete '/:id',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role,component))
       return res.status(403).json({"error": "You don't have permission to perform this action"})
+  registerAudit(req, res, 'SETTING_DELETE', 'Delete Setting', 'setting', { uid: req.params.id, product: 'UNKNOWN', type: 'UNKNOWN' })
   Setting.deleteOne({_id: req.params.id}).
   exec((err, setting) ->
     if err
