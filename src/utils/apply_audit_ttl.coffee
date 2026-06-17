@@ -14,16 +14,23 @@ module.exports = (days, callback) ->
         logger.warn '[audit-ttl] DB not connected, skipping TTL update'
         return callback?(null)
     collection = mongoose.connection.collection('audits')
-    collection.dropIndex({ create_at: 1 }, (dropErr) ->
-        # Ignore error if index didn't exist yet
+    createWithRetry = (attemptsLeft) ->
         collection.createIndex(
             { create_at: 1 },
             { expireAfterSeconds: seconds, background: true },
             (err) ->
                 if err
-                    logger.error '[audit-ttl] Failed to recreate TTL index', err
+                    if err.code is 40333 and attemptsLeft > 0
+                        logger.warn "[audit-ttl] Index build in progress, retrying in 5s (#{attemptsLeft} attempts left)"
+                        setTimeout (-> createWithRetry(attemptsLeft - 1)), 5000
+                    else
+                        logger.error '[audit-ttl] Failed to recreate TTL index', err
+                        callback?(err)
                 else
                     logger.info "[audit-ttl] Retention set to #{days} days (#{seconds}s)"
-                callback?(err)
+                    callback?(null)
         )
+    collection.dropIndex({ create_at: 1 }, (dropErr) ->
+        # Ignore error if index didn't exist yet
+        createWithRetry(6)
     )
