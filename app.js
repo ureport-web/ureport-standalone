@@ -37,9 +37,14 @@ if (config !== undefined) {
   const User = require("./src/models/user");
   app = express();
 
-  // Redirect root to nextgen UI
-  app.get("/", (req, res) => res.redirect("/nextgen"));
-  app.get("/docs", (req, res) => res.redirect("/nextgen/docs"));
+  // Static marketing & docs pages
+  app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public/index.html")));
+  app.get("/contact", (req, res) => res.sendFile(path.join(__dirname, "public/contact/index.html")));
+  app.get("/docs", (req, res) => res.sendFile(path.join(__dirname, "public/docs/index.html")));
+  app.get("/docs/:section", (req, res) => {
+    const file = path.join(__dirname, `public/docs/${req.params.section}/index.html`);
+    res.sendFile(file, (err) => { if (err) res.redirect("/docs"); });
+  });
 
   // set static file to dist folder.
   app.use("", express.static(path.join(__dirname, "public")));

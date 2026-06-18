@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboards & Widgets | UReport Docs</title>
+  <meta name="description" content="Build custom dashboards with 10+ widget types to visualize test data in UReport.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --p-primary-color: #1d9e75; --p-primary-50: #e6f7f1; --p-primary-100: #cceee3; --p-primary-200: #99ddc7;
+      --p-surface-0: #ffffff; --p-surface-50: #f9fafb; --p-surface-100: #f3f4f6; --p-surface-border: #e5e7eb;
+      --p-text-color: #111827; --p-text-muted-color: #6b7280;
+      --p-green-50: #f0fdf4; --p-green-100: #dcfce7; --p-green-200: #bbf7d0; --p-green-500: #22c55e; --p-green-700: #15803d;
+      --p-blue-50: #eff6ff; --p-blue-100: #dbeafe; --p-blue-200: #bfdbfe; --p-blue-500: #3b82f6; --p-blue-700: #1d4ed8;
+      --p-orange-50: #fff7ed; --p-orange-200: #fed7aa; --p-orange-500: #f97316; --p-orange-700: #c2410c;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'DM Sans', sans-serif; color: var(--p-text-color); }
+    .docs-nav { position: sticky; top: 0; z-index: 100; background: rgba(10,10,15,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .docs-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 2rem; height: 60px; display: flex; align-items: center; gap: 2rem; }
+    .docs-nav-brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.05rem; color: rgba(255,255,255,0.9); text-decoration: none; margin-right: auto; }
+    .docs-nav-brand i { color: #1d9e75; }
+    .docs-nav-links { display: flex; align-items: center; gap: 0.25rem; }
+    .docs-nav-link { padding: 0.4rem 0.9rem; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.9rem; font-weight: 500; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+    .docs-nav-link:hover { color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.06); }
+    .docs-nav-btn { padding: 0.4rem 1.1rem; background: #1d9e75; color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600; border-radius: 6px; }
+    .docs-nav-btn:hover { opacity: 0.85; }
+    @media (max-width: 600px) { .docs-nav-inner { padding: 0 1rem; gap: 0.5rem; } .docs-nav-link { padding: 0.4rem 0.5rem; font-size: 0.8rem; } }
+    .docs-page-content { min-height: calc(100vh - 60px); }
+    .help-page { min-height: 100%; background: var(--p-surface-0); padding: 2rem; }
+    .help-content { max-width: 900px; margin: 0 auto; }
+    .docs-top-nav { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); font-size: 0.875rem; flex-wrap: wrap; }
+    .docs-home-link { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--p-primary-color); text-decoration: none; }
+    .docs-home-link:hover { text-decoration: underline; }
+    .docs-divider { color: var(--p-text-muted-color); }
+    .docs-top-nav-link { color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
+    .docs-top-nav-link:hover { text-decoration: underline; }
+    .docs-nav-current { color: var(--p-text-muted-color); }
+    .back-link { margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem; color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
+    .back-link:hover { text-decoration: underline; }
+    .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); }
+    .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.75rem; }
+    .page-header h1 i { color: var(--p-primary-color); }
+    .page-header p { font-size: 1.1rem; color: var(--p-text-muted-color); margin: 0; }
+    .help-section { margin-bottom: 2.5rem; }
+    .help-section > h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 1.5rem 0; padding-bottom: 0.75rem; border-bottom: 2px solid var(--p-primary-color); display: flex; align-items: center; gap: 0.6rem; }
+    .help-section > h2 i { color: var(--p-primary-color); }
+    .qa-item { margin-bottom: 1.5rem; border: 1px solid var(--p-surface-border); border-radius: 12px; overflow: hidden; }
+    .question { padding: 1rem 1.25rem; background: var(--p-surface-50); font-weight: 600; font-size: 1rem; border-bottom: 1px solid var(--p-surface-border); }
+    .answer { padding: 1.25rem; line-height: 1.6; }
+    .answer p { margin: 0 0 1rem 0; } .answer p:last-child { margin-bottom: 0; }
+    .answer ul { margin: 0.5rem 0 1rem 1.5rem; } .answer li { margin-bottom: 0.3rem; }
+    .answer strong { font-weight: 600; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .feature-card { padding: 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; }
+    .feature-card h4 { margin: 0 0 0.5rem 0; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .feature-card h4 i { color: var(--p-primary-color); }
+    .feature-card p { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--p-text-muted-color); }
+    .feature-card ul { margin: 0.25rem 0 0 1.25rem; font-size: 0.875rem; color: var(--p-text-muted-color); }
+    .feature-card li { margin-bottom: 0.2rem; }
+    .steps { display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0; }
+    .step { display: flex; gap: 1rem; }
+    .step-number { flex-shrink: 0; width: 32px; height: 32px; background: var(--p-primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+    .step-content { flex: 1; }
+    .step-content h4 { margin: 0 0 0.4rem 0; font-size: 0.95rem; font-weight: 600; }
+    .step-content p { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
+    .step-content ul { margin: 0.25rem 0 0.5rem 1.25rem; font-size: 0.875rem; } .step-content li { margin-bottom: 0.2rem; }
+    .info-box { display: flex; gap: 0.75rem; padding: 0.875rem 1rem; border-radius: 8px; margin: 0.75rem 0; border: 1px solid; font-size: 0.875rem; background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
+    .info-box > i { flex-shrink: 0; font-size: 1rem; margin-top: 0.1rem; color: var(--p-blue-500); }
+    .info-box-content { flex: 1; line-height: 1.5; }
+    .info-box-content p { margin: 0.25rem 0 0 0; }
+    .info-box.tip { background: var(--p-green-50); border-color: var(--p-green-200); color: var(--p-green-700); }
+    .info-box.tip > i { color: var(--p-green-500); }
+    .info-box.note { background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
+    .info-box.note > i { color: var(--p-blue-500); }
+    .example-box { padding: 1rem 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; margin: 0.75rem 0; }
+    .example-box h5 { margin: 0 0 0.75rem 0; font-size: 0.9rem; font-weight: 700; }
+    .field-list { display: flex; flex-direction: column; }
+    .field-item { display: flex; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--p-surface-border); }
+    .field-item:last-child { border-bottom: none; }
+    .field-name { min-width: 140px; font-weight: 600; font-size: 0.875rem; font-family: monospace; color: var(--p-primary-color); flex-shrink: 0; }
+    .field-desc { font-size: 0.875rem; color: var(--p-text-muted-color); flex: 1; }
+    @media (max-width: 768px) { .help-page { padding: 1rem; } .feature-grid { grid-template-columns: 1fr; } .field-item { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <nav class="docs-nav">
+    <div class="docs-nav-inner">
+      <a class="docs-nav-brand" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+      <div class="docs-nav-links">
+        <a class="docs-nav-link" href="/docs">Docs</a>
+        <a class="docs-nav-link" href="https://github.com/ureport-web/ureport-standalone" target="_blank">GitHub</a>
+        <a class="docs-nav-link" href="/contact">Contact</a>
+        <a class="docs-nav-btn" href="/nextgen/login">Log In</a>
+      </div>
+    </div>
+  </nav>
+  <div class="docs-page-content">
+    <div class="help-page">
+      <div class="help-content">
+        <div class="docs-top-nav">
+          <a class="docs-home-link" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+          <span class="docs-divider">/</span>
+          <a class="docs-top-nav-link" href="/docs">Docs</a>
+          <span class="docs-divider">/</span>
+          <span class="docs-nav-current">Dashboards</span>
+          <a class="back-link" href="/docs"><i class="fas fa-arrow-left"></i> Back to Docs</a>
+        </div>
+        <div class="page-header">
+          <h1><i class="fas fa-chart-pie"></i>Dashboards &amp; Widgets</h1>
+          <p>Create interactive dashboards with various widget types to visualize your test data.</p>
+        </div>
+        <div class="help-section">
+          <h2><i class="fas fa-tachometer-alt"></i>Creating Dashboards</h2>
+          <div class="qa-item">
+            <div class="question">How do I create a dashboard?</div>
+            <div class="answer">
+              <p>UReport provides two dashboard creation modes to suit different use cases:</p>
+              <div class="steps">
+                <div class="step"><div class="step-number">1</div><div class="step-content"><h4>Click "Create Dashboard"</h4><p>Navigate to Dashboards and click the Create button.</p></div></div>
+                <div class="step"><div class="step-number">2</div><div class="step-content"><h4>Enter Basic Information</h4><p>Provide a name and description for your dashboard.</p></div></div>
+                <div class="step"><div class="step-number">3</div><div class="step-content"><h4>Choose Visibility</h4><p>Select public (visible to all) or private (only you).</p></div></div>
+                <div class="step">
+                  <div class="step-number">4</div>
+                  <div class="step-content">
+                    <h4>Select Product Lane Strategy</h4>
+                    <p>Choose how widgets will be filtered:</p>
+                    <ul>
+                      <li>Single Product Focus — All widgets use one product lane (faster setup, consistent filtering)</li>
+                      <li>Multi-Product Flexibility — Choose product lane per widget (cross-product analysis)</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="step"><div class="step-number">5</div><div class="step-content"><h4>Add Widgets</h4><p>Click the "Add Widget" button to create widgets. Choose a widget type, configure its settings, and it will be added to your dashboard.</p></div></div>
+              </div>
+              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
+                <div class="info-box-content"><p>Use inline editing to rename dashboards by clicking on titles. Dashboard layouts auto-save as you make changes.</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I filter data in a Single Product Focus dashboard?</div>
+            <div class="answer">
+              <p>Single Product Focus dashboards bind all widgets to one product lane. Use the filter panel at the top of the dashboard to dynamically filter data across all widgets.</p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-cube"></i>Core Filters</h4>
+                  <ul>
+                    <li>Product &amp; Type (required)</li>
+                    <li>Team</li><li>Browser</li><li>Device</li><li>Platform</li><li>Stage</li><li>Version</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-sliders-h"></i>Advanced Filters</h4>
+                  <ul>
+                    <li>Date Range</li><li>Build Range</li><li>Status Filters</li><li>Relation Filters</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
+                <div class="info-box-content"><p>When you apply filters, all widgets on the dashboard update simultaneously to reflect the filtered data. The current filter state is preserved in the URL, making it easy to bookmark or share specific views.</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I share and collaborate on dashboards?</div>
+            <div class="answer">
+              <div class="feature-grid">
+                <div class="feature-card"><h4><i class="fas fa-share-alt"></i>Dashboard Sharing</h4><ul><li>Public Dashboards — Visible to all users</li><li>Private Dashboards — Only accessible to creator</li><li>Clone Dashboards — Create personal copies</li></ul></div>
+                <div class="feature-card"><h4><i class="fas fa-link"></i>URL Sharing</h4><ul><li>Direct links with embedded filters</li><li>Shareable URLs preserve view state</li><li>Copy-to-clipboard functionality</li></ul></div>
+                <div class="feature-card"><h4><i class="fas fa-file-export"></i>Export Options</h4><ul><li>PDF Export for printable reports</li><li>Individual Widget Export</li><li>CSV Export for raw data</li></ul></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="help-section">
+          <h2><i class="fas fa-chart-bar"></i>Widget Types</h2>
+          <div class="qa-item">
+            <div class="question">What widget types are available?</div>
+            <div class="answer">
+              <p>UReport offers 10+ widget types to visualize your test data:</p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-chart-pie"></i>Status Pie Chart</h4>
+                  <p>Interactive pie chart showing test execution results with dual view modes (Status/Triaged).</p>
+                  <ul><li>Toggle between Status and Triaged views</li><li>Interactive legend with click-to-filter</li><li>Export to PDF and CSV</li></ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-chart-bar"></i>Build History Bar Chart</h4>
+                  <p>Bar/line chart displaying build execution trends over time.</p>
+                  <ul><li>Switch between bar and line modes</li><li>Multi-query comparison</li><li>Configurable X/Y axis</li></ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-id-card"></i>Summary Card</h4>
+                  <p>Compact card showing key metrics: Build Summary, Status Summary, or Triaged Summary.</p>
+                  <ul><li>Key performance indicators</li><li>Trend indicators (up/down)</li><li>Color-coded severity</li></ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-sitemap"></i>Treemap</h4>
+                  <p>Hierarchical visualization of test distribution across relations.</p>
+                  <ul><li>Group by teams, components, or tags</li><li>Proportional sizing by test counts</li><li>Interactive drill-down</li></ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-th"></i>Heatmap</h4>
+                  <p>Color-coded matrix showing pass rate trends across builds and relations.</p>
+                  <ul><li>Matrix view of builds vs. relations</li><li>Color intensity based on pass rates</li><li>Historical trend analysis</li></ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-table"></i>Test Analysis Table</h4>
+                  <p>Tabular analysis of test behavior patterns (Consistent vs Flaky tests).</p>
+                  <ul><li>Stable vs. Unstable analysis</li><li>Flakiness percentage calculations</li><li>Export to CSV</li></ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-list-ol"></i>Top Tests Table</h4>
+                  <p>Ranked table of most-failing or slowest tests over a configurable time range (7, 30, or 90 days).</p>
+                  <ul><li>Toggle between Top Failures and Slowest Tests</li><li>Surface the most impactful tests in your suite</li></ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-lightbulb"></i>Trend Insights</h4>
+                  <p>Detects anomalous pass-rate drops across recent builds using Z-score analysis.</p>
+                  <ul><li>Highlights builds where pass rate deviated significantly</li><li>Shows build duration trend line</li></ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-chart-bar"></i>Relations Group By Bar</h4>
+                  <p>Stacked bar chart showing test counts and pass rates grouped by a relation attribute.</p>
+                  <ul><li>Group by components, teams, tags, or custom dimensions</li><li>Supports horizontal/vertical layout and table view</li></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I configure widget settings?</div>
+            <div class="answer">
+              <p>Each widget type has specific configuration options:</p>
+              <div class="feature-grid">
+                <div class="feature-card"><h4><i class="fas fa-cog"></i>General Settings</h4><ul><li>Widget Title</li><li>Product Lane Selection</li><li>Date Range</li><li>Refresh Rate</li></ul></div>
+                <div class="feature-card"><h4><i class="fas fa-filter"></i>Data Filtering</h4><ul><li>Status Filters</li><li>Relation Filters</li><li>Multi-Product Lane Support</li><li>Aggregation</li></ul></div>
+                <div class="feature-card"><h4><i class="fas fa-palette"></i>Visual Customization</h4><ul><li>Chart Types</li><li>Color Schemes</li><li>Axis Configuration</li><li>Legend Settings</li></ul></div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I compare data across multiple product lanes?</div>
+            <div class="answer">
+              <p>Some widgets support comparing data from different product lanes side by side. This is useful for cross-browser, cross-team, or cross-environment comparisons.</p>
+              <div class="steps">
+                <div class="step"><div class="step-number">1</div><div class="step-content"><h4>Open Widget Editor</h4><p>Create a new widget or edit an existing one that supports multiple product lanes.</p></div></div>
+                <div class="step"><div class="step-number">2</div><div class="step-content"><h4>Expand "Multiple Product Lanes" Section</h4><p>In the widget editor accordion, expand the "Multiple Product Lanes" panel.</p></div></div>
+                <div class="step"><div class="step-number">3</div><div class="step-content"><h4>Add Product Lanes</h4><p>Click "Add Product Lane" to add additional data sources. Configure each product lane with different filter combinations.</p></div></div>
+                <div class="step"><div class="step-number">4</div><div class="step-content"><h4>Reorder and Manage</h4><p>Use the arrow buttons to reorder product lanes. Edit or remove lanes as needed.</p></div></div>
+              </div>
+              <div class="example-box">
+                <h5>Comparison Examples</h5>
+                <div class="field-list">
+                  <div class="field-item"><div class="field-name">Cross-Browser</div><div class="field-desc">Add lanes for Chrome, Firefox, and Safari to compare test results across browsers</div></div>
+                  <div class="field-item"><div class="field-name">Team Performance</div><div class="field-desc">Add lanes for Frontend, Backend, and QA teams to compare team metrics</div></div>
+                  <div class="field-item"><div class="field-name">Environment</div><div class="field-desc">Add lanes for Dev, Staging, and Production to compare across environments</div></div>
+                </div>
+              </div>
+              <div class="info-box note"><i class="fas fa-info-circle"></i>
+                <div class="info-box-content"><p>Not all widget types support multiple product lanes. The "Multiple Product Lanes" section only appears for widgets that support this feature (e.g., Build History).</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="help-section">
+          <h2><i class="fas fa-th"></i>Layout Management</h2>
+          <div class="qa-item">
+            <div class="question">How do I manage dashboard layouts?</div>
+            <div class="answer">
+              <div class="feature-grid">
+                <div class="feature-card"><h4><i class="fas fa-th"></i>Grid System</h4><ul><li>Drag-and-drop positioning</li><li>Automatic grid snapping</li><li>Responsive layout</li><li>Auto-save changes</li></ul></div>
+                <div class="feature-card"><h4><i class="fas fa-expand-arrows-alt"></i>Widget Sizing</h4><ul><li>Resize by dragging corners</li><li>Predefined size templates</li><li>Min/max size constraints</li></ul></div>
+                <div class="feature-card"><h4><i class="fas fa-layer-group"></i>Organization</h4><ul><li>Add Section Divider widgets to group related widgets</li><li>Section Dividers enable jump-to-section navigation</li><li>Widget locking to prevent accidental changes</li></ul></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration | UReport Docs</title>
+  <meta name="description" content="Configure system settings, manage users, and set up Product Lane configurations in UReport.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --p-primary-color: #1d9e75; --p-primary-50: #e6f7f1; --p-primary-100: #cceee3; --p-primary-200: #99ddc7;
+      --p-surface-0: #ffffff; --p-surface-50: #f9fafb; --p-surface-100: #f3f4f6; --p-surface-border: #e5e7eb;
+      --p-text-color: #111827; --p-text-muted-color: #6b7280;
+      --p-green-50: #f0fdf4; --p-green-100: #dcfce7; --p-green-200: #bbf7d0; --p-green-500: #22c55e; --p-green-700: #15803d;
+      --p-blue-50: #eff6ff; --p-blue-100: #dbeafe; --p-blue-200: #bfdbfe; --p-blue-500: #3b82f6; --p-blue-700: #1d4ed8;
+      --p-orange-50: #fff7ed; --p-orange-200: #fed7aa; --p-orange-500: #f97316; --p-orange-700: #c2410c;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'DM Sans', sans-serif; color: var(--p-text-color); }
+    .docs-nav { position: sticky; top: 0; z-index: 100; background: rgba(10,10,15,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .docs-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 2rem; height: 60px; display: flex; align-items: center; gap: 2rem; }
+    .docs-nav-brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.05rem; color: rgba(255,255,255,0.9); text-decoration: none; margin-right: auto; }
+    .docs-nav-brand i { color: #1d9e75; }
+    .docs-nav-links { display: flex; align-items: center; gap: 0.25rem; }
+    .docs-nav-link { padding: 0.4rem 0.9rem; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.9rem; font-weight: 500; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+    .docs-nav-link:hover { color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.06); }
+    .docs-nav-btn { padding: 0.4rem 1.1rem; background: #1d9e75; color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600; border-radius: 6px; }
+    .docs-nav-btn:hover { opacity: 0.85; }
+    @media (max-width: 600px) { .docs-nav-inner { padding: 0 1rem; gap: 0.5rem; } .docs-nav-link { padding: 0.4rem 0.5rem; font-size: 0.8rem; } }
+    .docs-page-content { min-height: calc(100vh - 60px); }
+    .help-page { min-height: 100%; background: var(--p-surface-0); padding: 2rem; }
+    .help-content { max-width: 900px; margin: 0 auto; }
+    .docs-top-nav { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); font-size: 0.875rem; flex-wrap: wrap; }
+    .docs-home-link { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--p-primary-color); text-decoration: none; }
+    .docs-home-link:hover { text-decoration: underline; }
+    .docs-divider { color: var(--p-text-muted-color); }
+    .docs-top-nav-link { color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
+    .docs-top-nav-link:hover { text-decoration: underline; }
+    .docs-nav-current { color: var(--p-text-muted-color); }
+    .back-link { margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem; color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
+    .back-link:hover { text-decoration: underline; }
+    .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); }
+    .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.75rem; }
+    .page-header h1 i { color: var(--p-primary-color); }
+    .page-header p { font-size: 1.1rem; color: var(--p-text-muted-color); margin: 0; }
+    .help-section { margin-bottom: 2.5rem; }
+    .help-section > h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 1.5rem 0; padding-bottom: 0.75rem; border-bottom: 2px solid var(--p-primary-color); display: flex; align-items: center; gap: 0.6rem; }
+    .help-section > h2 i { color: var(--p-primary-color); }
+    .qa-item { margin-bottom: 1.5rem; border: 1px solid var(--p-surface-border); border-radius: 12px; overflow: hidden; }
+    .question { padding: 1rem 1.25rem; background: var(--p-surface-50); font-weight: 600; font-size: 1rem; border-bottom: 1px solid var(--p-surface-border); }
+    .answer { padding: 1.25rem; line-height: 1.6; }
+    .answer p { margin: 0 0 1rem 0; } .answer p:last-child { margin-bottom: 0; }
+    .answer ul, .answer ol { margin: 0.5rem 0 1rem 1.5rem; } .answer li { margin-bottom: 0.3rem; }
+    .answer strong { font-weight: 600; }
+    .answer em { font-style: italic; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .feature-card { padding: 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; }
+    .feature-card h4 { margin: 0 0 0.5rem 0; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .feature-card h4 i { color: var(--p-primary-color); }
+    .feature-card p { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--p-text-muted-color); }
+    .feature-card ul { margin: 0.25rem 0 0 1.25rem; font-size: 0.875rem; color: var(--p-text-muted-color); }
+    .feature-card li { margin-bottom: 0.2rem; }
+    .steps { display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0; }
+    .step { display: flex; gap: 1rem; }
+    .step-number { flex-shrink: 0; width: 32px; height: 32px; background: var(--p-primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+    .step-content { flex: 1; }
+    .step-content h4 { margin: 0 0 0.4rem 0; font-size: 0.95rem; font-weight: 600; }
+    .step-content p { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
+    .step-content ul { margin: 0.25rem 0 0.5rem 1.25rem; font-size: 0.875rem; } .step-content li { margin-bottom: 0.2rem; }
+    .help-table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.875rem; }
+    .help-table th { text-align: left; padding: 0.6rem 1rem; background: var(--p-surface-100); font-weight: 600; border-bottom: 2px solid var(--p-surface-border); }
+    .help-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--p-surface-border); vertical-align: top; }
+    .help-table tr:last-child td { border-bottom: none; }
+    .help-table code { background: var(--p-surface-100); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.8em; font-family: monospace; }
+    .info-box { display: flex; gap: 0.75rem; padding: 0.875rem 1rem; border-radius: 8px; margin: 0.75rem 0; border: 1px solid; font-size: 0.875rem; background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
+    .info-box > i { flex-shrink: 0; font-size: 1rem; margin-top: 0.1rem; color: var(--p-blue-500); }
+    .info-box-content { flex: 1; line-height: 1.5; }
+    .info-box-content p { margin: 0.25rem 0 0 0; }
+    .info-box.tip { background: var(--p-green-50); border-color: var(--p-green-200); color: var(--p-green-700); }
+    .info-box.tip > i { color: var(--p-green-500); }
+    .info-box.note { background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
+    .info-box.note > i { color: var(--p-blue-500); }
+    .info-box.warning { background: var(--p-orange-50); border-color: var(--p-orange-200); color: var(--p-orange-700); }
+    .info-box.warning > i { color: var(--p-orange-500); }
+    .info-box.important { background: var(--p-primary-50); border-color: var(--p-primary-200); color: var(--p-text-color); }
+    .info-box.important > i { color: var(--p-primary-color); }
+    .example-box { padding: 1rem 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; margin: 0.75rem 0; }
+    .example-box h5 { margin: 0 0 0.75rem 0; font-size: 0.9rem; font-weight: 700; }
+    .field-list { display: flex; flex-direction: column; }
+    .field-item { display: flex; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--p-surface-border); }
+    .field-item:last-child { border-bottom: none; }
+    .field-name { min-width: 140px; font-weight: 600; font-size: 0.875rem; font-family: monospace; color: var(--p-primary-color); flex-shrink: 0; }
+    .field-desc { font-size: 0.875rem; color: var(--p-text-muted-color); flex: 1; }
+    .next-page-link { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 2rem; padding: 0.75rem 1.5rem; background: var(--p-primary-color); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.95rem; }
+    .next-page-link:hover { opacity: 0.85; }
+    @media (max-width: 768px) { .help-page { padding: 1rem; } .feature-grid { grid-template-columns: 1fr; } .field-item { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <nav class="docs-nav">
+    <div class="docs-nav-inner">
+      <a class="docs-nav-brand" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+      <div class="docs-nav-links">
+        <a class="docs-nav-link" href="/docs">Docs</a>
+        <a class="docs-nav-link" href="https://github.com/ureport-web/ureport-standalone" target="_blank">GitHub</a>
+        <a class="docs-nav-link" href="/contact">Contact</a>
+        <a class="docs-nav-btn" href="/nextgen/login">Log In</a>
+      </div>
+    </div>
+  </nav>
+  <div class="docs-page-content">
+    <div class="help-page">
+      <div class="help-content">
+        <div class="docs-top-nav">
+          <a class="docs-home-link" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+          <span class="docs-divider">/</span>
+          <a class="docs-top-nav-link" href="/docs">Docs</a>
+          <span class="docs-divider">/</span>
+          <span class="docs-nav-current">Administration</span>
+          <a class="back-link" href="/docs"><i class="fas fa-arrow-left"></i> Back to Docs</a>
+        </div>
+        <div class="page-header">
+          <h1><i class="fas fa-cogs"></i>Administration</h1>
+          <p>Configure system settings, manage users, and set up Product Lane configurations.</p>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-sliders-h"></i>Product Lane Settings</h2>
+          <div class="qa-item">
+            <div class="question">What are Product Lane Settings?</div>
+            <div class="answer">
+              <p>Product Lane Settings allow you to customize how UReport handles test data for each Product/Type combination. Each Product Lane can have its own configuration for issue types, relation filters, and custom states.</p>
+              <div class="info-box important"><i class="fas fa-key"></i>
+                <div class="info-box-content">
+                  <p>Product Lane Settings customize the investigation workflow, filtering options, and categorization for each product/type combination in your organization.</p>
+                </div>
+              </div>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-bug"></i>Issue Types</h4>
+                  <p>Define categories used when investigating test failures.</p>
+                  <ul>
+                    <li>Defect - Product bug</li>
+                    <li>Automation - Test automation issues</li>
+                    <li>Environment - Environment problems</li>
+                    <li>Custom types with icons and colors</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-filter"></i>Relations Filter</h4>
+                  <p>Configure grouping and filtering options for test results.</p>
+                  <ul>
+                    <li>Default filters (components, teams, tags)</li>
+                    <li>Custom group filters</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-flag"></i>Custom States</h4>
+                  <p>Organization-specific test states with TTL-based auto-resolution.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">What are Issue Types and where are they used?</div>
+            <div class="answer">
+              <p>When a test fails, engineers investigate the root cause and categorize it. Issue Types are those categories — labels like <strong>Defect</strong>, <strong>Automation</strong>, or <strong>Environment</strong> that describe <em>why</em> a test failed.</p>
+              <p>They appear in the <strong>Test Analysis</strong> view when you open a failing test and click <strong>Investigate</strong>. The investigator selects an Issue Type from a dropdown to record what kind of failure it is. This data feeds into dashboards and failure breakdowns, so the team can see at a glance how many failures are product bugs vs. flaky automation vs. environment noise.</p>
+              <p>Issue Types are configured in two levels:</p>
+              <ul>
+                <li><strong>Global Issue Types</strong> — defined once in System Settings, available system-wide</li>
+                <li><strong>Product Lane Issue Types</strong> — each Product Lane picks which global types to expose in its investigation dropdown</li>
+              </ul>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I configure Issue Types?</div>
+            <div class="answer">
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">1</div>
+                  <div class="step-content">
+                    <h4>Global Issue Types (System Settings)</h4>
+                    <p>First, define base issue types available system-wide:</p>
+                    <ul>
+                      <li>Go to Settings &rarr; System Settings &rarr; Global Issue Types</li>
+                      <li>Add issue types with Key, Label, Icon, and Color</li>
+                      <li>These become available for all Product Lanes</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">2</div>
+                  <div class="step-content">
+                    <h4>Product Lane Issue Types</h4>
+                    <p>Each Product Lane selects which issue types to use:</p>
+                    <ul>
+                      <li>Edit a Product Lane Setting</li>
+                      <li>In Issue Types section, add from "Available Types"</li>
+                      <li>Selected types appear in investigation dropdown</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
+                <div class="info-box-content">
+                  <p>Keep global issue types generic (Defect, Automation, Environment) and add product-specific types at the Product Lane level.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do Relations Filters work?</div>
+            <div class="answer">
+              <p>Relation data comes from two sources that are merged at analysis time:</p>
+              <ul>
+                <li><strong>TestRelation collection —</strong> A separate record per test UID/product/type, submitted via the reporter or <code>POST /api/test_relation</code>. This is the primary source.</li>
+                <li><strong>Test.info field —</strong> Attached to the test result itself when submitted. If <code>test.info</code> contains <code>tags</code>, <code>teams</code>, or <code>components</code> keys, they <strong>override</strong> the values from TestRelation. Any other <code>test.info</code> keys get merged into the custom relation dimensions alongside <code>TestRelation.customs</code>.</li>
+              </ul>
+              <p>If no TestRelation record exists for a test, <code>test.info</code> is the sole source of relation data.</p>
+              <p>Available fields and how they map to filterable dimensions:</p>
+              <table class="help-table">
+                <thead>
+                  <tr>
+                    <th>Source</th>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>TestRelation</td>
+                    <td><code>components</code></td>
+                    <td>Array of <code>{name}</code> objects</td>
+                    <td>e.g. <code>[{"name":"Authentication"}]</code></td>
+                  </tr>
+                  <tr>
+                    <td>TestRelation</td>
+                    <td><code>teams</code></td>
+                    <td>Array of <code>{name}</code> objects</td>
+                    <td>e.g. <code>[{"name":"UI Team"}]</code></td>
+                  </tr>
+                  <tr>
+                    <td>TestRelation</td>
+                    <td><code>tags</code></td>
+                    <td>Array of <code>{name}</code> objects</td>
+                    <td>e.g. <code>[{"name":"smoke"}]</code></td>
+                  </tr>
+                  <tr>
+                    <td>TestRelation</td>
+                    <td><code>customs</code></td>
+                    <td>Object — string keys, array-of-string values</td>
+                    <td>Each key becomes its own dimension (e.g. <code>{"Browser":["Chrome"],"OS":["Windows"]}</code>)</td>
+                  </tr>
+                  <tr>
+                    <td>Test.info</td>
+                    <td><code>tags / teams / components</code></td>
+                    <td>Array of strings</td>
+                    <td>Overrides TestRelation values when present (e.g. <code>{"tags":["smoke","regression"]}</code>)</td>
+                  </tr>
+                  <tr>
+                    <td>Test.info</td>
+                    <td>any other key</td>
+                    <td>String or array</td>
+                    <td>Merged into custom dimensions — same effect as <code>TestRelation.customs</code></td>
+                  </tr>
+                </tbody>
+              </table>
+              <p>Relations Filters define which of these dimensions are exposed in the UI. They appear in two places:</p>
+              <ul>
+                <li><strong>Launches (test list toolbar) —</strong> A filter panel lets you narrow the visible test list by selecting specific component names, teams, tags, or custom key values.</li>
+                <li><strong>Dashboard widgets —</strong> When creating a Treemap, Heatmap, or Relations Group By Bar chart, you choose which dimension to group data by. The configured relations filters determine what appears in that "Group By" dropdown.</li>
+              </ul>
+              <p>There are two types of filters you can configure per Product Lane:</p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-list"></i>Default Filters</h4>
+                  <p>Plain relation dimension names — add the key exactly as it appears in the data:</p>
+                  <ul>
+                    <li><code>components</code></li>
+                    <li><code>teams</code></li>
+                    <li><code>tags</code></li>
+                    <li>Any <code>customs</code> key — e.g. <code>Browser</code>, <code>OS</code>, <code>Environment</code></li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-layer-group"></i>Group Filters</h4>
+                  <p>Custom filters that bucket relation values into named categories. Choose a base dimension (e.g. <code>teams</code>), then define groups that map values to category names. Useful when you have many teams or components and want to analyze at a higher level.</p>
+                </div>
+              </div>
+              <div class="example-box">
+                <h5>Example: Team Group Filter</h5>
+                <p>Base relation: <code>teams</code></p>
+                <div class="field-list">
+                  <div class="field-item">
+                    <div class="field-name">Frontend</div>
+                    <div class="field-desc">UI Team, Web Team, Mobile Team</div>
+                  </div>
+                  <div class="field-item">
+                    <div class="field-name">Backend</div>
+                    <div class="field-desc">API Team, Database Team, Services Team</div>
+                  </div>
+                  <div class="field-item">
+                    <div class="field-name">QA</div>
+                    <div class="field-desc">Manual QA, Automation QA</div>
+                  </div>
+                </div>
+              </div>
+              <div class="info-box warning"><i class="fas fa-exclamation-triangle"></i>
+                <div class="info-box-content">
+                  <p>Values in Group Filters must match exactly — including casing — with values stored in the TestRelation records.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I create a Group Filter?</div>
+            <div class="answer">
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">1</div>
+                  <div class="step-content">
+                    <h4>Open Product Lane Settings</h4>
+                    <p>Navigate to Settings &rarr; Product Lane Settings and edit the desired Product Lane.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">2</div>
+                  <div class="step-content">
+                    <h4>Go to Relations Filter Section</h4>
+                    <p>Scroll to "Group Filters" and click "Create Group Filter".</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">3</div>
+                  <div class="step-content">
+                    <h4>Configure the Filter</h4>
+                    <ul>
+                      <li>Filter Name — A descriptive name (e.g., "Team Groups")</li>
+                      <li>Base Relation Type — Select which relation to group (components, teams, tags, or custom)</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">4</div>
+                  <div class="step-content">
+                    <h4>Define Groups</h4>
+                    <p>Add groups with:</p>
+                    <ul>
+                      <li>Category Name — The group label (e.g., "Frontend")</li>
+                      <li>Values — Relation values that belong to this group (press Enter to add)</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">5</div>
+                  <div class="step-content">
+                    <h4>Save</h4>
+                    <p>Click Create. The group filter will appear as a filtering option.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="info-box warning"><i class="fas fa-exclamation-triangle"></i>
+                <div class="info-box-content">
+                  <p>Values in group filters must match exactly with values in your test data. Check your test relations for correct spelling and casing.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-server"></i>System Settings</h2>
+          <div class="qa-item">
+            <div class="question">What system settings can be configured?</div>
+            <div class="answer">
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-chart-bar"></i>Analysis Settings</h4>
+                  <ul>
+                    <li>Analysis time window (7–180 days)</li>
+                    <li>Advanced Analysis toggle — enables per-triage Compare By selection</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-link"></i>Integration Settings</h4>
+                  <ul>
+                    <li>Issue tracking URL (JIRA or other tracker base URL)</li>
+                    <li>Suggested issue types for triage dropdowns</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-bell"></i>Notification Settings</h4>
+                  <ul>
+                    <li>SMTP email configuration</li>
+                    <li>Notification sender address</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-bug"></i>Global Issue Types</h4>
+                  <ul>
+                    <li>Define system-wide issue categories</li>
+                    <li>Set icons and colors</li>
+                    <li>Available to all Product Lanes</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-users-cog"></i>User Management</h2>
+          <div class="qa-item">
+            <div class="question">How do I manage users and permissions?</div>
+            <div class="answer">
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-user-plus"></i>User Creation</h4>
+                  <ul>
+                    <li>Add new users directly as admin</li>
+                    <li>Set initial roles and permissions</li>
+                    <li>Approve or reject self-registered users</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-shield-alt"></i>Role Management</h4>
+                  <ul>
+                    <li>Admin — Full system access</li>
+                    <li>Operator — Test management and investigation</li>
+                    <li>Viewer — Read-only access</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">What are the different user roles?</div>
+            <div class="answer">
+              <table class="help-table">
+                <thead>
+                  <tr>
+                    <th>Role</th>
+                    <th>Permissions</th>
+                    <th>Use Case</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Admin</td>
+                    <td>Full access to all features, settings, and user management</td>
+                    <td>System administrators, team leads</td>
+                  </tr>
+                  <tr>
+                    <td>Operator</td>
+                    <td>Create/edit dashboards, investigate tests, manage data</td>
+                    <td>QA engineers, developers</td>
+                  </tr>
+                  <tr>
+                    <td>Viewer</td>
+                    <td>View dashboards and test results (read-only)</td>
+                    <td>Stakeholders, managers</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I approve or reject pending users?</div>
+            <div class="answer">
+              <p>Go to <strong>Settings &rarr; Users</strong>. As an admin you can:</p>
+              <ul>
+                <li>View all registered and pending users</li>
+                <li>Approve or reject pending registrations</li>
+                <li>Promote users to operator or admin role</li>
+                <li>Delete accounts</li>
+              </ul>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">Can I disable public signup?</div>
+            <div class="answer">
+              <p>There is no config flag to disable signup. However, all self-registered users are created with <strong>viewer</strong> role and <strong>pending</strong> status — they cannot log in until an admin explicitly approves them. You can leave pending registrations unreviewed to effectively block access.</p>
+              <p>To create accounts without self-registration, use <strong>Settings &rarr; Users &rarr; Create User</strong> directly as an admin.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-lock"></i>Permissions &amp; Security</h2>
+          <div class="qa-item">
+            <div class="question">What security features are available?</div>
+            <div class="answer">
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-user-shield"></i>Authentication</h4>
+                  <ul>
+                    <li>Secure user authentication</li>
+                    <li>Session management</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-key"></i>Authorization</h4>
+                  <ul>
+                    <li>Role-based access control</li>
+                    <li>Feature-level permissions</li>
+                    <li>Data access restrictions</li>
+                    <li>API endpoint security</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-bookmark"></i>Presets</h2>
+          <div class="qa-item">
+            <div class="question">What are Presets?</div>
+            <div class="answer">
+              <p>A <strong>Preset</strong> is a named, saved set of product-lane filter combinations. Instead of manually adding lanes one by one each time you open the product-lane selector, you save a multi-lane view as a preset and reload it in one click.</p>
+              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
+                <div class="info-box-content">
+                  <p>Presets are especially useful for cross-browser or cross-environment comparisons you run regularly — e.g. a preset called "All Browsers" that always adds Chrome, Firefox, and Safari lanes at once.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I create a Preset?</div>
+            <div class="answer">
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">1</div>
+                  <div class="step-content">
+                    <h4>Go to Settings &rarr; Presets</h4>
+                    <p>Navigate to the Settings page (admin or operator) and open the Presets tab.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">2</div>
+                  <div class="step-content">
+                    <h4>Click "Add Preset"</h4>
+                    <p>Enter a name and an optional description for the preset.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">3</div>
+                  <div class="step-content">
+                    <h4>Add lanes</h4>
+                    <p>Add one or more lanes. Each lane is a combination of the supported dimensions:</p>
+                    <table class="help-table">
+                      <thead>
+                        <tr><th>Dimension</th><th>Notes</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>product</td><td>Required per lane</td></tr>
+                        <tr><td>type</td><td>Required per lane</td></tr>
+                        <tr><td>version</td><td>Optional</td></tr>
+                        <tr><td>browser</td><td>Optional</td></tr>
+                        <tr><td>platform</td><td>Optional</td></tr>
+                        <tr><td>platform_version</td><td>Optional</td></tr>
+                        <tr><td>team</td><td>Optional</td></tr>
+                        <tr><td>stage</td><td>Optional</td></tr>
+                        <tr><td>device</td><td>Optional</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">4</div>
+                  <div class="step-content">
+                    <h4>Validate and save</h4>
+                    <p>The UI verifies that each lane exists in UReport before adding it. If a combination matches multiple lanes or none at all, the entry is rejected with an error. Click <strong>Save</strong> once all lanes are valid.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I use a Preset?</div>
+            <div class="answer">
+              <p>Open the <strong>product-lane selector</strong> (available in the Launches page and the widget editor). In the selector dropdown, choose from the <strong>Presets</strong> list. All lanes defined in the preset are instantly applied — replacing any currently selected lanes.</p>
+              <div class="info-box note"><i class="fas fa-info-circle"></i>
+                <div class="info-box-content">
+                  <p>Applying a preset replaces the current lane selection. To keep existing lanes, add them individually before or after applying a preset.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-download"></i>Export &amp; Import</h2>
+          <div class="qa-item">
+            <div class="question">What export formats are supported?</div>
+            <div class="answer">
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-file-csv"></i>CSV Export</h4>
+                  <ul>
+                    <li>Test execution data with customizable columns</li>
+                    <li>Investigation reports and tracking data</li>
+                    <li>Build history and analytics data</li>
+                    <li>Relation metadata and test associations</li>
+                    <li>Custom column selection and ordering</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-file-pdf"></i>PDF Export</h4>
+                  <ul>
+                    <li>Dashboard snapshots with all widgets</li>
+                    <li>Individual widget exports</li>
+                    <li>High-resolution chart exports</li>
+                    <li>Printable reports for stakeholders</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I export test data?</div>
+            <div class="answer">
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">1</div>
+                  <div class="step-content">
+                    <h4>Navigate to Launches</h4>
+                    <p>Go to the Launches page and apply your desired filters.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">2</div>
+                  <div class="step-content">
+                    <h4>Click Export Button</h4>
+                    <p>Click the export icon in the toolbar.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">3</div>
+                  <div class="step-content">
+                    <h4>Configure Columns</h4>
+                    <p>Select which columns to include and their order.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">4</div>
+                  <div class="step-content">
+                    <h4>Download</h4>
+                    <p>Click Export to download the CSV file.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <a class="next-page-link" href="/docs/troubleshooting">Next: Troubleshooting <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

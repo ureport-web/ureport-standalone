@@ -1,0 +1,3113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UReport — From test reports to test intelligence</title>
+    <meta
+      name="description"
+      content="Centralize test executions. Visualize pass rates and failure trends for engineers and leadership to act on — with flaky test quarantine and AI root cause analysis built in."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --black: #0a0a0a;
+        --primary: #1d9e75;
+        --p-primary-color: #1d9e75;
+        --gray-50: #f7f7f5;
+        --gray-100: #efefec;
+        --gray-200: #deded9;
+        --gray-400: #9c9c96;
+        --gray-600: #5c5c58;
+        --gray-800: #2c2c2a;
+        --green: #1d9e75;
+        --green-bg: #e1f5ee;
+        --blue: #185fa5;
+        --blue-bg: #e6f1fb;
+        --amber: #ba7517;
+        --amber-bg: #faeeda;
+        --red: #a32d2d;
+        --red-bg: #fcebeb;
+        --border: rgba(0, 0, 0, 0.08);
+        --radius: 10px;
+        font-family: "DM Sans", sans-serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .home-scroll-page {
+        overflow-x: hidden;
+      }
+
+      /* NAV */
+      .home-nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+      .home-nav-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+      }
+      .home-nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        font-size: 15px;
+        letter-spacing: -0.3px;
+        color: var(--black);
+        text-decoration: none;
+        margin-right: auto;
+      }
+      .home-nav-brand i {
+        color: var(--green);
+      }
+      .home-nav-links {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .home-nav-link {
+        padding: 0.4rem 0.75rem;
+        color: var(--gray-600);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 400;
+        border-radius: 6px;
+        transition:
+          color 0.15s,
+          background 0.15s;
+      }
+      .home-nav-link:hover {
+        color: var(--black);
+        background: var(--gray-100);
+      }
+      .home-nav-btn {
+        padding: 7px 16px;
+        background: var(--primary);
+        color: #fff;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        border-radius: 6px;
+        transition: opacity 0.15s;
+      }
+      .home-nav-btn:hover {
+        opacity: 0.85;
+      }
+      @media (max-width: 600px) {
+        .home-nav-inner {
+          padding: 0 1rem;
+          gap: 0.5rem;
+        }
+        .home-nav-link {
+          padding: 0.4rem 0.5rem;
+          font-size: 0.8rem;
+        }
+      }
+
+      /* ANIMATIONS */
+      .animate {
+        opacity: 0;
+        transition:
+          opacity 0.8s ease,
+          transform 0.8s ease;
+        transition-delay: var(--delay, 0s);
+      }
+      .animate.from-left {
+        transform: translateX(-48px);
+      }
+      .animate.from-right {
+        transform: translateX(48px);
+      }
+      .animate.from-below {
+        transform: translateY(48px);
+      }
+      .animate.visible {
+        opacity: 1;
+        transform: none;
+      }
+
+      /* SECTIONS */
+      .section {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6rem 2rem;
+        overflow: hidden;
+      }
+      .section--light {
+        background: #fff;
+        color: var(--black);
+      }
+      .section--alt {
+        background: var(--gray-50);
+        color: var(--black);
+      }
+      .section--hero {
+        background: #fff;
+        color: var(--black);
+        min-height: auto;
+        padding: 100px 2rem 60px;
+      }
+      .section--cta {
+        background: #fff;
+        color: var(--black);
+        flex-direction: column;
+        min-height: auto;
+        padding: 80px 2rem 0;
+      }
+      .section--compact {
+        min-height: auto;
+        padding: 80px 2rem;
+        background: #fff;
+        color: var(--black);
+      }
+      .section--compact:nth-of-type(even) {
+        background: var(--gray-50);
+      }
+
+      /* HERO */
+      .hero-center {
+        text-align: center;
+        z-index: 1;
+        position: relative;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        font-family: "DM Mono", monospace;
+        color: var(--green);
+        background: var(--green-bg);
+        border-radius: 100px;
+        padding: 4px 12px;
+        margin-bottom: 2rem;
+        letter-spacing: 0.02em;
+      }
+      .hero-badge::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        background: var(--green);
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .hero-title {
+        font-size: clamp(2.2rem, 5vw, 3.4rem);
+        font-weight: 300;
+        line-height: 1.15;
+        letter-spacing: -1.5px;
+        color: var(--black);
+        margin: 0 0 1.25rem;
+      }
+      .hero-title strong {
+        font-weight: 500;
+      }
+      .hero-tagline {
+        font-size: 18px;
+        font-weight: 300;
+        color: var(--gray-600);
+        line-height: 1.6;
+        max-width: 520px;
+        margin: 0 auto 2.5rem;
+      }
+      .hero-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+      }
+      .hero-proof {
+        margin: 0;
+        font-size: 13px;
+        color: var(--gray-400);
+      }
+
+      /* BUTTONS */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 10px 22px;
+        border-radius: 7px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        text-decoration: none;
+        transition:
+          opacity 0.15s ease,
+          transform 0.15s ease;
+      }
+      .btn:hover {
+        opacity: 0.85;
+        transform: translateY(-1px);
+      }
+      .btn--primary {
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn--ghost {
+        background: transparent;
+        color: var(--gray-600);
+        border: 1px solid var(--gray-200);
+      }
+      .btn--ghost:hover {
+        border-color: var(--gray-400);
+        color: var(--black);
+      }
+
+      /* SCREENSHOT MOCK */
+      .screenshot-wrap {
+        max-width: 900px;
+        margin: 0 auto 80px;
+        padding: 0 2rem;
+      }
+      .screenshot {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--gray-50);
+      }
+      .screenshot-bar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        background: var(--gray-100);
+        border-bottom: 1px solid var(--border);
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .dot-r {
+        background: #ff5f57;
+      }
+      .dot-y {
+        background: #febc2e;
+      }
+      .dot-g {
+        background: #28c840;
+      }
+      .screenshot-url {
+        flex: 1;
+        text-align: center;
+        font-size: 12px;
+        font-family: "DM Mono", monospace;
+        color: var(--gray-400);
+      }
+      .screenshot-body {
+        padding: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+      .mock-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .mock-label {
+        font-size: 11px;
+        font-family: "DM Mono", monospace;
+        color: var(--gray-400);
+      }
+      .mock-value {
+        font-size: 22px;
+        font-weight: 500;
+        color: var(--black);
+      }
+      .mock-trend {
+        font-size: 11px;
+        color: var(--gray-400);
+      }
+      .mock-trend.up {
+        color: var(--green);
+      }
+      .mock-trend.down {
+        color: var(--red);
+      }
+      .mock-bar-wrap {
+        grid-column: span 2;
+      }
+      .mock-bars {
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+        height: 96px;
+        margin-top: 8px;
+        border-bottom: 1px solid var(--gray-200);
+      }
+      .mock-bar-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        height: 100%;
+      }
+      .mock-bar-pct {
+        font-size: 8px;
+        color: var(--gray-400);
+        margin-bottom: 2px;
+        line-height: 1;
+      }
+      .mock-bar {
+        width: 100%;
+        background: var(--gray-100);
+        border-radius: 3px 3px 0 0;
+      }
+      .mock-bar.pass {
+        background: var(--green-bg);
+      }
+      .mock-bar.fail {
+        background: var(--red-bg);
+      }
+      .mock-ai-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 12px;
+      }
+      .mock-ai-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        font-family: "DM Mono", monospace;
+        color: var(--gray-600);
+      }
+      .mock-list {
+        grid-column: span 4;
+      }
+      .mock-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--gray-600);
+        font-family: "DM Mono", monospace;
+      }
+      .mock-row:last-child {
+        border-bottom: none;
+      }
+      .mock-tag {
+        font-size: 11px;
+        font-family: "DM Mono", monospace;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 500;
+      }
+      .tag-pass {
+        background: var(--green-bg);
+        color: var(--green);
+      }
+      .tag-fail {
+        background: var(--red-bg);
+        color: var(--red);
+      }
+      .tag-flaky {
+        background: var(--amber-bg);
+        color: var(--amber);
+      }
+      @media (max-width: 700px) {
+        .screenshot-body {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .mock-bar-wrap {
+          grid-column: span 2;
+        }
+        .mock-list {
+          grid-column: span 2;
+        }
+      }
+
+      /* FEATURES GRID */
+      .features-inner {
+        max-width: 900px;
+        margin: 0 auto;
+        width: 100%;
+      }
+      .section-label {
+        font-size: 11px;
+        font-family: "DM Mono", monospace;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gray-400);
+        margin-bottom: 1rem;
+      }
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-top: 2rem;
+      }
+      .feature-card {
+        background: #fff;
+        padding: 1.75rem;
+      }
+      .feature-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: var(--gray-50);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 16px;
+      }
+      .feature-card h3 {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--black);
+        margin: 0 0 0.5rem;
+      }
+      .feature-card p {
+        font-size: 13px;
+        color: var(--gray-600);
+        font-weight: 300;
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      /* SECTION TEXT */
+      .section-headline {
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        font-weight: 300;
+        letter-spacing: -0.8px;
+        color: var(--black);
+        margin: 0 0 1rem;
+        line-height: 1.2;
+      }
+      .section-headline strong {
+        font-weight: 500;
+      }
+      .section-desc {
+        font-size: 16px;
+        font-weight: 300;
+        color: var(--gray-600);
+        line-height: 1.6;
+        margin: 0 0 1.5rem;
+      }
+      .section-link {
+        color: var(--p-primary-color);
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 0.95rem;
+      }
+      .section-link:hover {
+        text-decoration: underline;
+      }
+
+      /* VIEWS GRID */
+      .views-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+      }
+      .view-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        transition: box-shadow 0.2s ease;
+      }
+      .view-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      }
+      .view-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--gray-50);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.25rem;
+        color: var(--p-primary-color);
+      }
+      .view-card h3 {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--black);
+        margin: 0 0 0.5rem;
+      }
+      .view-card p {
+        font-size: 13px;
+        color: var(--gray-600);
+        font-weight: 300;
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      /* CTA + FOOTER */
+      .cta-inner {
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto;
+        padding-bottom: 4rem;
+      }
+      .cta-headline {
+        font-size: clamp(1.8rem, 4vw, 3rem);
+        font-weight: 300;
+        letter-spacing: -1px;
+        color: var(--black);
+        margin: 0 0 0.75rem;
+        line-height: 1.15;
+      }
+      .cta-headline strong {
+        font-weight: 500;
+      }
+      .cta-sub {
+        font-size: 16px;
+        font-weight: 300;
+        color: var(--gray-600);
+        margin: 0 0 2rem;
+      }
+      .home-footer {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 2rem 0;
+        border-top: 1px solid var(--border);
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .footer-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        font-size: 14px;
+        color: var(--black);
+      }
+      .footer-brand i {
+        color: var(--green);
+      }
+      .footer-links {
+        display: flex;
+        gap: 1.5rem;
+      }
+      .footer-links a {
+        color: var(--gray-400);
+        text-decoration: none;
+        font-size: 13px;
+        transition: color 0.15s;
+      }
+      .footer-links a:hover {
+        color: var(--black);
+      }
+      .footer-copy {
+        font-size: 12px;
+        color: var(--gray-400);
+      }
+
+      /* AI READY PILL */
+      .ai-ready-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        border-radius: 2rem;
+        padding: 0.3rem 0.9rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #7c3aed;
+        letter-spacing: 0.02em;
+        margin-bottom: 1.2rem;
+      }
+      .ai-ready-pill i {
+        color: #7c3aed;
+      }
+      .ai-providers-row {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        margin: 1.2rem 0;
+      }
+      .ai-provider-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: var(--gray-50);
+        border: 1px solid var(--border);
+        border-radius: 2rem;
+        padding: 0.25rem 0.7rem;
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--gray-600);
+      }
+
+      /* MOCK · AI PANEL */
+      .mock-ai-panel {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        max-width: 500px;
+      }
+      .mock-ai-test-row {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.9rem 1.2rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--gray-50);
+        flex-wrap: wrap;
+      }
+      .mock-ai-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-left: auto;
+        background: rgba(139, 92, 246, 0.1);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        color: #7c3aed;
+        border-radius: 2rem;
+        padding: 0.25rem 0.8rem;
+        font-size: 0.74rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .mock-ai-btn i {
+        color: #7c3aed;
+        font-size: 0.68rem;
+      }
+      .mock-ai-result {
+        padding: 1rem 1.2rem;
+      }
+      .mock-ai-result-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+      .mock-ai-category-badge {
+        border-radius: 2rem;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .mock-ai-category-badge.code-defect {
+        background: var(--red-bg);
+        color: var(--red);
+        border: 1px solid rgba(163, 45, 45, 0.15);
+      }
+      .mock-ai-confidence {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+        min-width: 160px;
+      }
+      .mock-ai-conf-label {
+        font-size: 0.7rem;
+        color: var(--gray-400);
+        white-space: nowrap;
+      }
+      .mock-ai-conf-bar {
+        flex: 1;
+        height: 6px;
+        background: var(--gray-200);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .mock-ai-conf-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #7c3aed, #a78bfa);
+        border-radius: 3px;
+      }
+      .mock-ai-conf-value {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #7c3aed;
+        white-space: nowrap;
+      }
+      .mock-ai-section-label {
+        font-size: 0.67rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--gray-400);
+        margin-bottom: 0.3rem;
+        font-weight: 600;
+      }
+      .mock-ai-explanation,
+      .mock-ai-fix {
+        margin-bottom: 0.85rem;
+      }
+      .mock-ai-text {
+        font-size: 0.8rem;
+        color: var(--gray-600);
+        line-height: 1.55;
+        margin: 0;
+      }
+      .mock-ai-feedback-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border);
+        flex-wrap: wrap;
+      }
+      .mock-ai-feedback-label {
+        font-size: 0.74rem;
+        color: var(--gray-400);
+      }
+      .mock-ai-feedback-btns {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .mock-ai-fb-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.2rem 0.7rem;
+        border-radius: 2rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        color: var(--gray-600);
+      }
+      .mock-ai-fb-btn.yes {
+        background: var(--green-bg);
+        border-color: rgba(29, 158, 117, 0.2);
+        color: var(--green);
+      }
+      .mock-ai-fb-btn i {
+        font-size: 0.68rem;
+      }
+
+      /* MOCK · MCP PANEL */
+      .mock-mcp-panel {
+        background: #111118;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+        width: 100%;
+        max-width: 500px;
+      }
+      .mock-mcp-header {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.65rem 1rem;
+        background: rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      .mock-mcp-header-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .mock-mcp-header-dot.red {
+        background: #ff5f57;
+      }
+      .mock-mcp-header-dot.amber {
+        background: #febc2e;
+      }
+      .mock-mcp-header-dot.green {
+        background: #28c840;
+      }
+      .mock-mcp-title {
+        margin-left: auto;
+        margin-right: auto;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.4);
+        letter-spacing: 0.03em;
+      }
+      .mock-mcp-body {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+      .mock-mcp-msg {
+        display: flex;
+        gap: 0.65rem;
+        align-items: flex-start;
+      }
+      .mock-mcp-avatar {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .mock-mcp-avatar.user {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.5);
+      }
+      .mock-mcp-avatar.assistant {
+        background: rgba(139, 92, 246, 0.25);
+        color: #a78bfa;
+      }
+      .mock-mcp-bubble {
+        flex: 1;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        border-radius: 8px;
+        padding: 0.55rem 0.75rem;
+      }
+      .mock-mcp-bubble.user {
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.75);
+      }
+      .mock-mcp-bubble.assistant {
+        background: rgba(99, 130, 255, 0.07);
+        border: 1px solid rgba(99, 130, 255, 0.15);
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .mock-mcp-tool-call {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        padding: 0.3rem 0.6rem;
+        margin-bottom: 0.6rem;
+        flex-wrap: wrap;
+      }
+      .mock-mcp-tool-call > i {
+        color: #a78bfa;
+        font-size: 0.7rem;
+      }
+      .mock-mcp-tool-name {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #a8c8ff;
+        font-family: "DM Mono", monospace;
+      }
+      .mock-mcp-tool-args {
+        font-size: 0.68rem;
+        color: rgba(255, 255, 255, 0.35);
+        font-family: "DM Mono", monospace;
+      }
+      .mock-mcp-results {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        margin-bottom: 0.6rem;
+      }
+      .mock-mcp-result-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.65);
+      }
+      .mock-mcp-result-row .fail {
+        color: #f87171;
+        font-size: 0.72rem;
+      }
+      .mock-mcp-text {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.6);
+        line-height: 1.5;
+        margin: 0;
+      }
+
+      /* MOCK · LANES */
+      .mock-p-tag {
+        background: var(--blue-bg);
+        color: var(--blue);
+        border: 1px solid rgba(24, 95, 165, 0.15);
+        border-radius: 4px;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.72rem;
+        font-weight: 500;
+      }
+      .mock-lanes-section {
+        width: 100%;
+        max-width: 500px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      }
+      .mock-type-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1rem;
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--border);
+      }
+      .mock-type-bar-counts {
+        display: flex;
+        gap: 0.4rem;
+        margin-left: auto;
+      }
+      .mock-lanes-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        padding: 0.75rem;
+      }
+      .mock-lane-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.9rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+      }
+      .mock-lane-tags {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .mock-lane-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: auto;
+      }
+      .mock-health-badge {
+        border-radius: 999px;
+        padding: 0.2rem 0.65rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+      }
+      .mock-health-badge.green {
+        background: var(--green-bg);
+        color: var(--green);
+      }
+      .mock-health-badge.amber {
+        background: var(--amber-bg);
+        color: var(--amber);
+      }
+      .mock-lane-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        color: var(--gray-400);
+      }
+      .mock-lane-meta i {
+        font-size: 0.7rem;
+      }
+
+      /* MOCK · LAUNCHES */
+      .mock-launches {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        width: 100%;
+        max-width: 500px;
+      }
+      .mock-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.9rem 1.2rem;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+        background: var(--gray-50);
+      }
+      .mock-filter-pill {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: var(--gray-100);
+        color: var(--gray-600);
+        padding: 0.25rem 0.7rem;
+        border-radius: 2rem;
+        font-size: 0.72rem;
+        font-weight: 500;
+        border: 1px solid var(--border);
+      }
+      .mock-pass-badge {
+        margin-left: auto;
+        background: var(--green-bg);
+        color: var(--green);
+        padding: 0.25rem 0.7rem;
+        border-radius: 2rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .mock-test-row {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.7rem 1.2rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .mock-test-row:last-child {
+        border-bottom: none;
+      }
+      .mock-status-icon {
+        font-size: 0.85rem;
+        flex-shrink: 0;
+      }
+      .mock-status-icon.pass {
+        color: #22c55e;
+      }
+      .mock-status-icon.fail {
+        color: #ef4444;
+      }
+      .mock-status-icon.skip {
+        color: #f59e0b;
+      }
+      .mock-history-bar {
+        height: 8px;
+        border-radius: 4px;
+        width: 80px;
+        display: flex;
+        overflow: hidden;
+        flex-shrink: 0;
+        gap: 1px;
+      }
+      .mock-history-seg {
+        flex: 1;
+      }
+      .mock-history-seg.pass {
+        background: #22c55e;
+      }
+      .mock-history-seg.fail {
+        background: #ef4444;
+      }
+      .mock-history-seg.skip {
+        background: #f59e0b;
+      }
+      .mock-test-name {
+        font-size: 0.82rem;
+        color: var(--gray-800);
+      }
+      .mock-q-count {
+        margin-left: auto;
+        background: var(--amber-bg);
+        color: var(--amber);
+        padding: 0.25rem 0.7rem;
+        border-radius: 2rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .mock-q-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+        flex-wrap: wrap;
+      }
+      .mock-test-row.quarantine {
+        background: rgba(186, 117, 23, 0.04);
+      }
+      .mock-test-row.resolved {
+        background: rgba(29, 158, 117, 0.04);
+      }
+
+      /* MOCK · INVESTIGATION */
+      .mock-investigation {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1.5rem;
+        width: 100%;
+        max-width: 460px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      }
+      .mock-inv-header {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 0.8rem;
+        flex-wrap: wrap;
+      }
+      .mock-inv-badge {
+        background: var(--red-bg);
+        color: var(--red);
+        border: 1px solid rgba(163, 45, 45, 0.15);
+        padding: 0.2rem 0.7rem;
+        border-radius: 2rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+      .mock-inv-auto {
+        background: var(--blue-bg);
+        color: var(--blue);
+        border: 1px solid rgba(24, 95, 165, 0.15);
+        padding: 0.2rem 0.7rem;
+        border-radius: 2rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+      .mock-inv-test {
+        font-weight: 500;
+        font-size: 0.95rem;
+        color: var(--black);
+        margin-bottom: 0.8rem;
+      }
+      .mock-inv-note {
+        background: var(--blue-bg);
+        border-left: 3px solid var(--blue);
+        border-radius: 0 4px 4px 0;
+        padding: 0.7rem 1rem;
+        margin-bottom: 0.8rem;
+      }
+      .mock-inv-note-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--gray-400);
+        margin-bottom: 0.3rem;
+      }
+      .mock-inv-note-body {
+        font-size: 0.8rem;
+        color: var(--gray-800);
+        line-height: 1.5;
+      }
+      .mock-inv-meta {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      /* MOCK · WIDGET */
+      .mock-widget-container {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      }
+      .mock-widget-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--gray-50);
+      }
+      .mock-drag-handle {
+        color: var(--gray-400);
+        font-size: 0.8rem;
+        opacity: 0.5;
+        cursor: grab;
+      }
+      .mock-widget-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--black);
+        flex: 1;
+      }
+      .mock-widget-scope-tags {
+        display: flex;
+        gap: 0.3rem;
+      }
+      .mock-widget-actions {
+        display: flex;
+        gap: 0.35rem;
+        color: var(--gray-400);
+        font-size: 0.8rem;
+      }
+      .mock-widget-actions i {
+        opacity: 0.6;
+        cursor: pointer;
+      }
+      .mock-widget-body {
+        padding: 0.75rem;
+      }
+      .mock-bar-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 0.6rem;
+        height: 120px;
+      }
+      .mock-bar-wrap {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+        height: 100%;
+        justify-content: flex-end;
+      }
+      .mock-bar {
+        width: 100%;
+        background: var(--p-primary-color);
+        border-radius: 4px 4px 0 0;
+        min-height: 8px;
+        opacity: 0.75;
+      }
+      .mock-bar-label {
+        font-size: 0.68rem;
+        color: var(--gray-400);
+      }
+
+      /* MOCK · RULES TABLE */
+      .mock-rules-wrap {
+        width: 100%;
+        max-width: 460px;
+      }
+      .mock-rules-desc-bar {
+        background: var(--blue-bg);
+        border-left: 3px solid var(--blue);
+        border-radius: 4px;
+        padding: 0.6rem 0.9rem;
+        font-size: 0.8rem;
+        color: var(--gray-600);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+      .mock-rules-desc-bar i {
+        color: var(--blue);
+      }
+      .mock-rules-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .mock-rules-table th {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gray-400);
+        padding: 0.6rem 1rem;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        background: var(--gray-50);
+      }
+      .mock-rules-table td {
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.82rem;
+        color: var(--gray-800);
+      }
+      .mock-rules-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+      .mock-scope-badge {
+        display: inline-flex;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        overflow: hidden;
+        font-size: 0.72rem;
+      }
+      .mock-scope-label {
+        padding: 0.15rem 0.45rem;
+        background: var(--gray-50);
+        color: var(--gray-400);
+        text-transform: uppercase;
+        font-size: 0.68rem;
+        letter-spacing: 0.04em;
+        font-weight: 600;
+      }
+      .mock-scope-value {
+        padding: 0.15rem 0.45rem;
+        color: var(--gray-800);
+        font-weight: 500;
+      }
+      .mock-toggle {
+        width: 28px;
+        height: 16px;
+        border-radius: 8px;
+        background: var(--gray-200);
+        position: relative;
+        display: inline-block;
+      }
+      .mock-toggle::after {
+        content: "";
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #fff;
+        top: 2px;
+        left: 2px;
+        transition: left 0.2s;
+      }
+      .mock-toggle.on {
+        background: var(--green);
+      }
+      .mock-toggle.on::after {
+        left: 14px;
+      }
+
+      /* FEATURE TABS */
+      .section--features-tab {
+        min-height: auto;
+        padding: 80px 2rem;
+      }
+      .features-tab-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        width: 100%;
+      }
+      .features-tab-layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 2rem;
+        margin-top: 3rem;
+        align-items: start;
+      }
+      .features-tab-list {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        position: sticky;
+        top: 76px;
+      }
+      .features-tab-item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--gray-600);
+        transition:
+          background 0.15s,
+          color 0.15s;
+      }
+      .features-tab-item:last-child {
+        border-bottom: none;
+      }
+      .features-tab-item:hover {
+        background: var(--gray-50);
+        color: var(--black);
+      }
+      .features-tab-item.active {
+        background: var(--primary);
+        color: #fff;
+        font-weight: 500;
+      }
+      .features-tab-content {
+        min-height: 400px;
+      }
+      .features-tab-panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+      }
+      .features-tab-panel.hidden {
+        display: none;
+      }
+      .features-tab-panel--stacked {
+        grid-template-columns: 1fr;
+      }
+      .tab-headline {
+        font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+        font-weight: 300;
+        letter-spacing: -0.6px;
+        color: var(--black);
+        margin: 0 0 1rem;
+        line-height: 1.2;
+      }
+      .tab-desc {
+        font-size: 15px;
+        font-weight: 300;
+        color: var(--gray-600);
+        line-height: 1.6;
+        margin: 0 0 1.5rem;
+      }
+      @media (max-width: 960px) {
+        .features-tab-layout {
+          grid-template-columns: 1fr;
+        }
+        .features-tab-list {
+          flex-direction: row;
+          flex-wrap: wrap;
+          position: static;
+        }
+        .features-tab-item {
+          flex: 1;
+          min-width: 120px;
+          border-right: 1px solid var(--border);
+          border-bottom: none;
+          justify-content: center;
+        }
+        .features-tab-item:last-child {
+          border-right: none;
+        }
+        .features-tab-panel {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* MOCK · COMPARISON */
+      .mock-compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+      .mock-col {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      }
+      .mock-lane-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--gray-50);
+      }
+      .mock-pill {
+        background: var(--blue-bg);
+        color: var(--blue);
+        padding: 0.2rem 0.7rem;
+        border-radius: 2rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
+      /* INTEGRATIONS */
+      .integrations-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+      }
+      .reporters-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 1.5rem;
+      }
+      .reporter-card {
+        background: var(--gray-50);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.65rem 0.9rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      .reporter-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .reporter-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--black);
+      }
+      .reporter-lang {
+        font-size: 11px;
+        font-family: "DM Mono", monospace;
+        color: var(--gray-400);
+        background: var(--gray-100);
+        padding: 1px 6px;
+        border-radius: 4px;
+      }
+      code.reporter-install {
+        font-family: "DM Mono", monospace;
+        font-size: 11px;
+        color: var(--gray-600);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+      }
+      .code-block {
+        background: var(--gray-800);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .code-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .code-title {
+        font-size: 12px;
+        font-family: "DM Mono", monospace;
+        color: rgba(255, 255, 255, 0.4);
+        margin-left: 4px;
+      }
+      pre {
+        padding: 1.25rem 1.5rem;
+        font-family: "DM Mono", monospace;
+        font-size: 12.5px;
+        line-height: 1.7;
+        color: rgba(255, 255, 255, 0.82);
+        overflow-x: auto;
+        margin: 0;
+        white-space: pre;
+      }
+      @media (max-width: 640px) {
+        .integrations-inner {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* PRICING */
+      .pricing-inner {
+        max-width: 860px;
+        margin: 0 auto;
+        width: 100%;
+      }
+      .pricing-group {
+        margin-top: 2.5rem;
+      }
+      .pricing-group-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 11px;
+        font-family: "DM Mono", monospace;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--gray-400);
+        margin-bottom: 1rem;
+      }
+      .pricing-group-label::before {
+        content: "";
+        display: block;
+        width: 20px;
+        height: 1px;
+        background: var(--border);
+      }
+      .pricing-group-label::after {
+        content: "";
+        display: block;
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+      .pricing-group-badge {
+        font-size: 10px;
+        font-family: "DM Mono", monospace;
+        font-weight: 500;
+        background: var(--gray-100);
+        color: var(--gray-400);
+        padding: 2px 8px;
+        border-radius: 100px;
+        border: 1px solid var(--border);
+        letter-spacing: 0.04em;
+      }
+      .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+      .pricing-grid--3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .pricing-card {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.75rem;
+        background: #fff;
+        position: relative;
+      }
+      .pricing-card.featured {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: #fff;
+      }
+      .pricing-popular {
+        position: absolute;
+        top: -11px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 11px;
+        font-family: "DM Mono", monospace;
+        font-weight: 500;
+        background: var(--primary);
+        color: #fff;
+        padding: 3px 12px;
+        border-radius: 100px;
+        white-space: nowrap;
+      }
+      .pricing-tier {
+        font-size: 12px;
+        font-family: "DM Mono", monospace;
+        font-weight: 500;
+        color: var(--gray-400);
+        margin-bottom: 1rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .pricing-card.featured .pricing-tier {
+        color: rgba(255, 255, 255, 0.5);
+      }
+      .pricing-price {
+        font-size: 2rem;
+        font-weight: 500;
+        letter-spacing: -1px;
+        color: var(--black);
+        margin-bottom: 0.25rem;
+      }
+      .pricing-card.featured .pricing-price {
+        color: #fff;
+      }
+      .pricing-cadence {
+        font-size: 13px;
+        color: var(--gray-400);
+        margin-bottom: 1.5rem;
+      }
+      .pricing-card.featured .pricing-cadence {
+        color: rgba(255, 255, 255, 0.4);
+      }
+      .pricing-desc {
+        font-size: 13px;
+        color: var(--gray-600);
+        font-weight: 300;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+      }
+      .pricing-card.featured .pricing-desc {
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .pricing-features {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 1.75rem;
+        padding: 0;
+      }
+      .pricing-features li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--gray-600);
+      }
+      .pricing-card.featured .pricing-features li {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .check {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--green-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 10px;
+        color: var(--green);
+      }
+      .pricing-card.featured .check {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+      }
+      .btn-plan {
+        display: block;
+        text-align: center;
+        font-family: "DM Sans", sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 9px;
+        border-radius: 7px;
+        text-decoration: none;
+        border: 1px solid var(--border);
+        color: var(--black);
+        background: var(--gray-50);
+        transition: background 0.15s;
+        cursor: pointer;
+      }
+      .btn-plan:hover {
+        background: var(--gray-100);
+      }
+      .pricing-card.featured .btn-plan {
+        background: #fff;
+        border-color: transparent;
+        color: var(--black);
+      }
+      .pricing-card.featured .btn-plan:hover {
+        opacity: 0.9;
+      }
+      .pricing-card--wide {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.75rem;
+        background: #fff;
+      }
+      .pricing-features--row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px 24px;
+        margin-bottom: 1.75rem;
+      }
+      @media (max-width: 700px) {
+        .pricing-grid,
+        .pricing-grid--3 {
+          grid-template-columns: 1fr;
+        }
+        .pricing-group-label::after {
+          display: none;
+        }
+        .pricing-features--row {
+          flex-direction: column;
+        }
+      }
+
+      /* MOCK TAGS */
+      .mock-tag.green {
+        background: var(--green-bg);
+        color: var(--green);
+      }
+      .mock-tag.amber {
+        background: var(--amber-bg);
+        color: var(--amber);
+      }
+
+      /* RESPONSIVE */
+      @media (max-width: 960px) {
+        .views-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 600px) {
+        .section {
+          padding: 4rem 1.25rem;
+        }
+        .section--compact {
+          padding: 60px 1.25rem;
+        }
+        .views-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .mock-compare {
+          grid-template-columns: 1fr;
+        }
+        .mock-lanes-section,
+        .mock-launches,
+        .mock-investigation,
+        .mock-widget-container,
+        .mock-rules-wrap,
+        .mock-ai-panel,
+        .mock-mcp-panel {
+          max-width: 100%;
+        }
+        .hero-actions {
+          flex-direction: column;
+          align-items: center;
+        }
+        .home-footer {
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="home-scroll-page">
+      <nav class="home-nav">
+        <div class="home-nav-inner">
+          <a class="home-nav-brand" href="/"
+            ><i class="fas fa-chart-line"></i><span>UReport</span></a
+          >
+          <div class="home-nav-links">
+            <a class="home-nav-link" href="#features">Features</a>
+            <a class="home-nav-link" href="#integrations">Integrations</a>
+            <a class="home-nav-link" href="#pricing">Pricing</a>
+            <a class="home-nav-link" href="/docs">Docs</a>
+            <a
+              class="home-nav-link"
+              href="https://github.com/ureport-web/ureport-standalone"
+              target="_blank"
+              >GitHub</a
+            >
+            <a class="home-nav-btn" href="/nextgen/login">Try Demo</a>
+          </div>
+        </div>
+      </nav>
+
+      <section class="section section--hero">
+        <div class="hero-center">
+          <div class="animate from-below">
+            <div class="hero-badge">Open source · Free to self-host</div>
+            <h1 class="hero-title">
+              From test reports to <strong>test intelligence</strong>
+            </h1>
+            <p class="hero-tagline">
+              Centralize test executions. Visualize pass rates and failure
+              trends for engineers and leadership to act on — with flaky test
+              quarantine and AI root cause analysis built in.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn--primary" href="/nextgen/login">Try Demo →</a>
+              <a
+                class="btn btn--ghost"
+                href="https://github.com/ureport-web/ureport-standalone"
+                target="_blank"
+                ><i class="fab fa-github"></i> GitHub</a
+              >
+            </div>
+            <p class="hero-proof">
+              Free &amp; open source · MIT license · Self-host in under 2
+              minutes
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div class="screenshot-wrap">
+        <div class="screenshot animate from-below">
+          <div class="screenshot-bar">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+            <div class="screenshot-url">ureportlab.com/overview</div>
+          </div>
+          <div class="screenshot-body">
+            <div class="mock-card">
+              <div class="mock-label">pass rate</div>
+              <div class="mock-value">96.2%</div>
+              <div class="mock-trend up">↑ 1.4% vs last build</div>
+            </div>
+            <div class="mock-card">
+              <div class="mock-label">total tests</div>
+              <div class="mock-value">4,821</div>
+              <div class="mock-trend up">↑ 312 new</div>
+            </div>
+            <div class="mock-card">
+              <div class="mock-label">flaky tests</div>
+              <div class="mock-value">7</div>
+              <div class="mock-trend down">↓ 3 quarantined</div>
+            </div>
+            <div class="mock-card">
+              <div class="mock-label">ai analyzed</div>
+              <div class="mock-value">183</div>
+              <div class="mock-trend">failures categorized</div>
+            </div>
+            <div class="mock-card mock-bar-wrap">
+              <div class="mock-label">pass rate — last 10 builds</div>
+              <div class="mock-bars">
+                <div class="mock-bar-col">
+                  <div class="mock-bar-pct">72%</div>
+                  <div class="mock-bar pass" style="height: 72%"></div>
+                </div>
+                <div class="mock-bar-col">
+                  <div class="mock-bar-pct">85%</div>
+                  <div class="mock-bar pass" style="height: 85%"></div>
+                </div>
+                <div class="mock-bar-col">
+                  <div class="mock-bar-pct">78%</div>
+                  <div class="mock-bar pass" style="height: 78%"></div>
+                </div>
+                <div class="mock-bar-col">
+                  <div class="mock-bar-pct">62%</div>
+                  <div class="mock-bar fail" style="height: 62%"></div>
+                </div>
+                <div class="mock-bar-col">
+                  <div class="mock-bar-pct">88%</div>
+                  <div class="mock-bar pass" style="height: 88%"></div>
+                </div>
+                <div class="mock-bar-col">
+                  <div class="mock-bar-pct">91%</div>
+                  <div class="mock-bar pass" style="height: 91%"></div>
+                </div>
+                <div class="mock-bar-col">
+                  <div class="mock-bar-pct">89%</div>
+                  <div class="mock-bar pass" style="height: 89%"></div>
+                </div>
+                <div class="mock-bar-col">
+                  <div class="mock-bar-pct">94%</div>
+                  <div class="mock-bar pass" style="height: 94%"></div>
+                </div>
+                <div class="mock-bar-col">
+                  <div class="mock-bar-pct">93%</div>
+                  <div class="mock-bar pass" style="height: 93%"></div>
+                </div>
+                <div class="mock-bar-col">
+                  <div class="mock-bar-pct">96%</div>
+                  <div class="mock-bar pass" style="height: 96%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="mock-card mock-bar-wrap">
+              <div class="mock-label">recent failures — ai root cause</div>
+              <div class="mock-ai-rows">
+                <div class="mock-ai-row">
+                  <span>checkout_flow_test</span
+                  ><span class="mock-tag tag-fail">Code Defect</span>
+                </div>
+                <div class="mock-ai-row">
+                  <span>login_timeout_test</span
+                  ><span class="mock-tag tag-flaky">Flakiness</span>
+                </div>
+                <div class="mock-ai-row">
+                  <span>api_auth_spec</span
+                  ><span class="mock-tag tag-fail">Env Issue</span>
+                </div>
+              </div>
+            </div>
+            <div class="mock-card mock-list">
+              <div class="mock-label">recent builds</div>
+              <div class="mock-row">
+                <span>build #1042 · main · chrome</span
+                ><span class="mock-tag tag-pass">96.2% pass</span>
+              </div>
+              <div class="mock-row">
+                <span>build #1041 · main · firefox</span
+                ><span class="mock-tag tag-pass">94.8% pass</span>
+              </div>
+              <div class="mock-row">
+                <span>build #1040 · feat/checkout · chrome</span
+                ><span class="mock-tag tag-fail">78.1% pass</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section class="section section--compact" id="features">
+        <div class="features-inner">
+          <div class="section-label">Features</div>
+          <h2 class="section-headline">
+            Everything your QA team <strong>actually needs</strong>
+          </h2>
+          <p class="section-desc">
+            Built for teams running automation at scale — not just a pretty HTML
+            report.
+          </p>
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">🤖</div>
+              <h3>AI root cause analysis</h3>
+              <p>
+                One click classifies any failure — Code Defect, Flakiness,
+                Environment Issue, and more. Results cached by error
+                fingerprint.
+              </p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🔌</div>
+              <h3>MCP server built-in</h3>
+              <p>
+                Query your test data from Claude Code in plain English — no
+                browser, no dashboards, just answers.
+              </p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🚫</div>
+              <h3>Flaky test quarantine</h3>
+              <p>
+                Flag noisy tests to suppress them from CI failures. Auto-expire
+                after 90 days — no manual cleanup.
+              </p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">📊</div>
+              <h3>Dashboard builder</h3>
+              <p>
+                Drag-and-drop widgets: pass rate trends, pie charts, heatmaps.
+                Share public links with stakeholders.
+              </p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🔄</div>
+              <h3>Auto-analysis</h3>
+              <p>
+                Repeated failures auto-matched and re-tagged based on previous
+                investigations. No manual re-triage.
+              </p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">👁️</div>
+              <h3>4 result views</h3>
+              <p>
+                Tree, list, comparison, and timeline views. Compare any two
+                builds side by side in one click.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--compact" id="integrations">
+        <div class="integrations-inner">
+          <div class="integrations-text">
+            <div class="section-label">Integrations</div>
+            <h2 class="section-headline">
+              Works with your <strong>existing stack</strong>
+            </h2>
+            <p class="section-desc">
+              Five official reporters push results automatically from CI — zero
+              manual work. Or POST directly to the REST API.
+            </p>
+            <div class="reporters-grid">
+              <div class="reporter-card">
+                <div class="reporter-card-top">
+                  <span class="reporter-name">Playwright</span
+                  ><span class="reporter-lang">JS / TS</span>
+                </div>
+                <code class="reporter-install"
+                  >npm i -D ureport-playwright-reporter</code
+                >
+              </div>
+              <div class="reporter-card">
+                <div class="reporter-card-top">
+                  <span class="reporter-name">Jest</span
+                  ><span class="reporter-lang">JS / TS</span>
+                </div>
+                <code class="reporter-install"
+                  >npm i -D ureport-jest-reporter</code
+                >
+              </div>
+              <div class="reporter-card">
+                <div class="reporter-card-top">
+                  <span class="reporter-name">Mocha</span
+                  ><span class="reporter-lang">JS / TS</span>
+                </div>
+                <code class="reporter-install"
+                  >npm i -D ureport-mocha-reporter</code
+                >
+              </div>
+              <div class="reporter-card">
+                <div class="reporter-card-top">
+                  <span class="reporter-name">pytest</span
+                  ><span class="reporter-lang">Python</span>
+                </div>
+                <code class="reporter-install"
+                  >pip install ureport-pytest-reporter</code
+                >
+              </div>
+              <div class="reporter-card">
+                <div class="reporter-card-top">
+                  <span class="reporter-name">TestNG</span
+                  ><span class="reporter-lang">Java</span>
+                </div>
+                <code class="reporter-install"
+                  >ureport-testng-reporter (Maven)</code
+                >
+              </div>
+            </div>
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+              <span class="code-title">playwright.config.ts</span>
+            </div>
+            <pre>
+// 1. Install the reporter
+// npm i -D ureport-playwright-reporter
+
+reporter: [
+  ['ureport-playwright-reporter', {
+    serverUrl: 'https://your.ureportlab.com',
+    product:   'my-app',
+    token:     process.env.UREPORT_TOKEN,
+  }]
+],
+
+// 2. Run your tests — results push automatically
+// npx playwright test
+</pre
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--light section--features-tab">
+        <div class="features-tab-inner">
+          <h2 class="section-headline">See everything in action.</h2>
+          <p class="section-desc">
+            Ten capabilities, one place. Click any tab to explore.
+          </p>
+          <div class="features-tab-layout">
+            <div class="features-tab-list">
+              <div class="features-tab-item active" onclick="setFeatureTab(0)">
+                <span class="features-tab-icon">🤖</span
+                ><span class="features-tab-label">AI Root Cause</span>
+              </div>
+              <div class="features-tab-item" onclick="setFeatureTab(1)">
+                <span class="features-tab-icon">🔌</span
+                ><span class="features-tab-label">MCP Server</span>
+              </div>
+              <div class="features-tab-item" onclick="setFeatureTab(2)">
+                <span class="features-tab-icon">🏎️</span
+                ><span class="features-tab-label">Product Lanes</span>
+              </div>
+              <div class="features-tab-item" onclick="setFeatureTab(3)">
+                <span class="features-tab-icon">📋</span
+                ><span class="features-tab-label">Launches</span>
+              </div>
+              <div class="features-tab-item" onclick="setFeatureTab(4)">
+                <span class="features-tab-icon">👁️</span
+                ><span class="features-tab-label">Multiple Views</span>
+              </div>
+              <div class="features-tab-item" onclick="setFeatureTab(5)">
+                <span class="features-tab-icon">🔍</span
+                ><span class="features-tab-label">Investigations</span>
+              </div>
+              <div class="features-tab-item" onclick="setFeatureTab(6)">
+                <span class="features-tab-icon">🚫</span
+                ><span class="features-tab-label">Quarantine</span>
+              </div>
+              <div class="features-tab-item" onclick="setFeatureTab(7)">
+                <span class="features-tab-icon">📊</span
+                ><span class="features-tab-label">Dashboards</span>
+              </div>
+              <div class="features-tab-item" onclick="setFeatureTab(8)">
+                <span class="features-tab-icon">🔔</span
+                ><span class="features-tab-label">Alerts</span>
+              </div>
+              <div class="features-tab-item" onclick="setFeatureTab(9)">
+                <span class="features-tab-icon">⚖️</span
+                ><span class="features-tab-label">Comparison</span>
+              </div>
+            </div>
+            <div class="features-tab-content">
+              <!-- Panel 0: AI Root Cause -->
+              <div class="features-tab-panel">
+                <div class="tab-panel-text">
+                  <div class="ai-ready-pill">
+                    <i class="fas fa-robot"></i> AI-Ready
+                  </div>
+                  <h3 class="tab-headline">Root cause, explained by AI.</h3>
+                  <p class="tab-desc">
+                    Click "Analyse with AI" on any failing test. The LLM reads
+                    the error message, stack trace, step history, and prior run
+                    data — then returns a root cause category, confidence score,
+                    plain-English explanation, and a suggested fix. Results are
+                    cached by error fingerprint so sibling tests with the same
+                    error get instant answers.
+                  </p>
+                  <div class="ai-providers-row">
+                    <span class="ai-provider-pill"
+                      ><i class="fab fa-aws"></i> AWS Bedrock</span
+                    >
+                    <span class="ai-provider-pill"
+                      ><i class="fas fa-robot"></i> Claude</span
+                    >
+                    <span class="ai-provider-pill">OpenAI</span>
+                    <span class="ai-provider-pill">Gemini</span>
+                    <span class="ai-provider-pill">Ollama</span>
+                  </div>
+                  <a class="section-link" href="/docs/ai-analysis"
+                    >Explore AI Analysis →</a
+                  >
+                </div>
+                <div class="tab-panel-mock">
+                  <div class="mock-ai-panel">
+                    <div class="mock-ai-test-row">
+                      <i class="fas fa-times-circle mock-status-icon fail"></i>
+                      <span class="mock-test-name">Payment — 3DS redirect</span>
+                      <div class="mock-ai-btn">
+                        <i class="fas fa-robot"></i> Analyse with AI
+                      </div>
+                    </div>
+                    <div class="mock-ai-result">
+                      <div class="mock-ai-result-header">
+                        <div class="mock-ai-category-badge code-defect">
+                          Code Defect
+                        </div>
+                        <div class="mock-ai-confidence">
+                          <span class="mock-ai-conf-label">Confidence</span>
+                          <div class="mock-ai-conf-bar">
+                            <div
+                              class="mock-ai-conf-fill"
+                              style="width: 87%"
+                            ></div>
+                          </div>
+                          <span class="mock-ai-conf-value">87%</span>
+                        </div>
+                      </div>
+                      <div class="mock-ai-explanation">
+                        <div class="mock-ai-section-label">Root Cause</div>
+                        <p class="mock-ai-text">
+                          Stripe webhook response arrives after the 3 s timeout
+                          enforced in the test setup. The race condition is
+                          consistent across environments when 3DS challenge is
+                          triggered.
+                        </p>
+                      </div>
+                      <div class="mock-ai-fix">
+                        <div class="mock-ai-section-label">Suggested Fix</div>
+                        <p class="mock-ai-text">
+                          Increase webhook timeout to 8 s in test config, or
+                          stub the Stripe response in CI.
+                        </p>
+                      </div>
+                      <div class="mock-ai-feedback-row">
+                        <span class="mock-ai-feedback-label"
+                          >Was this helpful?</span
+                        >
+                        <div class="mock-ai-feedback-btns">
+                          <div class="mock-ai-fb-btn yes">
+                            <i class="fas fa-thumbs-up"></i> Confirm
+                          </div>
+                          <div class="mock-ai-fb-btn">
+                            <i class="fas fa-edit"></i> Override
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 1: MCP Server -->
+              <div class="features-tab-panel hidden">
+                <div class="tab-panel-text">
+                  <div class="ai-ready-pill">
+                    <i class="fas fa-plug"></i> MCP Server
+                  </div>
+                  <h3 class="tab-headline">
+                    Query your tests from Claude Code.
+                  </h3>
+                  <p class="tab-desc">
+                    UReport ships a Model Context Protocol (MCP) server. Connect
+                    it to Claude Code or any MCP-compatible assistant and ask
+                    questions about your builds, pass rates, and failing tests —
+                    without opening a browser.
+                  </p>
+                  <div class="ai-providers-row">
+                    <span class="ai-provider-pill"
+                      ><i class="fas fa-layer-group"></i> list_builds</span
+                    >
+                    <span class="ai-provider-pill"
+                      ><i class="fas fa-vial"></i> get_tests</span
+                    >
+                    <span class="ai-provider-pill"
+                      ><i class="fas fa-chart-bar"></i> get_statistics</span
+                    >
+                    <span class="ai-provider-pill"
+                      ><i class="fas fa-search"></i> get_relation_fields</span
+                    >
+                  </div>
+                  <a class="section-link" href="/docs/ai-analysis#mcp"
+                    >MCP Setup →</a
+                  >
+                </div>
+                <div class="tab-panel-mock">
+                  <div class="mock-mcp-panel">
+                    <div class="mock-mcp-header">
+                      <div class="mock-mcp-header-dot red"></div>
+                      <div class="mock-mcp-header-dot amber"></div>
+                      <div class="mock-mcp-header-dot green"></div>
+                      <span class="mock-mcp-title">Claude Code</span>
+                    </div>
+                    <div class="mock-mcp-body">
+                      <div class="mock-mcp-msg user">
+                        <div class="mock-mcp-avatar user">
+                          <i class="fas fa-user"></i>
+                        </div>
+                        <div class="mock-mcp-bubble user">
+                          Show me all failing tests in the latest checkout build
+                        </div>
+                      </div>
+                      <div class="mock-mcp-msg assistant">
+                        <div class="mock-mcp-avatar assistant">
+                          <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="mock-mcp-bubble assistant">
+                          <div class="mock-mcp-tool-call">
+                            <i class="fas fa-plug"></i
+                            ><span class="mock-mcp-tool-name">get_tests</span
+                            ><span class="mock-mcp-tool-args"
+                              >product: "checkout", status: "FAIL"</span
+                            >
+                          </div>
+                          <div class="mock-mcp-results">
+                            <div class="mock-mcp-result-row">
+                              <i class="fas fa-times-circle fail"></i
+                              ><span>Payment — 3DS redirect</span>
+                            </div>
+                            <div class="mock-mcp-result-row">
+                              <i class="fas fa-times-circle fail"></i
+                              ><span>Checkout — guest flow</span>
+                            </div>
+                            <div class="mock-mcp-result-row">
+                              <i class="fas fa-times-circle fail"></i
+                              ><span>Cart — promo code validation</span>
+                            </div>
+                          </div>
+                          <p class="mock-mcp-text">
+                            Found 3 failing tests. The Payment 3DS redirect test
+                            has been failing since build #142 — this looks like
+                            a recurring issue worth investigating.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 2: Product Lanes -->
+              <div class="features-tab-panel hidden">
+                <div class="tab-panel-text">
+                  <h3 class="tab-headline">All your lanes. One view.</h3>
+                  <p class="tab-desc">
+                    Organise your test suites into Product Lanes — each with its
+                    own environments, filter dimensions, and pass-rate history.
+                    One page, the complete picture.
+                  </p>
+                  <a
+                    class="section-link"
+                    href="/docs/getting-started#product-lanes"
+                    >Explore Product Lanes →</a
+                  >
+                </div>
+                <div class="tab-panel-mock">
+                  <div class="mock-lanes-section">
+                    <div class="mock-type-bar">
+                      <span class="mock-p-tag">smoke</span>
+                      <div class="mock-type-bar-counts">
+                        <span class="mock-tag green">14 active</span
+                        ><span class="mock-tag amber">2 dormant</span>
+                      </div>
+                    </div>
+                    <div class="mock-lanes-grid">
+                      <div class="mock-lane-card">
+                        <div class="mock-lane-tags">
+                          <span class="mock-p-tag">Firefox</span
+                          ><span class="mock-p-tag">Smoke</span
+                          ><span class="mock-p-tag">Prod</span>
+                        </div>
+                        <div class="mock-lane-footer">
+                          <span class="mock-health-badge green">Excellent</span>
+                          <div class="mock-lane-meta">
+                            <i class="fas fa-clock"></i><span>2 min ago</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mock-lane-card">
+                        <div class="mock-lane-tags">
+                          <span class="mock-p-tag">Firefox</span
+                          ><span class="mock-p-tag">Regression</span
+                          ><span class="mock-p-tag">Staging</span>
+                        </div>
+                        <div class="mock-lane-footer">
+                          <span class="mock-health-badge green">Excellent</span>
+                          <div class="mock-lane-meta">
+                            <i class="fas fa-clock"></i><span>5 min ago</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mock-lane-card">
+                        <div class="mock-lane-tags">
+                          <span class="mock-p-tag">Firefox</span
+                          ><span class="mock-p-tag">E2E</span
+                          ><span class="mock-p-tag">CI</span>
+                        </div>
+                        <div class="mock-lane-footer">
+                          <span class="mock-health-badge amber">Warning</span>
+                          <div class="mock-lane-meta">
+                            <i class="fas fa-clock"></i><span>12 min ago</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mock-lane-card">
+                        <div class="mock-lane-tags">
+                          <span class="mock-p-tag">Chrome</span
+                          ><span class="mock-p-tag">Smoke</span
+                          ><span class="mock-p-tag">Prod</span>
+                        </div>
+                        <div class="mock-lane-footer">
+                          <span class="mock-health-badge green">Excellent</span>
+                          <div class="mock-lane-meta">
+                            <i class="fas fa-clock"></i><span>3 min ago</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 3: Launches -->
+              <div class="features-tab-panel hidden">
+                <div class="tab-panel-text">
+                  <h3 class="tab-headline">Every test run. Every detail.</h3>
+                  <p class="tab-desc">
+                    Filter by product lane, team, browser, platform, and build
+                    stage. Drill into individual tests, see duration trends, and
+                    spot regressions the moment they land.
+                  </p>
+                  <a
+                    class="section-link"
+                    href="/docs/test-analysis#test-launches"
+                    >Explore Launches →</a
+                  >
+                </div>
+                <div class="tab-panel-mock">
+                  <div class="mock-launches">
+                    <div class="mock-toolbar">
+                      <div class="mock-filter-pill">
+                        <i class="fas fa-layer-group"></i> firefox
+                      </div>
+                      <div class="mock-filter-pill">
+                        <i class="fas fa-users"></i> team-a
+                      </div>
+                      <div class="mock-filter-pill">
+                        <i class="fas fa-desktop"></i> prod
+                      </div>
+                      <div class="mock-pass-badge">87%</div>
+                    </div>
+                    <div class="mock-test-row pass">
+                      <i class="fas fa-check-circle mock-status-icon pass"></i>
+                      <div class="mock-history-bar">
+                        <div class="mock-history-seg pass"></div>
+                        <div class="mock-history-seg pass"></div>
+                        <div class="mock-history-seg pass"></div>
+                        <div class="mock-history-seg pass"></div>
+                        <div class="mock-history-seg pass"></div>
+                      </div>
+                      <span class="mock-test-name"
+                        >Login flow — happy path</span
+                      >
+                    </div>
+                    <div class="mock-test-row pass">
+                      <i class="fas fa-check-circle mock-status-icon pass"></i>
+                      <div class="mock-history-bar">
+                        <div class="mock-history-seg pass"></div>
+                        <div class="mock-history-seg pass"></div>
+                        <div class="mock-history-seg pass"></div>
+                        <div class="mock-history-seg pass"></div>
+                        <div class="mock-history-seg fail"></div>
+                      </div>
+                      <span class="mock-test-name">Checkout — guest user</span>
+                    </div>
+                    <div class="mock-test-row fail">
+                      <i class="fas fa-times-circle mock-status-icon fail"></i>
+                      <div class="mock-history-bar">
+                        <div class="mock-history-seg pass"></div>
+                        <div class="mock-history-seg fail"></div>
+                        <div class="mock-history-seg pass"></div>
+                        <div class="mock-history-seg fail"></div>
+                        <div class="mock-history-seg fail"></div>
+                      </div>
+                      <span class="mock-test-name">Payment — 3DS redirect</span>
+                    </div>
+                    <div class="mock-test-row skip">
+                      <i class="fas fa-forward mock-status-icon skip"></i>
+                      <div class="mock-history-bar">
+                        <div class="mock-history-seg skip"></div>
+                        <div class="mock-history-seg pass"></div>
+                        <div class="mock-history-seg skip"></div>
+                        <div class="mock-history-seg skip"></div>
+                        <div class="mock-history-seg pass"></div>
+                      </div>
+                      <span class="mock-test-name"
+                        >Admin bulk-edit (skipped)</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 4: Multiple Views -->
+              <div
+                class="features-tab-panel features-tab-panel--stacked hidden"
+              >
+                <div class="tab-panel-text">
+                  <h3 class="tab-headline">Your data, your way.</h3>
+                  <p class="tab-desc">
+                    Four complementary views of the same data — switch in one
+                    click.
+                  </p>
+                </div>
+                <div class="tab-panel-mock">
+                  <div class="views-grid">
+                    <div class="view-card">
+                      <div class="view-icon"><i class="fas fa-list"></i></div>
+                      <h3>List View</h3>
+                      <p>
+                        Linear scan of every test result — sort, filter, and
+                        search at speed.
+                      </p>
+                    </div>
+                    <div class="view-card">
+                      <div class="view-icon">
+                        <i class="fas fa-sitemap"></i>
+                      </div>
+                      <h3>Tree View</h3>
+                      <p>
+                        Group results by suite hierarchy to see exactly where
+                        failures cluster.
+                      </p>
+                    </div>
+                    <div class="view-card">
+                      <div class="view-icon"><i class="fas fa-stream"></i></div>
+                      <h3>Timeline View</h3>
+                      <p>
+                        Gantt-style performance chart — find slow tests and
+                        parallelisation gaps.
+                      </p>
+                    </div>
+                    <div class="view-card">
+                      <div class="view-icon">
+                        <i class="fas fa-columns"></i>
+                      </div>
+                      <h3>Comparison View</h3>
+                      <p>
+                        Up to 3 lanes side by side — spot regressions across
+                        platforms instantly.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 5: Investigations -->
+              <div class="features-tab-panel hidden">
+                <div class="tab-panel-text">
+                  <h3 class="tab-headline">
+                    Stop investigating the same failure twice.
+                  </h3>
+                  <p class="tab-desc">
+                    Mark a failure as a triaged test once. UReport auto-matches
+                    it across every future run — saving your team from
+                    re-reading the same stack trace.
+                  </p>
+                  <a
+                    class="section-link"
+                    href="/docs/test-analysis#test-investigation"
+                    >Explore Test Investigations →</a
+                  >
+                </div>
+                <div class="tab-panel-mock">
+                  <div class="mock-investigation">
+                    <div class="mock-inv-header">
+                      <div class="mock-inv-badge">Known Failure</div>
+                      <div class="mock-inv-auto">
+                        <i class="fas fa-magic"></i> Auto-matched
+                      </div>
+                    </div>
+                    <div class="mock-inv-test">Payment — 3DS redirect</div>
+                    <div class="mock-inv-note">
+                      <div class="mock-inv-note-label">
+                        Investigation notes:
+                      </div>
+                      <div class="mock-inv-note-body">
+                        Stripe webhook race condition. Ticket: PAY-1234.
+                        Workaround deployed — monitor next sprint.
+                      </div>
+                    </div>
+                    <div class="mock-inv-meta">
+                      <span class="mock-tag green">3 matches this week</span
+                      ><span class="mock-tag">12 all-time</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 6: Quarantine -->
+              <div class="features-tab-panel hidden">
+                <div class="tab-panel-text">
+                  <h3 class="tab-headline">
+                    Flaky tests. Isolated automatically.
+                  </h3>
+                  <p class="tab-desc">
+                    Define quarantine rules per lane — UReport flags unreliable
+                    tests automatically, excludes them from pass-rate
+                    calculations, and auto-resolves them the moment they
+                    stabilise.
+                  </p>
+                  <a class="section-link" href="/docs/quarantine"
+                    >Learn about Quarantine →</a
+                  >
+                </div>
+                <div class="tab-panel-mock">
+                  <div class="mock-launches">
+                    <div class="mock-toolbar">
+                      <div class="mock-filter-pill">
+                        <i class="fas fa-layer-group"></i> firefox
+                      </div>
+                      <div class="mock-filter-pill">
+                        <i class="fas fa-users"></i> team-a
+                      </div>
+                      <div class="mock-q-count">4 quarantined</div>
+                    </div>
+                    <div class="mock-test-row quarantine">
+                      <i class="fas fa-lock mock-status-icon skip"></i>
+                      <div class="mock-q-info">
+                        <span class="mock-test-name"
+                          >Checkout — payment modal</span
+                        ><span class="mock-health-badge amber"
+                          >Quarantined</span
+                        >
+                      </div>
+                    </div>
+                    <div class="mock-test-row quarantine">
+                      <i class="fas fa-lock mock-status-icon skip"></i>
+                      <div class="mock-q-info">
+                        <span class="mock-test-name"
+                          >Profile — avatar upload</span
+                        ><span class="mock-health-badge amber"
+                          >Quarantined</span
+                        >
+                      </div>
+                    </div>
+                    <div class="mock-test-row resolved">
+                      <i class="fas fa-lock-open mock-status-icon pass"></i>
+                      <div class="mock-q-info">
+                        <span class="mock-test-name"
+                          >Search — empty results</span
+                        ><span class="mock-health-badge green"
+                          >Auto-resolved</span
+                        >
+                      </div>
+                    </div>
+                    <div class="mock-rules-desc-bar">
+                      <i class="fas fa-info-circle"></i> 3 failures in last 10
+                      builds · auto-resolves after 3 passes
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 7: Dashboards -->
+              <div class="features-tab-panel hidden">
+                <div class="tab-panel-text">
+                  <h3 class="tab-headline">Build your story with data.</h3>
+                  <p class="tab-desc">
+                    Assemble custom dashboards from pass-rate charts, failure
+                    heat-maps, duration trends, and summary cards. Share a link
+                    — no login required for viewers.
+                  </p>
+                  <a class="section-link" href="/docs/dashboards"
+                    >Explore Dashboards →</a
+                  >
+                </div>
+                <div class="tab-panel-mock">
+                  <div class="mock-widget-container">
+                    <div class="mock-widget-header">
+                      <i class="fas fa-grip-vertical mock-drag-handle"></i>
+                      <span class="mock-widget-title"
+                        >Pass Rate — Last 7 Days</span
+                      >
+                      <div class="mock-widget-scope-tags">
+                        <span class="mock-p-tag">Firefox</span
+                        ><span class="mock-p-tag">Prod</span>
+                      </div>
+                      <div class="mock-widget-actions">
+                        <i class="fas fa-expand-alt"></i
+                        ><i class="fas fa-ellipsis-v"></i>
+                      </div>
+                    </div>
+                    <div class="mock-widget-body">
+                      <div class="mock-bar-chart">
+                        <div class="mock-bar-wrap">
+                          <div class="mock-bar" style="height: 65%"></div>
+                          <span class="mock-bar-label">Mon</span>
+                        </div>
+                        <div class="mock-bar-wrap">
+                          <div class="mock-bar" style="height: 80%"></div>
+                          <span class="mock-bar-label">Tue</span>
+                        </div>
+                        <div class="mock-bar-wrap">
+                          <div class="mock-bar" style="height: 72%"></div>
+                          <span class="mock-bar-label">Wed</span>
+                        </div>
+                        <div class="mock-bar-wrap">
+                          <div class="mock-bar" style="height: 90%"></div>
+                          <span class="mock-bar-label">Thu</span>
+                        </div>
+                        <div class="mock-bar-wrap">
+                          <div class="mock-bar" style="height: 88%"></div>
+                          <span class="mock-bar-label">Fri</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 8: Alerts -->
+              <div class="features-tab-panel hidden">
+                <div class="tab-panel-text">
+                  <h3 class="tab-headline">
+                    Know the moment something breaks.
+                  </h3>
+                  <p class="tab-desc">
+                    Define alert rules against any product lane — trigger on
+                    test failures, skip spikes, or pass-rate drops. Notify your
+                    team instantly.
+                  </p>
+                  <a class="section-link" href="/docs/alerts"
+                    >Explore Alerts →</a
+                  >
+                </div>
+                <div class="tab-panel-mock">
+                  <div class="mock-rules-wrap">
+                    <div class="mock-rules-desc-bar">
+                      <i class="fas fa-info-circle"></i> Alerts fire when the
+                      configured condition is met for a lane.
+                    </div>
+                    <table class="mock-rules-table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Scope</th>
+                          <th>Enabled</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>E2E Failure Alert</td>
+                          <td>
+                            <div class="mock-scope-badge">
+                              <span class="mock-scope-label">Lane</span
+                              ><span class="mock-scope-value"
+                                >chrome / e2e</span
+                              >
+                            </div>
+                          </td>
+                          <td><div class="mock-toggle on"></div></td>
+                        </tr>
+                        <tr>
+                          <td>Pass Rate Drop</td>
+                          <td>
+                            <div class="mock-scope-badge">
+                              <span class="mock-scope-label">Lane</span
+                              ><span class="mock-scope-value"
+                                >firefox / smoke</span
+                              >
+                            </div>
+                          </td>
+                          <td><div class="mock-toggle on"></div></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 9: Comparison -->
+              <div class="features-tab-panel hidden">
+                <div class="tab-panel-text">
+                  <h3 class="tab-headline">Compare what matters.</h3>
+                  <p class="tab-desc">
+                    Run the same suite on Firefox and Chrome, production and
+                    staging, or v1 and v2 — see exactly where behaviour
+                    diverges.
+                  </p>
+                </div>
+                <div class="tab-panel-mock">
+                  <div class="mock-compare">
+                    <div class="mock-col">
+                      <div class="mock-lane-header">
+                        <div class="mock-pill">firefox</div>
+                        <div class="mock-tag">smoke</div>
+                      </div>
+                      <div class="mock-test-row pass">
+                        <i class="fas fa-check-circle mock-status-icon pass"></i
+                        ><span class="mock-test-name">Login flow</span>
+                      </div>
+                      <div class="mock-test-row pass">
+                        <i class="fas fa-check-circle mock-status-icon pass"></i
+                        ><span class="mock-test-name">Checkout</span>
+                      </div>
+                      <div class="mock-test-row fail">
+                        <i class="fas fa-times-circle mock-status-icon fail"></i
+                        ><span class="mock-test-name">Payment 3DS</span>
+                      </div>
+                    </div>
+                    <div class="mock-col">
+                      <div class="mock-lane-header">
+                        <div class="mock-pill">chrome</div>
+                        <div class="mock-tag">smoke</div>
+                      </div>
+                      <div class="mock-test-row pass">
+                        <i class="fas fa-check-circle mock-status-icon pass"></i
+                        ><span class="mock-test-name">Login flow</span>
+                      </div>
+                      <div class="mock-test-row pass">
+                        <i class="fas fa-check-circle mock-status-icon pass"></i
+                        ><span class="mock-test-name">Checkout</span>
+                      </div>
+                      <div class="mock-test-row pass">
+                        <i class="fas fa-check-circle mock-status-icon pass"></i
+                        ><span class="mock-test-name">Payment 3DS</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--compact" id="pricing">
+        <div class="pricing-inner">
+          <div class="section-label">Pricing</div>
+          <h2 class="section-headline">
+            Start free, <strong>scale when ready</strong>
+          </h2>
+          <p class="section-desc">
+            Self-host forever at no cost. Upgrade for higher limits and Pro
+            features.
+          </p>
+          <div class="pricing-group">
+            <div class="pricing-group-label">Self-Host</div>
+            <div class="pricing-grid pricing-grid--3">
+              <div class="pricing-card">
+                <div class="pricing-tier">Community</div>
+                <div class="pricing-price">$0</div>
+                <div class="pricing-cadence">forever · MIT license</div>
+                <div class="pricing-desc">
+                  Core test reporting on your own infrastructure. No credit card
+                  required.
+                </div>
+                <ul class="pricing-features">
+                  <li><span class="check">✓</span>3 seats</li>
+                  <li><span class="check">✓</span>3 product lanes</li>
+                  <li><span class="check">✓</span>3 dashboards</li>
+                  <li><span class="check">✓</span>MCP server included</li>
+                  <li><span class="check">✓</span>Community support</li>
+                </ul>
+                <a
+                  class="btn-plan"
+                  href="https://github.com/ureport-web/ureport-standalone"
+                  target="_blank"
+                  >Get started →</a
+                >
+              </div>
+              <div class="pricing-card featured">
+                <div class="pricing-popular">Most popular</div>
+                <div class="pricing-tier">Pro</div>
+                <div class="pricing-price">$39</div>
+                <div class="pricing-cadence">per month · billed $468 / yr</div>
+                <div class="pricing-desc">
+                  Higher limits and the full feature set — notifications,
+                  dashboard sharing, and data export.
+                </div>
+                <ul class="pricing-features">
+                  <li><span class="check">✓</span>10 seats</li>
+                  <li><span class="check">✓</span>10 product lanes</li>
+                  <li><span class="check">✓</span>10 dashboards</li>
+                  <li><span class="check">✓</span>Notifications</li>
+                  <li><span class="check">✓</span>Dashboard share links</li>
+                  <li><span class="check">✓</span>Data export</li>
+                  <li><span class="check">✓</span>Priority support</li>
+                </ul>
+                <a class="btn-plan" href="mailto:ureport@outlook.com"
+                  >Get a license →</a
+                >
+              </div>
+              <div class="pricing-card">
+                <div class="pricing-tier">Enterprise</div>
+                <div class="pricing-price">$159</div>
+                <div class="pricing-cadence">
+                  per month · billed $1,908 / yr
+                </div>
+                <div class="pricing-desc">
+                  Unlimited seats, lanes, and dashboards. For teams that have
+                  outgrown Pro.
+                </div>
+                <ul class="pricing-features">
+                  <li>
+                    <span class="check">✓</span>Unlimited seats, lanes &amp;
+                    dashboards
+                  </li>
+                  <li><span class="check">✓</span>Everything in Pro</li>
+                  <li><span class="check">✓</span>Priority support</li>
+                  <li><span class="check">✓</span>Audit log</li>
+                </ul>
+                <a class="btn-plan" href="mailto:ureport@outlook.com"
+                  >Contact us →</a
+                >
+              </div>
+            </div>
+          </div>
+          <div class="pricing-group">
+            <div class="pricing-group-label">
+              Cloud<span class="pricing-group-badge">Coming Soon</span>
+            </div>
+            <div class="pricing-card pricing-card--wide">
+              <div class="pricing-tier">Cloud · Managed</div>
+              <div class="pricing-price">$15</div>
+              <div class="pricing-cadence">
+                per seat / month · fully managed
+              </div>
+              <div class="pricing-desc">
+                Zero infrastructure. We host and manage UReport for you —
+                MongoDB, backups, and updates included. All Pro features out of
+                the box.
+              </div>
+              <ul class="pricing-features pricing-features--row">
+                <li><span class="check">✓</span>Everything in Pro</li>
+                <li>
+                  <span class="check">✓</span>Managed MongoDB &amp; backups
+                </li>
+                <li><span class="check">✓</span>Custom subdomain</li>
+                <li><span class="check">✓</span>SSO / SAML</li>
+                <li><span class="check">✓</span>Automatic updates</li>
+                <li><span class="check">✓</span>Email support</li>
+              </ul>
+              <a class="btn-plan" href="mailto:ureport@outlook.com"
+                >Join waitlist →</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--cta">
+        <div class="cta-inner">
+          <div class="animate from-below">
+            <h2 class="cta-headline">
+              Ready to replace <strong>your static reports?</strong>
+            </h2>
+            <p class="cta-sub">
+              Self-host in under 2 minutes. No credit card, no sign-up — just
+              clone and run.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn--primary" href="/nextgen/login">Try Demo →</a>
+              <a
+                class="btn btn--ghost"
+                href="https://github.com/ureport-web/ureport-standalone"
+                target="_blank"
+                ><i class="fab fa-github"></i> GitHub</a
+              >
+            </div>
+          </div>
+        </div>
+        <footer class="home-footer">
+          <div class="footer-brand">
+            <i class="fas fa-chart-line"></i><span>UReport</span>
+          </div>
+          <div class="footer-links">
+            <a
+              href="https://github.com/ureport-web/ureport-standalone"
+              target="_blank"
+              >GitHub</a
+            >
+            <a href="/docs">Docs</a>
+            <a href="/contact">Contact</a>
+          </div>
+          <div class="footer-copy">
+            © 2026 UReport — open source automation analysis platform
+          </div>
+        </footer>
+      </section>
+    </div>
+
+    <script>
+      function setFeatureTab(n) {
+        document
+          .querySelectorAll(".features-tab-item")
+          .forEach(function (el, i) {
+            el.classList.toggle("active", i === n);
+          });
+        document
+          .querySelectorAll(".features-tab-panel")
+          .forEach(function (el, i) {
+            el.classList.toggle("hidden", i !== n);
+          });
+      }
+
+      // IntersectionObserver for scroll animations
+      var observer = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+            }
+          });
+        },
+        { threshold: 0.15 },
+      );
+
+      document.querySelectorAll(".animate").forEach(function (el) {
+        observer.observe(el);
+      });
+    </script>
+  </body>
+</html>

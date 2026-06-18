@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact | UReport</title>
+  <meta name="description" content="Get help with UReport — community support, GitHub issues, and consultation.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --p-primary-color: #1d9e75;
+      --p-primary-contrast-color: #ffffff;
+      --p-primary-100: #cceee3;
+      --p-surface-0: #ffffff;
+      --p-surface-50: #f9fafb;
+      --p-surface-border: #e5e7eb;
+      --p-text-color: #111827;
+      --p-text-muted-color: #6b7280;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'DM Sans', sans-serif; }
+
+    /* Docs Nav */
+    .docs-nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .docs-nav-inner {
+      max-width: 1200px; margin: 0 auto; padding: 0 2rem;
+      height: 60px; display: flex; align-items: center; gap: 2rem;
+    }
+    .docs-nav-brand {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 700; font-size: 1.05rem;
+      color: rgba(255,255,255,0.9); text-decoration: none; margin-right: auto;
+    }
+    .docs-nav-brand i { color: #1d9e75; }
+    .docs-nav-links { display: flex; align-items: center; gap: 0.25rem; }
+    .docs-nav-link {
+      padding: 0.4rem 0.9rem; color: rgba(255,255,255,0.65);
+      text-decoration: none; font-size: 0.9rem; font-weight: 500;
+      border-radius: 6px; transition: color 0.15s, background 0.15s;
+    }
+    .docs-nav-link:hover { color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.06); }
+    .docs-nav-btn {
+      padding: 0.4rem 1.1rem; background: #1d9e75; color: #fff;
+      text-decoration: none; font-size: 0.9rem; font-weight: 600;
+      border-radius: 6px; transition: opacity 0.15s;
+    }
+    .docs-nav-btn:hover { opacity: 0.85; }
+    @media (max-width: 600px) {
+      .docs-nav-inner { padding: 0 1rem; gap: 0.5rem; }
+      .docs-nav-link { padding: 0.4rem 0.5rem; font-size: 0.8rem; }
+    }
+
+    /* Contact Page */
+    .contact-page {
+      min-height: calc(100vh - 60px);
+      background: var(--p-surface-0);
+      padding: 2rem;
+    }
+    .contact-content { max-width: 680px; margin: 0 auto; }
+    .contact-back {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      color: var(--p-primary-color); text-decoration: none;
+      font-size: 0.9rem; margin-bottom: 2rem;
+    }
+    .contact-back:hover { text-decoration: underline; }
+    .contact-header {
+      margin-bottom: 2.5rem; padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--p-surface-border);
+    }
+    .contact-header h1 {
+      font-size: 2rem; font-weight: 700; color: var(--p-text-color);
+      margin: 0; display: flex; align-items: center; gap: 0.75rem;
+    }
+    .contact-header h1 i { color: var(--p-primary-color); }
+    .contact-section {
+      margin-bottom: 2.5rem; padding: 1.5rem;
+      background: var(--p-surface-50);
+      border: 1px solid var(--p-surface-border); border-radius: 12px;
+    }
+    .contact-section h2 {
+      font-size: 1.25rem; font-weight: 600; color: var(--p-text-color);
+      margin: 0 0 0.75rem 0; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .contact-section h2 i { color: var(--p-primary-color); }
+    .contact-desc { color: var(--p-text-muted-color); line-height: 1.6; margin: 0 0 1.25rem 0; }
+    .contact-links { display: flex; flex-direction: column; gap: 0.75rem; }
+    .contact-link {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      padding: 0.65rem 1.25rem; background: var(--p-surface-0);
+      border: 1px solid var(--p-surface-border); border-radius: 8px;
+      color: var(--p-text-color); text-decoration: none;
+      font-weight: 500; font-size: 0.95rem;
+      transition: border-color 0.15s, box-shadow 0.15s; width: fit-content;
+    }
+    .contact-link:hover {
+      border-color: var(--p-primary-color);
+      box-shadow: 0 0 0 2px var(--p-primary-100);
+    }
+    .contact-link i { color: var(--p-primary-color); font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <nav class="docs-nav">
+    <div class="docs-nav-inner">
+      <a class="docs-nav-brand" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+      <div class="docs-nav-links">
+        <a class="docs-nav-link" href="/docs">Docs</a>
+        <a class="docs-nav-link" href="https://github.com/ureport-web/ureport-standalone" target="_blank">GitHub</a>
+        <a class="docs-nav-link" href="/contact">Contact</a>
+        <a class="docs-nav-btn" href="/nextgen/login">Log In</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="contact-page">
+    <div class="contact-content">
+      <a class="contact-back" href="/"><i class="fas fa-arrow-left"></i> Back to Home</a>
+      <div class="contact-header">
+        <h1><i class="fas fa-envelope"></i>Get Help with UReport</h1>
+      </div>
+      <div class="contact-section">
+        <h2><i class="fab fa-github"></i>Community Support</h2>
+        <p class="contact-desc">Browse open issues, search past discussions, or start a new thread on GitHub.</p>
+        <div class="contact-links">
+          <a class="contact-link" href="https://github.com/ureport-web/ureport-standalone/issues" target="_blank">
+            <i class="fab fa-github"></i><span>GitHub Issues</span>
+          </a>
+          <a class="contact-link" href="https://github.com/ureport-web/ureport-standalone/discussions" target="_blank">
+            <i class="fas fa-comments"></i><span>GitHub Discussions</span>
+          </a>
+        </div>
+      </div>
+      <div class="contact-section">
+        <h2><i class="fas fa-handshake"></i>Consultation</h2>
+        <p class="contact-desc">
+          Need hands-on help? We offer setup assistance, custom integration, and team training.
+          Reach out directly to discuss your requirements.
+        </p>
+        <div class="contact-links">
+          <a class="contact-link" href="mailto:ureport@outlook.com">
+            <i class="fas fa-envelope"></i><span>ureport@outlook.com</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
