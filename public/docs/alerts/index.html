@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications | UReport Docs</title>
+  <meta name="description" content="Set up email alerts when builds match conditions you define. UReport notification rules guide.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --p-primary-color: #1d9e75; --p-primary-50: #e6f7f1; --p-primary-100: #cceee3; --p-primary-200: #99ddc7;
+      --p-surface-0: #ffffff; --p-surface-50: #f9fafb; --p-surface-100: #f3f4f6; --p-surface-border: #e5e7eb;
+      --p-text-color: #111827; --p-text-muted-color: #6b7280;
+      --p-green-50: #f0fdf4; --p-green-100: #dcfce7; --p-green-200: #bbf7d0; --p-green-500: #22c55e; --p-green-700: #15803d;
+      --p-blue-50: #eff6ff; --p-blue-100: #dbeafe; --p-blue-200: #bfdbfe; --p-blue-500: #3b82f6; --p-blue-700: #1d4ed8;
+      --p-orange-50: #fff7ed; --p-orange-200: #fed7aa; --p-orange-500: #f97316; --p-orange-700: #c2410c;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'DM Sans', sans-serif; color: var(--p-text-color); }
+    .docs-nav { position: sticky; top: 0; z-index: 100; background: rgba(10,10,15,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .docs-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 2rem; height: 60px; display: flex; align-items: center; gap: 2rem; }
+    .docs-nav-brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.05rem; color: rgba(255,255,255,0.9); text-decoration: none; margin-right: auto; }
+    .docs-nav-brand i { color: #1d9e75; }
+    .docs-nav-links { display: flex; align-items: center; gap: 0.25rem; }
+    .docs-nav-link { padding: 0.4rem 0.9rem; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.9rem; font-weight: 500; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+    .docs-nav-link:hover { color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.06); }
+    .docs-nav-btn { padding: 0.4rem 1.1rem; background: #1d9e75; color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600; border-radius: 6px; }
+    .docs-nav-btn:hover { opacity: 0.85; }
+    @media (max-width: 600px) { .docs-nav-inner { padding: 0 1rem; gap: 0.5rem; } .docs-nav-link { padding: 0.4rem 0.5rem; font-size: 0.8rem; } }
+    .docs-page-content { min-height: calc(100vh - 60px); }
+    .help-page { min-height: 100%; background: var(--p-surface-0); padding: 2rem; }
+    .help-content { max-width: 900px; margin: 0 auto; }
+    .docs-top-nav { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); font-size: 0.875rem; flex-wrap: wrap; }
+    .docs-home-link { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--p-primary-color); text-decoration: none; }
+    .docs-home-link:hover { text-decoration: underline; }
+    .docs-divider { color: var(--p-text-muted-color); }
+    .docs-top-nav-link { color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
+    .docs-top-nav-link:hover { text-decoration: underline; }
+    .docs-nav-current { color: var(--p-text-muted-color); }
+    .back-link { margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem; color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
+    .back-link:hover { text-decoration: underline; }
+    .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); }
+    .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.75rem; }
+    .page-header h1 i { color: var(--p-primary-color); }
+    .page-header p { font-size: 1.1rem; color: var(--p-text-muted-color); margin: 0; }
+    .help-section { margin-bottom: 2.5rem; }
+    .help-section > h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 1.5rem 0; padding-bottom: 0.75rem; border-bottom: 2px solid var(--p-primary-color); display: flex; align-items: center; gap: 0.6rem; }
+    .help-section > h2 i { color: var(--p-primary-color); }
+    .qa-item { margin-bottom: 1.5rem; border: 1px solid var(--p-surface-border); border-radius: 12px; overflow: hidden; }
+    .question { padding: 1rem 1.25rem; background: var(--p-surface-50); font-weight: 600; font-size: 1rem; border-bottom: 1px solid var(--p-surface-border); }
+    .answer { padding: 1.25rem; line-height: 1.6; }
+    .answer p { margin: 0 0 1rem 0; } .answer p:last-child { margin-bottom: 0; }
+    .answer ul, .answer ol { margin: 0.5rem 0 1rem 1.5rem; } .answer li { margin-bottom: 0.3rem; }
+    .answer code { background: var(--p-surface-100); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85em; font-family: monospace; }
+    .answer strong { font-weight: 600; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .feature-card { padding: 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; }
+    .feature-card h4 { margin: 0 0 0.5rem 0; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .feature-card h4 i { color: var(--p-primary-color); }
+    .feature-card p { margin: 0; font-size: 0.9rem; color: var(--p-text-muted-color); }
+    .info-box { display: flex; gap: 0.75rem; padding: 0.875rem 1rem; border-radius: 8px; margin: 0.75rem 0; border: 1px solid; font-size: 0.875rem; background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
+    .info-box > i { flex-shrink: 0; font-size: 1rem; margin-top: 0.1rem; color: var(--p-blue-500); }
+    .info-box-content { flex: 1; line-height: 1.5; }
+    .info-box-content p { margin: 0.25rem 0 0 0; } .info-box-content code { padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.8em; font-family: monospace; background: rgba(0,0,0,0.08); }
+    .info-box.warning { background: var(--p-orange-50); border-color: var(--p-orange-200); color: var(--p-orange-700); }
+    .info-box.warning > i { color: var(--p-orange-500); }
+    .help-table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.875rem; }
+    .help-table th { text-align: left; padding: 0.6rem 1rem; background: var(--p-surface-100); font-weight: 600; border-bottom: 2px solid var(--p-surface-border); }
+    .help-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--p-surface-border); vertical-align: top; }
+    .help-table tr:last-child td { border-bottom: none; }
+    .help-table code { background: var(--p-surface-100); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.8em; font-family: monospace; }
+    @media (max-width: 768px) { .help-page { padding: 1rem; } .feature-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <nav class="docs-nav">
+    <div class="docs-nav-inner">
+      <a class="docs-nav-brand" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+      <div class="docs-nav-links">
+        <a class="docs-nav-link" href="/docs">Docs</a>
+        <a class="docs-nav-link" href="https://github.com/ureport-web/ureport-standalone" target="_blank">GitHub</a>
+        <a class="docs-nav-link" href="/contact">Contact</a>
+        <a class="docs-nav-btn" href="/nextgen/login">Log In</a>
+      </div>
+    </div>
+  </nav>
+  <div class="docs-page-content">
+    <div class="help-page">
+      <div class="help-content">
+        <div class="docs-top-nav">
+          <a class="docs-home-link" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+          <span class="docs-divider">/</span>
+          <a class="docs-top-nav-link" href="/docs">Docs</a>
+          <span class="docs-divider">/</span>
+          <span class="docs-nav-current">Notifications</span>
+          <a class="back-link" href="/docs"><i class="fas fa-arrow-left"></i> Back to Docs</a>
+        </div>
+        <div class="page-header">
+          <h1><i class="fas fa-bell"></i>Notifications</h1>
+          <p>Automatically email your team when a build finishes and its test results match conditions you define — without any manual checking.</p>
+        </div>
+        <div class="help-section">
+          <h2><i class="fas fa-question-circle"></i>What are Notifications?</h2>
+          <div class="qa-item">
+            <div class="question">How do notifications work?</div>
+            <div class="answer">
+              <p>When a build is closed, UReport evaluates all enabled notification rules for that product lane. If any rule's conditions are met by the build's test results, an email is sent immediately to the configured recipients.</p>
+              <p>Rules are scoped to a product lane (product + type) and can be further narrowed to specific build dimensions like team, browser, or stage.</p>
+              <p>Common use cases:</p>
+              <ul>
+                <li>Alert the QA team when a build has failing tests in a specific component</li>
+                <li>Notify a team when their tests fail in a specific environment or version</li>
+                <li>Watch for regressions matching a particular tag or relation group</li>
+              </ul>
+              <div class="feature-grid">
+                <div class="feature-card"><h4><i class="fas fa-bolt"></i>Automatic</h4><p>Fires on every build close — no polling, no manual triggers.</p></div>
+                <div class="feature-card"><h4><i class="fas fa-filter"></i>Conditional</h4><p>Only sends when test results actually match your filter. No noise.</p></div>
+                <div class="feature-card"><h4><i class="fas fa-lock"></i>Quarantine-aware</h4><p>Quarantined tests are excluded from alert evaluation so known-flaky tests don't trigger false alarms.</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">What does the email look like?</div>
+            <div class="answer">
+              <p>The email contains:</p>
+              <ul>
+                <li>The name of the rule(s) that triggered</li>
+                <li>Build metadata — product, type, team, version, browser, platform, stage</li>
+                <li>Test result summary — total, pass, fail, skip counts</li>
+                <li>A direct link to view the build in UReport</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="help-section">
+          <h2><i class="fas fa-cog"></i>Managing Rules</h2>
+          <div class="qa-item">
+            <div class="question">Where do I find notification rules?</div>
+            <div class="answer">
+              <p>Rules are managed per product lane via the Launches page.</p>
+              <ol>
+                <li>Go to <strong>Launches</strong> and apply a product + type filter</li>
+                <li>Click the <strong>bell icon</strong> in the toolbar to open the Notification Rules panel</li>
+                <li>Add, edit, enable/disable, or delete rules</li>
+              </ol>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">What fields does a rule have?</div>
+            <div class="answer">
+              <table class="help-table">
+                <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Rule Name</strong></td><td>Yes</td><td>A label to identify the rule in the UI and in email subjects</td></tr>
+                  <tr><td><strong>Recipients</strong></td><td>Yes</td><td>One or more UReport users to email. Users must have an email address set on their account.</td></tr>
+                  <tr><td><strong>Scope</strong></td><td>No</td><td>Narrow the rule to specific builds — by version, team, browser, device, platform, or stage. Leave blank to match all builds of the product lane.</td></tr>
+                  <tr><td><strong>Statuses</strong></td><td>No</td><td>Which test result statuses to look for — FAIL, SKIP, or PASS. Defaults to FAIL if not set.</td></tr>
+                  <tr><td><strong>Name / UID Pattern</strong></td><td>No</td><td>A regular expression matched against test names and UIDs. Only tests matching the pattern are considered.</td></tr>
+                  <tr><td><strong>Relation Conditions</strong></td><td>No</td><td>Filter tests by their test relation attributes — tags, teams, components, or custom fields.</td></tr>
+                  <tr><td><strong>Logic</strong></td><td>No</td><td><strong>AND</strong> — a test must satisfy all relation conditions.<br><strong>OR</strong> — a test must satisfy at least one condition. Only applies when multiple relation conditions are set.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="help-section">
+          <h2><i class="fas fa-sliders-h"></i>How Conditions Work</h2>
+          <div class="qa-item">
+            <div class="question">When does a rule fire?</div>
+            <div class="answer">
+              <p>A rule fires when, after a build closes, at least one test exists that satisfies ALL of the following simultaneously:</p>
+              <ul>
+                <li>The build matches the rule's <strong>scope</strong> (or scope is empty)</li>
+                <li>The test's status is one of the rule's <strong>statuses</strong></li>
+                <li>The test's name or UID matches the <strong>name pattern</strong> (if set)</li>
+                <li>The test's relation satisfies the <strong>relation conditions</strong> (if set)</li>
+              </ul>
+              <p>If no conditions are configured beyond statuses, the rule fires whenever any test of a matching status exists in the build.</p>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">What is the difference between AND and OR logic?</div>
+            <div class="answer">
+              <p>Logic controls how <strong>multiple relation conditions</strong> are combined. It has no effect on statuses or the name pattern.</p>
+              <table class="help-table">
+                <thead><tr><th>Logic</th><th>Behaviour</th><th>Example</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>AND</strong></td><td>A test must satisfy every relation condition</td><td>tags = "smoke" AND teams = "checkout-team"</td></tr>
+                  <tr><td><strong>OR</strong></td><td>A test must satisfy at least one relation condition</td><td>tags = "smoke" OR tags = "regression"</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">What are relation conditions?</div>
+            <div class="answer">
+              <p>Relation conditions filter by attributes stored in Test Relations — tags, teams, components, and any custom fields defined for the product lane.</p>
+              <p>Each condition has a <strong>type</strong> (e.g. tags) and one or more <strong>values</strong> (e.g. "smoke", "regression"). A test satisfies the condition if its relation has any of the selected values for that type.</p>
+              <div class="info-box"><i class="fas fa-info-circle"></i>
+                <div class="info-box-content"><p>Relation condition options are populated from existing Test Relations for the product lane. If the dropdowns are empty, check that Test Relations are configured.</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="help-section">
+          <h2><i class="fas fa-envelope"></i>Email Setup</h2>
+          <div class="qa-item">
+            <div class="question">What is required for alerts to send emails?</div>
+            <div class="answer">
+              <p>Email delivery requires SMTP to be configured in <strong>Administration → System Settings</strong> under the Notification section. UReport uses Gmail SMTP.</p>
+              <table class="help-table">
+                <thead><tr><th>Setting</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Email (sender)</strong></td><td>The Gmail address used to send notification emails</td></tr>
+                  <tr><td><strong>Password</strong></td><td>The Gmail app password (not your account password — generate one in Google Account → Security → App Passwords)</td></tr>
+                  <tr><td><strong>Frontend URL</strong></td><td>The public URL of your UReport instance, used to generate the "View Results" link in the email</td></tr>
+                </tbody>
+              </table>
+              <div class="info-box warning"><i class="fas fa-exclamation-triangle"></i>
+                <div class="info-box-content"><p>If email is not configured, rules are still evaluated but no emails are sent. A log message <code>Email not configured, skipping build notification email</code> will appear in the server output.</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">Do recipients need a UReport account?</div>
+            <div class="answer">
+              <p>Yes — recipients must be existing UReport users with an email address set on their profile. Users without an email address are silently skipped even if selected as recipients.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

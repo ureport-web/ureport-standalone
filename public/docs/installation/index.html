@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Installation | UReport Docs</title>
+  <meta name="description" content="Self-host UReport with Docker or bare metal. Step-by-step installation guide.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --p-primary-color: #1d9e75; --p-primary-50: #e6f7f1; --p-primary-100: #cceee3; --p-primary-200: #99ddc7;
+      --p-surface-0: #ffffff; --p-surface-50: #f9fafb; --p-surface-100: #f3f4f6; --p-surface-border: #e5e7eb;
+      --p-text-color: #111827; --p-text-muted-color: #6b7280;
+      --p-green-50: #f0fdf4; --p-green-100: #dcfce7; --p-green-200: #bbf7d0; --p-green-500: #22c55e; --p-green-700: #15803d;
+      --p-blue-50: #eff6ff; --p-blue-100: #dbeafe; --p-blue-200: #bfdbfe; --p-blue-500: #3b82f6; --p-blue-700: #1d4ed8;
+      --p-orange-50: #fff7ed; --p-orange-100: #ffedd5; --p-orange-200: #fed7aa; --p-orange-500: #f97316; --p-orange-700: #c2410c;
+      --p-red-100: #fee2e2; --p-red-700: #b91c1c;
+      --p-gray-100: #f3f4f6; --p-gray-500: #6b7280; --p-gray-700: #374151;
+      --p-shadow-3: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'DM Sans', sans-serif; color: var(--p-text-color); }
+    .docs-nav { position: sticky; top: 0; z-index: 100; background: rgba(10,10,15,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .docs-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 2rem; height: 60px; display: flex; align-items: center; gap: 2rem; }
+    .docs-nav-brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.05rem; color: rgba(255,255,255,0.9); text-decoration: none; margin-right: auto; }
+    .docs-nav-brand i { color: #1d9e75; }
+    .docs-nav-links { display: flex; align-items: center; gap: 0.25rem; }
+    .docs-nav-link { padding: 0.4rem 0.9rem; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.9rem; font-weight: 500; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+    .docs-nav-link:hover { color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.06); }
+    .docs-nav-btn { padding: 0.4rem 1.1rem; background: #1d9e75; color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600; border-radius: 6px; }
+    .docs-nav-btn:hover { opacity: 0.85; }
+    @media (max-width: 600px) { .docs-nav-inner { padding: 0 1rem; gap: 0.5rem; } .docs-nav-link { padding: 0.4rem 0.5rem; font-size: 0.8rem; } }
+    .docs-page-content { min-height: calc(100vh - 60px); }
+    .help-page { min-height: 100%; background: var(--p-surface-0); padding: 2rem; }
+    .help-content { max-width: 900px; margin: 0 auto; }
+    .docs-top-nav { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); font-size: 0.875rem; flex-wrap: wrap; }
+    .docs-home-link { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--p-primary-color); text-decoration: none; }
+    .docs-home-link:hover { text-decoration: underline; }
+    .docs-divider { color: var(--p-text-muted-color); }
+    .docs-top-nav-link { color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
+    .docs-top-nav-link:hover { text-decoration: underline; }
+    .docs-nav-current { color: var(--p-text-muted-color); }
+    .back-link { margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem; color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
+    .back-link:hover { text-decoration: underline; }
+    .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); }
+    .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.75rem; }
+    .page-header h1 i { color: var(--p-primary-color); }
+    .page-header p { font-size: 1.1rem; color: var(--p-text-muted-color); margin: 0; }
+    .help-section { margin-bottom: 2.5rem; }
+    .help-section > h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 1.5rem 0; padding-bottom: 0.75rem; border-bottom: 2px solid var(--p-primary-color); display: flex; align-items: center; gap: 0.6rem; }
+    .help-section > h2 i { color: var(--p-primary-color); }
+    .qa-item { margin-bottom: 1.5rem; border: 1px solid var(--p-surface-border); border-radius: 12px; overflow: hidden; }
+    .question { padding: 1rem 1.25rem; background: var(--p-surface-50); font-weight: 600; font-size: 1rem; border-bottom: 1px solid var(--p-surface-border); }
+    .answer { padding: 1.25rem; line-height: 1.6; }
+    .answer p { margin: 0 0 1rem 0; } .answer p:last-child { margin-bottom: 0; }
+    .answer ul, .answer ol { margin: 0.5rem 0 1rem 1.5rem; } .answer li { margin-bottom: 0.3rem; }
+    .answer code { background: var(--p-surface-100); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85em; font-family: monospace; }
+    .answer strong { font-weight: 600; }
+    .steps { display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0; }
+    .step { display: flex; gap: 1rem; }
+    .step-number { flex-shrink: 0; width: 32px; height: 32px; background: var(--p-primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+    .step-content { flex: 1; }
+    .step-content h4 { margin: 0 0 0.4rem 0; font-size: 0.95rem; font-weight: 600; }
+    .step-content p { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
+    .step-content code { background: var(--p-surface-100); padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.8em; font-family: monospace; }
+    .code-block { margin: 0.75rem 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--p-surface-border); }
+    .code-block-header { padding: 0.4rem 1rem; background: var(--p-surface-100); font-size: 0.8rem; color: var(--p-text-muted-color); font-weight: 600; border-bottom: 1px solid var(--p-surface-border); }
+    .code-block pre { margin: 0; padding: 1rem; background: #1e1e2e; color: #cdd6f4; font-size: 0.85rem; overflow-x: auto; white-space: pre; line-height: 1.5; font-family: 'Cascadia Code','Fira Code','Courier New',monospace; }
+    .info-box { display: flex; gap: 0.75rem; padding: 0.875rem 1rem; border-radius: 8px; margin: 0.75rem 0; border: 1px solid; font-size: 0.875rem; }
+    .info-box > i { flex-shrink: 0; font-size: 1rem; margin-top: 0.1rem; }
+    .info-box-content { flex: 1; line-height: 1.5; }
+    .info-box-content p { margin: 0.25rem 0 0 0; } .info-box-content strong { display: block; margin-bottom: 0.25rem; }
+    .info-box-content code { padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.8em; font-family: monospace; background: rgba(0,0,0,0.08); }
+    .info-box { background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
+    .info-box > i { color: var(--p-blue-500); }
+    .info-box.warning { background: var(--p-orange-50); border-color: var(--p-orange-200); color: var(--p-orange-700); }
+    .info-box.warning > i { color: var(--p-orange-500); }
+    .info-box.tip { background: var(--p-green-50); border-color: var(--p-green-200); color: var(--p-green-700); }
+    .info-box.tip > i { color: var(--p-green-500); }
+    .info-box.note { background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
+    .info-box.note > i { color: var(--p-blue-500); }
+    .help-table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.875rem; }
+    .help-table th { text-align: left; padding: 0.6rem 1rem; background: var(--p-surface-100); font-weight: 600; border-bottom: 2px solid var(--p-surface-border); }
+    .help-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--p-surface-border); vertical-align: top; }
+    .help-table tr:last-child td { border-bottom: none; }
+    .help-table code { background: var(--p-surface-100); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.8em; font-family: monospace; }
+    a.bottom-back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--p-primary-color); text-decoration: none; font-weight: 600; margin-top: 1rem; font-size: 0.9rem; }
+    a.bottom-back-link:hover { text-decoration: underline; }
+    @media (max-width: 768px) { .help-page { padding: 1rem; } }
+  </style>
+</head>
+<body>
+  <nav class="docs-nav">
+    <div class="docs-nav-inner">
+      <a class="docs-nav-brand" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+      <div class="docs-nav-links">
+        <a class="docs-nav-link" href="/docs">Docs</a>
+        <a class="docs-nav-link" href="https://github.com/ureport-web/ureport-standalone" target="_blank">GitHub</a>
+        <a class="docs-nav-link" href="/contact">Contact</a>
+        <a class="docs-nav-btn" href="/nextgen/login">Log In</a>
+      </div>
+    </div>
+  </nav>
+  <div class="docs-page-content">
+    <div class="help-page">
+      <div class="help-content">
+        <div class="docs-top-nav">
+          <a class="docs-home-link" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+          <span class="docs-divider">/</span>
+          <a class="docs-top-nav-link" href="/docs">Docs</a>
+          <span class="docs-divider">/</span>
+          <span class="docs-nav-current">Installation</span>
+          <a class="back-link" href="/docs"><i class="fas fa-arrow-left"></i> Back to Docs</a>
+        </div>
+        <div class="page-header">
+          <h1><i class="fas fa-server"></i>Installation</h1>
+          <p>Self-host UReport on your own infrastructure. Choose Docker (recommended) or bare metal.</p>
+        </div>
+        <div class="help-section">
+          <h2><i class="fab fa-docker"></i>Option A — Docker (recommended)</h2>
+          <div class="qa-item">
+            <div class="question">How do I run UReport with Docker Compose?</div>
+            <div class="answer">
+              <p>No local Node.js or MongoDB install required — everything is bundled.</p>
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">1</div>
+                  <div class="step-content">
+                    <h4>Clone and start</h4>
+                    <div class="code-block">
+                      <div class="code-block-header">bash</div>
+                      <pre>git clone https://github.com/ureport-web/ureport-standalone.git
+cd ureport-standalone</pre>
+                    </div>
+                    <div class="code-block">
+                      <div class="code-block-header">bash</div>
+                      <pre>docker-compose up --build</pre>
+                    </div>
+                    <p><code>--build</code> compiles the app image from the included <code>Dockerfile</code> — no pre-built image to pull.</p>
+                    <p>Open <strong>http://localhost:8080</strong>. Default login: <strong>admin / changeme</strong>.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">2</div>
+                  <div class="step-content">
+                    <h4>(Optional) Custom credentials or external DB</h4>
+                    <p>Copy <code>.env.example</code> to <code>.env</code> and edit before the first startup:</p>
+                    <div class="code-block">
+                      <div class="code-block-header">bash</div>
+                      <pre>cp .env.example .env
+# edit .env, then:
+docker-compose up --build</pre>
+                    </div>
+                    <div class="code-block">
+                      <div class="code-block-header">.env</div>
+                      <pre># Admin credentials (applied on first startup only)
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=changeme
+DEMO_PASSWORD=1234
+
+# External MongoDB (optional)
+# DBHost=mongodb+srv://user:pass@cluster.mongodb.net/ureport</pre>
+                    </div>
+                    <div class="info-box warning"><i class="fas fa-exclamation-triangle"></i>
+                      <div class="info-box-content">
+                        <p>Credentials in <code>.env</code> are only applied on the <strong>first startup</strong> when the database is empty.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">Does data persist across restarts?</div>
+            <div class="answer">
+              <p>Yes. MongoDB data is stored in a named Docker volume (<code>mongo_data</code>) and survives container restarts and rebuilds.</p>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">Can I use an external MongoDB instead of the bundled one?</div>
+            <div class="answer">
+              <p>Set <code>DBHost</code> in <code>.env</code> to your MongoDB URI. The bundled <code>mongodb</code> service in <code>docker-compose.yml</code> can then be removed to avoid starting an unnecessary container.</p>
+            </div>
+          </div>
+        </div>
+        <div class="help-section">
+          <h2><i class="fas fa-terminal"></i>Option B — Bare metal</h2>
+          <div class="qa-item">
+            <div class="question">What do I need before installing?</div>
+            <div class="answer">
+              <ul>
+                <li><strong>Node.js 18+</strong> — runtime for the server</li>
+                <li><strong>MongoDB 3+</strong> — database (local, Atlas, or AWS DocumentDB)</li>
+              </ul>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I get UReport running without Docker?</div>
+            <div class="answer">
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">1</div>
+                  <div class="step-content">
+                    <h4>Clone the repository</h4>
+                    <div class="code-block">
+                      <div class="code-block-header">bash</div>
+                      <pre>git clone https://github.com/ureport-web/ureport-standalone.git
+cd ureport-standalone
+npm install</pre>
+                    </div>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">2</div>
+                  <div class="step-content">
+                    <h4>Configure your database</h4>
+                    <p>Edit <code>config/dev.json</code> with your MongoDB connection string and desired port:</p>
+                    <div class="code-block">
+                      <div class="code-block-header">config/dev.json</div>
+                      <pre>{
+  "DBHost": "mongodb://localhost:27017/ureport",
+  "PORT": 4100
+}</pre>
+                    </div>
+                    <p>For production, edit <code>config/production.json</code> — or set the <code>DBHost</code> environment variable to override the config file.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">3</div>
+                  <div class="step-content">
+                    <h4>Seed the database</h4>
+                    <p>This creates the default admin account and initial system settings. Safe to re-run — skips if already initialized.</p>
+                    <div class="code-block">
+                      <div class="code-block-header">bash</div>
+                      <pre>npm run initialize</pre>
+                    </div>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">4</div>
+                  <div class="step-content">
+                    <h4>Start the server</h4>
+                    <div class="code-block">
+                      <div class="code-block-header">bash</div>
+                      <pre>npm start</pre>
+                    </div>
+                    <p>The server starts on the port configured in step 2 (default: <strong>4100</strong> for dev).</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="help-section">
+          <h2><i class="fas fa-rocket"></i>Running in Production (bare metal)</h2>
+          <div class="qa-item">
+            <div class="question">How do I run UReport in production mode?</div>
+            <div class="answer">
+              <p>Set <code>NODE_ENV=production</code> before starting. This switches the server to use <code>config/production.json</code> and enables clustering (4 workers):</p>
+              <div class="code-block">
+                <div class="code-block-header">bash</div>
+                <pre>NODE_ENV=production npm start</pre>
+              </div>
+              <p>You can also override the database connection with an environment variable:</p>
+              <div class="code-block">
+                <div class="code-block-header">bash</div>
+                <pre>DBHost="mongodb+srv://user:pass@cluster.mongodb.net/ureport" \
+NODE_ENV=production npm start</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="help-section">
+          <h2><i class="fas fa-user-shield"></i>First Login</h2>
+          <div class="qa-item">
+            <div class="question">What are the default credentials?</div>
+            <div class="answer">
+              <table class="help-table">
+                <thead><tr><th>Setup</th><th>Username</th><th>Password</th></tr></thead>
+                <tbody>
+                  <tr><td>Docker Compose</td><td><code>admin</code></td><td><code>changeme</code></td></tr>
+                  <tr><td>Docker Compose</td><td><code>demo</code></td><td><code>1234</code></td></tr>
+                  <tr><td>Bare metal</td><td><code>admin</code></td><td><code>1234</code></td></tr>
+                </tbody>
+              </table>
+              <p>Docker credentials can be changed via <code>.env</code> before the first startup.</p>
+              <div class="info-box warning"><i class="fas fa-exclamation-triangle"></i>
+                <div class="info-box-content">
+                  <p>Change the admin password immediately after your first login.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do other users get access?</div>
+            <div class="answer">
+              <p>Users self-register at <code>/signup</code>. How they get activated depends on whether email is configured:</p>
+              <div class="info-box"><i class="fas fa-envelope"></i>
+                <div class="info-box-content"><strong>With email configured (recommended)</strong>
+                  <p>User registers → receives a confirmation email → clicks the link → account becomes <em>active</em> automatically. No admin action needed.</p>
+                </div>
+              </div>
+              <div class="info-box warning"><i class="fas fa-exclamation-triangle"></i>
+                <div class="info-box-content"><strong>Without email configured</strong>
+                  <p>User registers → account stays <em>pending</em> → admin must manually approve in <strong>Settings → Users</strong> before the user can log in.</p>
+                </div>
+              </div>
+              <p>To configure email go to <strong>Settings → Notification → Email</strong> and enter your SMTP credentials.</p>
+              <p>Admins can promote users to <em>operator</em> or <em>admin</em> role in <strong>Settings → Users</strong>.</p>
+            </div>
+          </div>
+        </div>
+        <div class="help-section">
+          <h2><i class="fas fa-key"></i>API Token</h2>
+          <div class="qa-item">
+            <div class="question">How do I get an API token to push test results?</div>
+            <div class="answer">
+              <p>Each user can generate a personal API token from their profile — click your avatar → <strong>Edit Profile → API Token → Generate Token</strong>. This token is used in the <code>Authorization: Bearer</code> header when calling the REST API or configuring a reporter plugin.</p>
+            </div>
+          </div>
+        </div>
+        <div class="help-section">
+          <h2><i class="fas fa-file-code"></i>Configuration Reference</h2>
+          <div class="qa-item">
+            <div class="question">Where does UReport read its configuration?</div>
+            <div class="answer">
+              <p>Configuration is loaded from the <code>config/</code> directory based on the <code>NODE_ENV</code> value:</p>
+              <table class="help-table">
+                <thead><tr><th>File</th><th>Used when</th></tr></thead>
+                <tbody>
+                  <tr><td><code>config/dev.json</code></td><td><code>NODE_ENV=dev</code> (default)</td></tr>
+                  <tr><td><code>config/production.json</code></td><td><code>NODE_ENV=production</code></td></tr>
+                  <tr><td><code>config/docker.json</code></td><td><code>NODE_ENV=docker</code> (set by docker-compose.yml)</td></tr>
+                  <tr><td><code>config/test.json</code></td><td><code>NODE_ENV=test</code></td></tr>
+                </tbody>
+              </table>
+              <p>Each file supports two keys:</p>
+              <table class="help-table">
+                <thead><tr><th>Key</th><th>Description</th><th>Dev default</th><th>Prod default</th></tr></thead>
+                <tbody>
+                  <tr><td><code>DBHost</code></td><td>MongoDB connection string</td><td>mongodb://localhost:27017/ureport</td><td>(set this to your DB)</td></tr>
+                  <tr><td><code>PORT</code></td><td>HTTP port the server listens on</td><td>4100</td><td>8080</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">Can I override config values with environment variables?</div>
+            <div class="answer">
+              <p>Yes. These environment variables take precedence over the config files:</p>
+              <table class="help-table">
+                <thead><tr><th>Variable</th><th>Overrides</th><th>Notes</th></tr></thead>
+                <tbody>
+                  <tr><td><code>DBHost</code></td><td><code>config.DBHost</code></td><td>Useful in Docker / cloud deployments</td></tr>
+                  <tr><td><code>PORT</code></td><td><code>config.PORT</code></td><td>Falls back to 3000 if neither is set</td></tr>
+                  <tr><td><code>NODE_ENV</code></td><td>(selects config file)</td><td>Defaults to <code>dev</code></td></tr>
+                  <tr><td><code>ADMIN_EMAIL</code></td><td>Admin seed email</td><td>Docker only — applied on first startup</td></tr>
+                  <tr><td><code>ADMIN_PASSWORD</code></td><td>Admin seed password</td><td>Docker only — applied on first startup</td></tr>
+                  <tr><td><code>DEMO_PASSWORD</code></td><td>Demo user seed password</td><td>Docker only — applied on first startup</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <a class="bottom-back-link" href="/docs/getting-started">Next: Getting Started →</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

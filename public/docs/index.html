@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation | UReport</title>
+  <meta name="description" content="UReport documentation — installation, getting started, dashboards, test analysis, quarantine, AI analysis, and more.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --p-primary-color: #1d9e75;
+      --p-primary-contrast-color: #ffffff;
+      --p-primary-50: #e6f7f1;
+      --p-primary-100: #cceee3;
+      --p-primary-200: #99ddc7;
+      --p-primary-600: #178a64;
+      --p-surface-0: #ffffff;
+      --p-surface-50: #f9fafb;
+      --p-surface-100: #f3f4f6;
+      --p-surface-border: #e5e7eb;
+      --p-text-color: #111827;
+      --p-text-muted-color: #6b7280;
+      --p-shadow-2: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'DM Sans', sans-serif; }
+    .docs-nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,15,0.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .docs-nav-inner {
+      max-width: 1200px; margin: 0 auto; padding: 0 2rem;
+      height: 60px; display: flex; align-items: center; gap: 2rem;
+    }
+    .docs-nav-brand {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 700; font-size: 1.05rem;
+      color: rgba(255,255,255,0.9); text-decoration: none; margin-right: auto;
+    }
+    .docs-nav-brand i { color: #1d9e75; }
+    .docs-nav-links { display: flex; align-items: center; gap: 0.25rem; }
+    .docs-nav-link {
+      padding: 0.4rem 0.9rem; color: rgba(255,255,255,0.65);
+      text-decoration: none; font-size: 0.9rem; font-weight: 500;
+      border-radius: 6px; transition: color 0.15s, background 0.15s;
+    }
+    .docs-nav-link:hover { color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.06); }
+    .docs-nav-btn {
+      padding: 0.4rem 1.1rem; background: #1d9e75; color: #fff;
+      text-decoration: none; font-size: 0.9rem; font-weight: 600;
+      border-radius: 6px; transition: opacity 0.15s;
+    }
+    .docs-nav-btn:hover { opacity: 0.85; }
+    @media (max-width: 600px) {
+      .docs-nav-inner { padding: 0 1rem; gap: 0.5rem; }
+      .docs-nav-link { padding: 0.4rem 0.5rem; font-size: 0.8rem; }
+    }
+    .docs-page-content { min-height: calc(100vh - 60px); }
+
+    /* Help page styles */
+    .help-page { min-height: 100%; background: var(--p-surface-0); padding: 2rem; }
+    .help-content { max-width: 900px; margin: 0 auto; }
+    .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); }
+    .page-header h1 {
+      font-size: 2rem; font-weight: 700; color: var(--p-text-color);
+      margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.75rem;
+    }
+    .page-header h1 i { color: var(--p-primary-color); }
+    .page-header p { font-size: 1.1rem; color: var(--p-text-muted-color); margin: 0; }
+    .docs-top-nav {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 0; margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--p-surface-border);
+      font-size: 0.875rem; flex-wrap: wrap;
+    }
+    .docs-home-link {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-weight: 700; color: var(--p-primary-color); text-decoration: none;
+    }
+    .docs-home-link:hover { text-decoration: underline; }
+    .docs-divider { color: var(--p-text-muted-color); }
+    .docs-nav-current { color: var(--p-text-muted-color); }
+    .nav-cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem; margin: 1.5rem 0;
+    }
+    .nav-card {
+      padding: 1.5rem; background: var(--p-surface-0);
+      border-radius: 12px; border: 1px solid var(--p-surface-border);
+      transition: all 0.2s ease; text-decoration: none; color: inherit;
+      display: block;
+    }
+    .nav-card:hover {
+      border-color: var(--p-primary-color);
+      box-shadow: var(--p-shadow-2);
+      transform: translateY(-2px);
+    }
+    .nav-card-icon {
+      width: 48px; height: 48px; background: var(--p-primary-50);
+      border-radius: 12px; display: flex; align-items: center;
+      justify-content: center; margin-bottom: 1rem;
+    }
+    .nav-card-icon i { font-size: 1.5rem; color: var(--p-primary-color); }
+    .nav-card h3 { margin: 0 0 0.5rem 0; font-size: 1.1rem; font-weight: 600; color: var(--p-text-color); }
+    .nav-card p { margin: 0; font-size: 0.9rem; color: var(--p-text-muted-color); line-height: 1.5; }
+    @media (max-width: 768px) { .nav-cards { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <nav class="docs-nav">
+    <div class="docs-nav-inner">
+      <a class="docs-nav-brand" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+      <div class="docs-nav-links">
+        <a class="docs-nav-link" href="/docs">Docs</a>
+        <a class="docs-nav-link" href="https://github.com/ureport-web/ureport-standalone" target="_blank">GitHub</a>
+        <a class="docs-nav-link" href="/contact">Contact</a>
+        <a class="docs-nav-btn" href="/nextgen/login">Log In</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="docs-page-content">
+    <div class="help-page">
+      <div class="help-content">
+        <div class="docs-top-nav">
+          <a class="docs-home-link" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+          <span class="docs-divider">/</span>
+          <span class="docs-nav-current">Docs</span>
+        </div>
+        <div class="page-header">
+          <h1><i class="fas fa-book"></i>Documentation</h1>
+          <p>Everything you need to install, configure, and integrate UReport.</p>
+        </div>
+        <div class="nav-cards">
+          <a class="nav-card" href="/docs/installation">
+            <div class="nav-card-icon"><i class="fas fa-server"></i></div>
+            <h3>Installation</h3>
+            <p>Self-host UReport with Docker or bare metal in under 2 minutes.</p>
+          </a>
+          <a class="nav-card" href="/docs/getting-started">
+            <div class="nav-card-icon"><i class="fas fa-rocket"></i></div>
+            <h3>Getting Started</h3>
+            <p>Learn how to integrate your test framework and start pushing results.</p>
+          </a>
+          <a class="nav-card" href="/docs/dashboards">
+            <div class="nav-card-icon"><i class="fas fa-chart-bar"></i></div>
+            <h3>Dashboards</h3>
+            <p>Build custom dashboards with 10+ widget types to visualize test data.</p>
+          </a>
+          <a class="nav-card" href="/docs/test-analysis">
+            <div class="nav-card-icon"><i class="fas fa-microscope"></i></div>
+            <h3>Test Analysis</h3>
+            <p>Triage failures, track investigations, and analyze test behavior patterns.</p>
+          </a>
+          <a class="nav-card" href="/docs/quarantine">
+            <div class="nav-card-icon"><i class="fas fa-lock"></i></div>
+            <h3>Test Quarantine</h3>
+            <p>Automatically isolate flaky tests so they stop blocking CI.</p>
+          </a>
+          <a class="nav-card" href="/docs/ai-analysis">
+            <div class="nav-card-icon"><i class="fas fa-robot"></i></div>
+            <h3>AI Root Cause Analysis</h3>
+            <p>Instantly classify failures with LLM-powered root cause analysis.</p>
+          </a>
+          <a class="nav-card" href="/docs/administration">
+            <div class="nav-card-icon"><i class="fas fa-sliders-h"></i></div>
+            <h3>Administration</h3>
+            <p>Configure product lanes, manage users, and set system settings.</p>
+          </a>
+          <a class="nav-card" href="/docs/alerts">
+            <div class="nav-card-icon"><i class="fas fa-bell"></i></div>
+            <h3>Notifications</h3>
+            <p>Email alerts when builds match conditions you define.</p>
+          </a>
+          <a class="nav-card" href="/docs/troubleshooting">
+            <div class="nav-card-icon"><i class="fas fa-wrench"></i></div>
+            <h3>Troubleshooting</h3>
+            <p>Solutions to common issues and integration problems.</p>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

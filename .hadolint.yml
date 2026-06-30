@@ -1,0 +1,12 @@
+ignored:
+  - DL3007 # Pin the version explicitly to a release tag
+  - DL3008 # Pin versions in apt get install
+  - DL3013 # Pin versions in pip
+  - DL3015 # Avoid additional packages
+  - DL3018 # Pin versions in apk add
+
+# https://github.com/hadolint/hadolint/wiki/DL3007
+# https://github.com/hadolint/hadolint/wiki/DL3008  
+# https://github.com/hadolint/hadolint/wiki/DL3013
+# https://github.com/hadolint/hadolint/wiki/DL3015
+# https://github.com/hadolint/hadolint/wiki/DL3018

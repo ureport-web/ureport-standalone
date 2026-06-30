@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getting Started | UReport Docs</title>
+  <meta name="description" content="Learn how to integrate UReport with Playwright, Jest, Pytest, Mocha/Cypress, TestNG, or the raw API.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --p-primary-color: #1d9e75; --p-primary-50: #e6f7f1; --p-primary-100: #cceee3; --p-primary-200: #99ddc7;
+      --p-surface-0: #ffffff; --p-surface-50: #f9fafb; --p-surface-100: #f3f4f6; --p-surface-border: #e5e7eb;
+      --p-text-color: #111827; --p-text-muted-color: #6b7280;
+      --p-green-50: #f0fdf4; --p-green-100: #dcfce7; --p-green-200: #bbf7d0; --p-green-500: #22c55e; --p-green-700: #15803d;
+      --p-blue-50: #eff6ff; --p-blue-100: #dbeafe; --p-blue-200: #bfdbfe; --p-blue-500: #3b82f6; --p-blue-700: #1d4ed8;
+      --p-orange-50: #fff7ed; --p-orange-200: #fed7aa; --p-orange-500: #f97316; --p-orange-700: #c2410c;
+      --p-red-50: #fef2f2; --p-red-100: #fee2e2; --p-red-500: #ef4444; --p-red-700: #b91c1c;
+      --p-gray-100: #f3f4f6; --p-gray-500: #6b7280; --p-gray-700: #374151;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'DM Sans', sans-serif; color: var(--p-text-color); }
+    .docs-nav { position: sticky; top: 0; z-index: 100; background: rgba(10,10,15,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .docs-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 2rem; height: 60px; display: flex; align-items: center; gap: 2rem; }
+    .docs-nav-brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.05rem; color: rgba(255,255,255,0.9); text-decoration: none; margin-right: auto; }
+    .docs-nav-brand i { color: #1d9e75; }
+    .docs-nav-links { display: flex; align-items: center; gap: 0.25rem; }
+    .docs-nav-link { padding: 0.4rem 0.9rem; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.9rem; font-weight: 500; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+    .docs-nav-link:hover { color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.06); }
+    .docs-nav-btn { padding: 0.4rem 1.1rem; background: #1d9e75; color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600; border-radius: 6px; }
+    .docs-nav-btn:hover { opacity: 0.85; }
+    @media (max-width: 600px) { .docs-nav-inner { padding: 0 1rem; gap: 0.5rem; } .docs-nav-link { padding: 0.4rem 0.5rem; font-size: 0.8rem; } }
+    .docs-page-content { min-height: calc(100vh - 60px); }
+    .help-page { min-height: 100%; background: var(--p-surface-0); padding: 2rem; }
+    .help-content { max-width: 900px; margin: 0 auto; }
+    .docs-top-nav { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); font-size: 0.875rem; flex-wrap: wrap; }
+    .docs-home-link { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--p-primary-color); text-decoration: none; }
+    .docs-home-link:hover { text-decoration: underline; }
+    .docs-divider { color: var(--p-text-muted-color); }
+    .docs-top-nav-link { color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
+    .docs-top-nav-link:hover { text-decoration: underline; }
+    .docs-nav-current { color: var(--p-text-muted-color); }
+    .back-link { margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem; color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
+    .back-link:hover { text-decoration: underline; }
+    .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); }
+    .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.75rem; }
+    .page-header h1 i { color: var(--p-primary-color); }
+    .page-header p { font-size: 1.1rem; color: var(--p-text-muted-color); margin: 0; }
+    .help-section { margin-bottom: 2.5rem; }
+    .help-section > h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 1.5rem 0; padding-bottom: 0.75rem; border-bottom: 2px solid var(--p-primary-color); display: flex; align-items: center; gap: 0.6rem; }
+    .help-section > h2 i { color: var(--p-primary-color); }
+    .qa-item { margin-bottom: 1.5rem; border: 1px solid var(--p-surface-border); border-radius: 12px; overflow: hidden; }
+    .question { padding: 1rem 1.25rem; background: var(--p-surface-50); font-weight: 600; font-size: 1rem; border-bottom: 1px solid var(--p-surface-border); }
+    .answer { padding: 1.25rem; line-height: 1.6; }
+    .answer p { margin: 0 0 1rem 0; } .answer p:last-child { margin-bottom: 0; }
+    .answer ul, .answer ol { margin: 0.5rem 0 1rem 1.5rem; } .answer li { margin-bottom: 0.3rem; }
+    .answer strong { font-weight: 600; }
+    .answer em { font-style: italic; }
+    .answer h5 { margin: 1.25rem 0 0.5rem 0; font-size: 0.9rem; font-weight: 700; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .feature-card { padding: 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; }
+    .feature-card h4 { margin: 0 0 0.5rem 0; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .feature-card h4 i { color: var(--p-primary-color); }
+    .feature-card p { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--p-text-muted-color); }
+    .feature-card ul { margin: 0.25rem 0 0 1.25rem; font-size: 0.875rem; color: var(--p-text-muted-color); }
+    .feature-card li { margin-bottom: 0.2rem; }
+    .steps { display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0; }
+    .step { display: flex; gap: 1rem; }
+    .step-number { flex-shrink: 0; width: 32px; height: 32px; background: var(--p-primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+    .step-content { flex: 1; }
+    .step-content h4 { margin: 0 0 0.4rem 0; font-size: 0.95rem; font-weight: 600; }
+    .step-content p { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
+    .step-content ul { margin: 0.25rem 0 0.5rem 1.25rem; font-size: 0.875rem; } .step-content li { margin-bottom: 0.2rem; }
+    .help-table, .config-table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.875rem; }
+    .help-table th, .config-table th { text-align: left; padding: 0.6rem 1rem; background: var(--p-surface-100); font-weight: 600; border-bottom: 2px solid var(--p-surface-border); }
+    .help-table td, .config-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--p-surface-border); vertical-align: top; }
+    .help-table tr:last-child td, .config-table tr:last-child td { border-bottom: none; }
+    .help-table code, .config-table code { background: var(--p-surface-100); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.8em; font-family: monospace; }
+    .info-box { display: flex; gap: 0.75rem; padding: 0.875rem 1rem; border-radius: 8px; margin: 0.75rem 0; border: 1px solid; font-size: 0.875rem; background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
+    .info-box > i { flex-shrink: 0; font-size: 1rem; margin-top: 0.1rem; color: var(--p-blue-500); }
+    .info-box-content { flex: 1; line-height: 1.5; }
+    .info-box-content p { margin: 0.25rem 0 0 0; }
+    .info-box.tip { background: var(--p-green-50); border-color: var(--p-green-200); color: var(--p-green-700); }
+    .info-box.tip > i { color: var(--p-green-500); }
+    .info-box.note { background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
+    .info-box.note > i { color: var(--p-blue-500); }
+    .info-box.warning { background: var(--p-orange-50); border-color: var(--p-orange-200); color: var(--p-orange-700); }
+    .info-box.warning > i { color: var(--p-orange-500); }
+    .info-box.important { background: var(--p-primary-50); border-color: var(--p-primary-200); color: var(--p-text-color); }
+    .info-box.important > i { color: var(--p-primary-color); }
+    .example-box { padding: 1rem 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; margin: 0.75rem 0; }
+    .example-box h5 { margin: 0 0 0.75rem 0; font-size: 0.9rem; font-weight: 700; }
+    .example-box p { margin: 0 0 0.5rem 0; font-size: 0.875rem; }
+    .field-list { display: flex; flex-direction: column; }
+    .field-item { display: flex; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--p-surface-border); }
+    .field-item:last-child { border-bottom: none; }
+    .field-name { min-width: 160px; font-weight: 600; font-size: 0.875rem; font-family: monospace; color: var(--p-primary-color); flex-shrink: 0; }
+    .field-desc { font-size: 0.875rem; color: var(--p-text-muted-color); flex: 1; }
+    .code-block { margin: 0.75rem 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--p-surface-border); }
+    .code-block-header { padding: 0.5rem 1rem; background: var(--p-surface-100); font-size: 0.8rem; font-weight: 600; font-family: monospace; color: var(--p-text-muted-color); border-bottom: 1px solid var(--p-surface-border); }
+    .code-block pre { margin: 0; padding: 1rem; background: #1e1e2e; color: #cdd6f4; font-family: 'Courier New', monospace; font-size: 0.82rem; line-height: 1.6; overflow-x: auto; white-space: pre; }
+    .reporter-card { padding: 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 12px; margin-bottom: 1rem; }
+    .reporter-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+    .reporter-card-title { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.05rem; }
+    .reporter-card-links { display: flex; gap: 0.75rem; }
+    .reporter-card-links a { color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; display: flex; align-items: center; gap: 0.3rem; }
+    .reporter-card-links a:hover { text-decoration: underline; }
+    .reporter-card > p { margin: 0.5rem 0 0.25rem 0; font-size: 0.9rem; font-weight: 500; }
+    .api-endpoint { display: inline-flex; align-items: center; gap: 0.5rem; margin: 0.75rem 0; padding: 0.5rem 1rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 6px; font-family: monospace; font-size: 0.875rem; }
+    .api-endpoint .method { font-weight: 700; color: var(--p-green-700); }
+    .api-endpoint .path { color: var(--p-text-muted-color); }
+    .status-badge { display: inline-flex; align-items: center; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; font-family: monospace; }
+    .status-badge.pass { background: var(--p-green-100); color: var(--p-green-700); }
+    .status-badge.fail { background: var(--p-red-100); color: var(--p-red-700); }
+    .status-badge.skip { background: var(--p-gray-100); color: var(--p-gray-700); }
+    .status-badge.rerun { background: var(--p-blue-100); color: var(--p-blue-700); }
+    /* Tabs */
+    .tabs-container { margin-bottom: 2rem; border: 1px solid var(--p-surface-border); border-radius: 12px; overflow: hidden; }
+    .tab-bar { display: flex; background: var(--p-surface-50); border-bottom: 1px solid var(--p-surface-border); overflow-x: auto; }
+    .tab-btn { padding: 0.75rem 1.1rem; font-size: 0.875rem; font-weight: 500; font-family: 'DM Sans', sans-serif; background: none; border: none; cursor: pointer; color: var(--p-text-muted-color); white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tab-btn:hover { color: var(--p-text-color); }
+    .tab-btn.active { color: var(--p-primary-color); border-bottom-color: var(--p-primary-color); font-weight: 600; }
+    .tab-panel { padding: 1.5rem; display: none; }
+    .tab-panel.active { display: block; }
+    .tab-panel .qa-item { border: 1px solid var(--p-surface-border); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+    .back-to-top { position: fixed; bottom: 2rem; right: 2rem; width: 44px; height: 44px; background: var(--p-primary-color); color: #fff; border: none; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .back-to-top:hover { opacity: 0.85; }
+    @media (max-width: 768px) { .help-page { padding: 1rem; } .feature-grid { grid-template-columns: 1fr; } .field-item { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <nav class="docs-nav">
+    <div class="docs-nav-inner">
+      <a class="docs-nav-brand" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+      <div class="docs-nav-links">
+        <a class="docs-nav-link" href="/docs">Docs</a>
+        <a class="docs-nav-link" href="https://github.com/ureport-web/ureport-standalone" target="_blank">GitHub</a>
+        <a class="docs-nav-link" href="/contact">Contact</a>
+        <a class="docs-nav-btn" href="/nextgen/login">Log In</a>
+      </div>
+    </div>
+  </nav>
+  <div class="docs-page-content">
+    <div class="help-page" id="help-page-top">
+      <div class="help-content">
+        <div class="docs-top-nav">
+          <a class="docs-home-link" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+          <span class="docs-divider">/</span>
+          <a class="docs-top-nav-link" href="/docs">Docs</a>
+          <span class="docs-divider">/</span>
+          <span class="docs-nav-current">Getting Started</span>
+          <a class="back-link" href="/docs"><i class="fas fa-arrow-left"></i> Back to Docs</a>
+        </div>
+        <div class="page-header">
+          <h1><i class="fas fa-rocket"></i>Getting Started</h1>
+          <p>Learn the basics of UReport and how to integrate your test framework.</p>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-info-circle"></i>What is UReport?</h2>
+          <div class="qa-item">
+            <div class="question">What is UReport and what can it do?</div>
+            <div class="answer">
+              <p>UReport is a comprehensive test automation reporting platform that centralizes test execution results from any testing framework. It provides powerful analytics, dashboards, and collaboration tools to help teams understand test patterns and improve quality.</p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-chart-bar"></i>Analytics &amp; Reporting</h4>
+                  <ul>
+                    <li>Interactive dashboards with 10+ widget types</li>
+                    <li>Real-time test execution monitoring</li>
+                    <li>Historical trend analysis</li>
+                    <li>Test behavior pattern detection</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-search"></i>Test Investigation</h4>
+                  <ul>
+                    <li>Advanced failure categorization</li>
+                    <li>Similarity matching for related failures</li>
+                    <li>Outage management</li>
+                    <li>Custom states with TTL</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-eye"></i>Multiple Views</h4>
+                  <ul>
+                    <li>List, Tree, Timeline views</li>
+                    <li>Advanced filtering options</li>
+                    <li>Split-view test details</li>
+                    <li>Cross-environment comparisons</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-cogs"></i>Administration</h4>
+                  <ul>
+                    <li>Role-based permissions</li>
+                    <li>Product Lane configurations</li>
+                    <li>CSV/PDF export</li>
+                    <li>RESTful API integration</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-code"></i>API Integration</h2>
+          <div class="tabs-container">
+            <div class="tab-bar">
+              <button class="tab-btn active" onclick="showTab(0)"><i class="fab fa-js-square"></i> Playwright</button>
+              <button class="tab-btn" onclick="showTab(1)"><i class="fab fa-js-square"></i> Jest</button>
+              <button class="tab-btn" onclick="showTab(2)"><i class="fab fa-python"></i> Pytest</button>
+              <button class="tab-btn" onclick="showTab(3)"><i class="fab fa-js-square"></i> Mocha / Cypress</button>
+              <button class="tab-btn" onclick="showTab(4)"><i class="fab fa-java"></i> TestNG</button>
+              <button class="tab-btn" onclick="showTab(5)"><i class="fas fa-code"></i> Raw API</button>
+            </div>
+
+            <!-- ===== PLAYWRIGHT ===== -->
+            <div class="tab-panel active" id="tab-0">
+              <div class="qa-item">
+                <div class="question">How do I install the reporter?</div>
+                <div class="answer">
+                  <div class="reporter-card">
+                    <div class="reporter-card-header">
+                      <div class="reporter-card-title"><i class="fab fa-js-square"></i> Playwright</div>
+                      <div class="reporter-card-links">
+                        <a href="https://www.npmjs.com/package/ureport-playwright-reporter" target="_blank"><i class="fab fa-npm"></i> npm</a>
+                        <a href="https://github.com/ureport-web/ureport-playwright-reporter" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                      </div>
+                    </div>
+                    <p>Install:</p>
+                    <div class="code-block"><div class="code-block-header">npm</div><pre>npm install --save-dev ureport-playwright-reporter</pre></div>
+                    <div class="code-block"><div class="code-block-header">yarn</div><pre>yarn add --dev ureport-playwright-reporter</pre></div>
+                    <p>Add to your Playwright config:</p>
+                    <div class="code-block"><div class="code-block-header">playwright.config.ts</div><pre>// playwright.config.ts
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  reporter: [
+    ['ureport-playwright-reporter', {
+      serverUrl: process.env.UREPORT_SERVER_URL,
+      apiToken:  process.env.UREPORT_API_TOKEN,
+      product:   'MyProduct',
+      type:      'E2E',
+      buildNumber: process.env.BUILD_NUMBER,
+    }],
+  ],
+});</pre></div>
+                  </div>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">What are all the available configuration options?</div>
+                <div class="answer">
+                  <div class="info-box note"><i class="fas fa-info-circle"></i>
+                    <div class="info-box-content">
+                      <p>The <code>apiToken</code> is your UReport API token. Generate one: click your avatar &rarr; Edit Profile &rarr; API Token &rarr; Generate Token.</p>
+                    </div>
+                  </div>
+                  <table class="help-table">
+                    <thead><tr><th>Option</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead>
+                    <tbody>
+                      <tr><td>serverUrl</td><td>string</td><td>Yes</td><td>—</td><td>Base URL of your UReport server</td></tr>
+                      <tr><td>apiToken</td><td>string</td><td>Yes</td><td>—</td><td>API token for authentication</td></tr>
+                      <tr><td>product</td><td>string</td><td>Yes</td><td>—</td><td>Product name (e.g. "WebPortal")</td></tr>
+                      <tr><td>type</td><td>string</td><td>Yes</td><td>—</td><td>Test type / lane (e.g. "E2E", "UI", "API")</td></tr>
+                      <tr><td>buildNumber</td><td>string | number</td><td>No</td><td>Date.now()</td><td>CI build number</td></tr>
+                      <tr><td>team</td><td>string</td><td>No</td><td>—</td><td>Team responsible for the tests</td></tr>
+                      <tr><td>browser</td><td>string</td><td>No</td><td>—</td><td>Browser used (e.g. "Chrome", "Firefox")</td></tr>
+                      <tr><td>device</td><td>string</td><td>No</td><td>—</td><td>Device type (e.g. "Desktop", "Mobile")</td></tr>
+                      <tr><td>platform</td><td>string</td><td>No</td><td>auto-detected</td><td>Operating system</td></tr>
+                      <tr><td>platform_version</td><td>string</td><td>No</td><td>auto-detected</td><td>OS version</td></tr>
+                      <tr><td>stage</td><td>string</td><td>No</td><td>—</td><td>Environment stage (e.g. "Staging", "Production")</td></tr>
+                      <tr><td>version</td><td>string</td><td>No</td><td>—</td><td>Application version</td></tr>
+                      <tr><td>batchSize</td><td>number</td><td>No</td><td>50</td><td>Tests submitted per API call</td></tr>
+                      <tr><td>includeSteps</td><td>boolean</td><td>No</td><td>true</td><td>Include test steps in submission</td></tr>
+                      <tr><td>includeScreenshots</td><td>boolean</td><td>No</td><td>true</td><td>Attach screenshots to failed steps</td></tr>
+                      <tr><td>saveRelations</td><td>boolean</td><td>No</td><td>true</td><td>Save test relation records after the run</td></tr>
+                      <tr><td>quickInfoAnnotations</td><td>string[]</td><td>No</td><td>[]</td><td>Annotation types stored as quickInfo (execution-specific, not saved to relations)</td></tr>
+                      <tr><td>autoDetectPlatform</td><td>boolean</td><td>No</td><td>true</td><td>Auto-detect OS platform and version</td></tr>
+                      <tr><td>outputFile</td><td>string</td><td>No</td><td>—</td><td>Write payload to JSON file (debugging)</td></tr>
+                      <tr><td>testTransform</td><td>function</td><td>No</td><td>—</td><td>Per-test transform: return { name, relations } to override name/uid and inject relation fields</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">How do I annotate tests?</div>
+                <div class="answer">
+                  <p>Use Playwright's built-in <code>test.info().annotations</code> API to attach metadata. The reporter reads these annotations automatically.</p>
+                  <div class="code-block"><div class="code-block-header">Stable UID (recommended)</div><pre>test('user can log in', async ({ page }) => {
+  test.info().annotations.push({ type: 'ureport-uid', description: 'auth-login-001' });
+  // ... test steps
+});</pre></div>
+                  <div class="info-box important"><i class="fas fa-exclamation-circle"></i>
+                    <div class="info-box-content">
+                      <p>Always set a <code>ureport-uid</code> annotation. Without it, the reporter falls back to the test title as the uid — which breaks tracking if you ever rename the test.</p>
+                    </div>
+                  </div>
+                  <div class="code-block"><div class="code-block-header">Relations — components, teams, tags</div><pre>test.info().annotations.push({ type: 'components', description: 'Auth' });
+test.info().annotations.push({ type: 'teams',      description: 'Frontend' });
+test.info().annotations.push({ type: 'tags',       description: 'smoke' });</pre></div>
+                  <div class="info-box note"><i class="fas fa-info-circle"></i>
+                    <div class="info-box-content">
+                      <p><code>components</code> and <code>teams</code> are arrays — push multiple annotations of the same type to add multiple values.</p>
+                    </div>
+                  </div>
+                  <div class="code-block"><div class="code-block-header">quickInfo — execution-specific metadata</div><pre>// In playwright.config.ts: quickInfoAnnotations: ['env', 'run_url']
+
+test.info().annotations.push({ type: 'env',     description: 'staging' });
+test.info().annotations.push({ type: 'run_url', description: 'https://ci.example.com/runs/42' });</pre></div>
+                  <div class="info-box tip"><i class="fas fa-lightbulb"></i>
+                    <div class="info-box-content">
+                      <p>Use <code>quickInfoAnnotations</code> for values that change every run (environment URLs, run IDs). These are stored on the test result but never saved to the relation record.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">How do I attach content to a step?</div>
+                <div class="answer">
+                  <p>Use Playwright's <code>test.info().attach()</code> API inside a <code>test.step()</code> to attach structured content. UReport reads the <code>contentType</code> and renders the appropriate format toggle in the Steps tab.</p>
+                  <div class="code-block"><div class="code-block-header">JSON body (contentType: 'application/json')</div><pre>test('login API returns token', async ({ request }) => {
+  test.info().annotations.push({ type: 'ureport-uid', description: 'auth-login-api-001' });
+
+  const response = await request.post('/api/login', {
+    data: { username: 'alice', password: 'secret' },
+  });
+
+  await test.step('POST /api/login', async () => {
+    await test.info().attach('response-body', {
+      body: await response.text(),
+      contentType: 'application/json',
+    });
+    expect(response.ok()).toBeTruthy();
+  });
+});</pre></div>
+                  <div class="code-block"><div class="code-block-header">curl command (contentType: 'text/x-curl')</div><pre>await test.step('POST /api/login', async () => {
+  await test.info().attach('request-curl', {
+    body: `curl -X POST https://api.example.com/api/login -H 'Content-Type: application/json' -d '{"username":"alice","password":"secret"}'`,
+    contentType: 'text/x-curl',
+  });
+});</pre></div>
+                  <p>Supported MIME types and their UReport view formats:</p>
+                  <table class="config-table">
+                    <thead><tr><th>contentType</th><th>UReport view formats</th></tr></thead>
+                    <tbody>
+                      <tr><td>application/json</td><td>JSON, XML</td></tr>
+                      <tr><td>application/xml / text/xml</td><td>XML</td></tr>
+                      <tr><td>text/x-curl</td><td>curl, text</td></tr>
+                      <tr><td>text/plain</td><td>text</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="info-box note"><i class="fas fa-info-circle"></i>
+                    <div class="info-box-content">
+                      <p>Only the first content attachment per step is captured. Wrap your attach calls inside <code>test.step()</code> for cleaner step-level context in UReport.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== JEST ===== -->
+            <div class="tab-panel" id="tab-1">
+              <div class="qa-item">
+                <div class="question">How do I install the reporter?</div>
+                <div class="answer">
+                  <div class="reporter-card">
+                    <div class="reporter-card-header">
+                      <div class="reporter-card-title"><i class="fab fa-js-square"></i> Jest</div>
+                      <div class="reporter-card-links">
+                        <a href="https://www.npmjs.com/package/ureport-jest-reporter" target="_blank"><i class="fab fa-npm"></i> npm</a>
+                        <a href="https://github.com/ureport-web/ureport-jest-reporter" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                      </div>
+                    </div>
+                    <p>Install:</p>
+                    <div class="code-block"><div class="code-block-header">npm</div><pre>npm install --save-dev ureport-jest-reporter</pre></div>
+                    <div class="code-block"><div class="code-block-header">yarn</div><pre>yarn add --dev ureport-jest-reporter</pre></div>
+                    <p>Add to your Jest config:</p>
+                    <div class="code-block"><div class="code-block-header">jest.config.js</div><pre>// jest.config.js
+module.exports = {
+  reporters: [
+    'default',
+    ['ureport-jest-reporter', {
+      serverUrl: process.env.UREPORT_SERVER_URL,
+      apiToken:  process.env.UREPORT_API_TOKEN,
+      product:   'MyProduct',
+      type:      'E2E',
+      buildNumber: process.env.BUILD_NUMBER,
+    }],
+  ],
+};</pre></div>
+                  </div>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">What are all the available configuration options?</div>
+                <div class="answer">
+                  <div class="info-box note"><i class="fas fa-info-circle"></i>
+                    <div class="info-box-content">
+                      <p>The <code>apiToken</code> is your UReport API token. Generate one: click your avatar &rarr; Edit Profile &rarr; API Token &rarr; Generate Token.</p>
+                    </div>
+                  </div>
+                  <table class="help-table">
+                    <thead><tr><th>Option</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead>
+                    <tbody>
+                      <tr><td>serverUrl</td><td>string</td><td>Yes</td><td>—</td><td>Base URL of your UReport server</td></tr>
+                      <tr><td>apiToken</td><td>string</td><td>Yes</td><td>—</td><td>API token for authentication</td></tr>
+                      <tr><td>product</td><td>string</td><td>Yes</td><td>—</td><td>Product name</td></tr>
+                      <tr><td>type</td><td>string</td><td>Yes</td><td>—</td><td>Test type / lane (e.g. "Unit", "Integration")</td></tr>
+                      <tr><td>buildNumber</td><td>string | number</td><td>No</td><td>Date.now()</td><td>CI build number</td></tr>
+                      <tr><td>team</td><td>string</td><td>No</td><td>—</td><td>Team responsible for the tests</td></tr>
+                      <tr><td>browser</td><td>string</td><td>No</td><td>—</td><td>Browser (if applicable)</td></tr>
+                      <tr><td>device</td><td>string</td><td>No</td><td>—</td><td>Device type (if applicable)</td></tr>
+                      <tr><td>platform</td><td>string</td><td>No</td><td>auto-detected</td><td>Operating system</td></tr>
+                      <tr><td>platform_version</td><td>string</td><td>No</td><td>auto-detected</td><td>OS version</td></tr>
+                      <tr><td>stage</td><td>string</td><td>No</td><td>—</td><td>Environment stage</td></tr>
+                      <tr><td>version</td><td>string</td><td>No</td><td>—</td><td>Application version</td></tr>
+                      <tr><td>batchSize</td><td>number</td><td>No</td><td>50</td><td>Tests submitted per API call</td></tr>
+                      <tr><td>saveRelations</td><td>boolean</td><td>No</td><td>true</td><td>Save test relation records after the run</td></tr>
+                      <tr><td>autoDetectPlatform</td><td>boolean</td><td>No</td><td>true</td><td>Auto-detect OS platform and version</td></tr>
+                      <tr><td>quickInfoAnnotations</td><td>string[]</td><td>No</td><td>[]</td><td>Field names stored as quickInfo (never saved to relations)</td></tr>
+                      <tr><td>outputFile</td><td>string</td><td>No</td><td>—</td><td>Write payload to JSON file (debugging)</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">How do I annotate tests?</div>
+                <div class="answer">
+                  <p>Import the <code>ureport()</code> helper and call it inside your test body.</p>
+                  <div class="code-block"><div class="code-block-header">Install the helper</div><pre>import { ureport } from 'ureport-jest-reporter';</pre></div>
+                  <div class="code-block"><div class="code-block-header">Stable UID (recommended)</div><pre>test('user can log in', () => {
+  ureport({ uid: 'auth-login-001' });
+  // ... test assertions
+});</pre></div>
+                  <div class="info-box important"><i class="fas fa-exclamation-circle"></i>
+                    <div class="info-box-content">
+                      <p>Always set a <code>uid</code>. Without it, the reporter uses the full test name as the uid — which breaks tracking if you rename the test.</p>
+                    </div>
+                  </div>
+                  <div class="code-block"><div class="code-block-header">Relations — components, teams, tags</div><pre>test('checkout flow', () => {
+  ureport({
+    uid:        'checkout-flow-001',
+    components: ['Checkout', 'Cart'],
+    teams:      ['Frontend'],
+    tags:       ['smoke', 'regression'],
+  });
+  // ... test assertions
+});</pre></div>
+                  <div class="info-box note"><i class="fas fa-info-circle"></i>
+                    <div class="info-box-content">
+                      <p>Any extra fields beyond <code>uid</code>, <code>components</code>, <code>teams</code>, and <code>tags</code> are stored as custom relation fields. For example: <code>{ uid: 'TC-001', jira: 'PROJ-42', owner: 'alice' }</code>.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== PYTEST ===== -->
+            <div class="tab-panel" id="tab-2">
+              <div class="qa-item">
+                <div class="question">How do I install the reporter?</div>
+                <div class="answer">
+                  <div class="reporter-card">
+                    <div class="reporter-card-header">
+                      <div class="reporter-card-title"><i class="fab fa-python"></i> Pytest</div>
+                      <div class="reporter-card-links">
+                        <a href="https://pypi.org/project/ureport-pytest-reporter/" target="_blank"><i class="fab fa-python"></i> PyPI</a>
+                        <a href="https://github.com/ureport-web/ureport-pytest-reporter" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                      </div>
+                    </div>
+                    <p>Install:</p>
+                    <div class="code-block"><div class="code-block-header">pip</div><pre>pip install ureport-pytest-reporter</pre></div>
+                    <p>Add to your pytest.ini:</p>
+                    <div class="code-block"><div class="code-block-header">pytest.ini</div><pre>[pytest]
+addopts             = --ureport
+ureport_server_url  = https://your-ureport-url
+ureport_api_token   = your-api-token
+ureport_product     = MyProduct
+ureport_type        = E2E</pre></div>
+                  </div>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">What are all the available configuration options?</div>
+                <div class="answer">
+                  <div class="info-box note"><i class="fas fa-info-circle"></i>
+                    <div class="info-box-content">
+                      <p>The <code>ureport_api_token</code> is your UReport API token. Generate one: click your avatar &rarr; Edit Profile &rarr; API Token &rarr; Generate Token.</p>
+                    </div>
+                  </div>
+                  <table class="help-table">
+                    <thead><tr><th>ini option</th><th>Env variable</th><th>Required</th><th>Default</th><th>Description</th></tr></thead>
+                    <tbody>
+                      <tr><td>ureport_server_url</td><td>UREPORT_SERVER_URL</td><td>Yes</td><td>—</td><td>Base URL of UReport server</td></tr>
+                      <tr><td>ureport_api_token</td><td>UREPORT_API_TOKEN</td><td>Yes</td><td>—</td><td>API token for authentication</td></tr>
+                      <tr><td>ureport_product</td><td>UREPORT_PRODUCT</td><td>Yes</td><td>—</td><td>Product name</td></tr>
+                      <tr><td>ureport_type</td><td>UREPORT_TYPE</td><td>Yes</td><td>—</td><td>Test type / lane</td></tr>
+                      <tr><td>ureport_build_number</td><td>UREPORT_BUILD_NUMBER</td><td>No</td><td>timestamp</td><td>CI build number</td></tr>
+                      <tr><td>ureport_team</td><td>UREPORT_TEAM</td><td>No</td><td>—</td><td>Team name</td></tr>
+                      <tr><td>ureport_browser</td><td>UREPORT_BROWSER</td><td>No</td><td>—</td><td>Browser (e.g. "CHROME")</td></tr>
+                      <tr><td>ureport_device</td><td>UREPORT_DEVICE</td><td>No</td><td>—</td><td>Device</td></tr>
+                      <tr><td>ureport_platform</td><td>UREPORT_PLATFORM</td><td>No</td><td>auto-detected</td><td>OS platform</td></tr>
+                      <tr><td>ureport_platform_version</td><td>UREPORT_PLATFORM_VERSION</td><td>No</td><td>auto-detected</td><td>OS version</td></tr>
+                      <tr><td>ureport_stage</td><td>UREPORT_STAGE</td><td>No</td><td>—</td><td>Deployment stage</td></tr>
+                      <tr><td>ureport_version</td><td>UREPORT_VERSION</td><td>No</td><td>—</td><td>Application version</td></tr>
+                      <tr><td>ureport_batch_size</td><td>—</td><td>No</td><td>50</td><td>Tests per API call</td></tr>
+                      <tr><td>ureport_include_steps</td><td>—</td><td>No</td><td>true</td><td>Include step detail</td></tr>
+                      <tr><td>ureport_include_screenshots</td><td>—</td><td>No</td><td>true</td><td>Embed screenshots as base64</td></tr>
+                      <tr><td>ureport_save_relations</td><td>—</td><td>No</td><td>true</td><td>Save test relation records after the run</td></tr>
+                      <tr><td>ureport_quick_info_markers</td><td>—</td><td>No</td><td>—</td><td>Space-separated marker names stored as quickInfo</td></tr>
+                      <tr><td>ureport_output_file</td><td>—</td><td>No</td><td>—</td><td>Write payload to JSON file for debugging</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">How do I annotate tests?</div>
+                <div class="answer">
+                  <p>Use pytest markers to attach metadata. The reporter reads these automatically.</p>
+                  <div class="code-block"><div class="code-block-header">Stable UID (recommended)</div><pre>import pytest
+
+@pytest.mark.ureport_uid("auth-login-001")
+def test_user_can_log_in():
+    ...</pre></div>
+                  <div class="info-box important"><i class="fas fa-exclamation-circle"></i>
+                    <div class="info-box-content">
+                      <p>Always set a <code>ureport_uid</code> marker. Without it, the reporter uses the test node id as the uid — which breaks tracking if you rename or move the test.</p>
+                    </div>
+                  </div>
+                  <div class="code-block"><div class="code-block-header">Relations — components, teams, tags</div><pre>@pytest.mark.ureport_uid("checkout-flow-001")
+@pytest.mark.ureport_components("Checkout", "Cart")
+@pytest.mark.ureport_teams("Frontend")
+@pytest.mark.ureport_tags("smoke", "regression")
+def test_checkout_flow():
+    ...</pre></div>
+                  <div class="info-box note"><i class="fas fa-info-circle"></i>
+                    <div class="info-box-content">
+                      <p>Native pytest marks without arguments are automatically captured as tags. For example, <code>@pytest.mark.smoke</code> becomes the tag <code>@smoke</code> — no extra configuration needed.</p>
+                    </div>
+                  </div>
+                  <div class="code-block"><div class="code-block-header">quickInfo markers — execution-specific metadata</div><pre># pytest.ini
+ureport_quick_info_markers = env run_url
+
+# test file
+@pytest.mark.env("staging")
+@pytest.mark.run_url("https://ci.example.com/runs/42")
+def test_checkout_flow():
+    ...</pre></div>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">How do I add steps and attachments?</div>
+                <div class="answer">
+                  <p>Use the <code>ureport</code> fixture with the <code>step()</code> context manager to record steps, and <code>attach()</code> to add structured content.</p>
+                  <div class="code-block"><div class="code-block-header">Steps and attachments</div><pre>import requests
+
+def test_login_api(ureport):
+    with ureport.step("POST /api/login"):
+        ureport.attach("request-body",
+            body=b'{"username":"alice","password":"secret"}',
+            content_type="application/json")
+        response = requests.post("/api/login",
+            json={"username": "alice", "password": "secret"})
+        ureport.attach("response-body",
+            body=response.text.encode(),
+            content_type="application/json")
+        assert response.status_code == 200</pre></div>
+                  <p>Supported content types:</p>
+                  <table class="config-table">
+                    <thead><tr><th>content_type</th><th>UReport view formats</th></tr></thead>
+                    <tbody>
+                      <tr><td>application/json</td><td>JSON, XML</td></tr>
+                      <tr><td>application/xml / text/xml</td><td>XML</td></tr>
+                      <tr><td>text/x-curl</td><td>curl, text</td></tr>
+                      <tr><td>text/plain</td><td>text</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="info-box note"><i class="fas fa-info-circle"></i>
+                    <div class="info-box-content">
+                      <p>Steps nest arbitrarily — use nested <code>with ureport.step(...)</code> blocks for sub-steps. Steps recorded inside setup or teardown fixtures are automatically placed in the setup/teardown phase arrays.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== MOCHA / CYPRESS ===== -->
+            <div class="tab-panel" id="tab-3">
+              <div class="qa-item">
+                <div class="question">How do I install the reporter?</div>
+                <div class="answer">
+                  <div class="reporter-card">
+                    <div class="reporter-card-header">
+                      <div class="reporter-card-title"><i class="fab fa-js-square"></i> Mocha / Cypress</div>
+                      <div class="reporter-card-links">
+                        <a href="https://www.npmjs.com/package/ureport-mocha-reporter" target="_blank"><i class="fab fa-npm"></i> npm</a>
+                        <a href="https://github.com/ureport-web/ureport-mocha-reporter" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                      </div>
+                    </div>
+                    <p>Install:</p>
+                    <div class="code-block"><div class="code-block-header">npm</div><pre>npm install --save-dev ureport-mocha-reporter</pre></div>
+                    <div class="code-block"><div class="code-block-header">yarn</div><pre>yarn add --dev ureport-mocha-reporter</pre></div>
+                    <p>Add to your .mocharc.js (or cypress.config.js for Cypress):</p>
+                    <div class="code-block"><div class="code-block-header">.mocharc.js</div><pre>// .mocharc.js
+module.exports = {
+  reporter: 'ureport-mocha-reporter',
+  reporterOptions: {
+    serverUrl: process.env.UREPORT_SERVER_URL,
+    apiToken:  process.env.UREPORT_API_TOKEN,
+    product:   'MyProduct',
+    type:      'E2E',
+    buildNumber: process.env.BUILD_NUMBER,
+  },
+};</pre></div>
+                  </div>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">What are all the available configuration options?</div>
+                <div class="answer">
+                  <div class="info-box note"><i class="fas fa-info-circle"></i>
+                    <div class="info-box-content">
+                      <p>The <code>apiToken</code> is your UReport API token. Generate one: click your avatar &rarr; Edit Profile &rarr; API Token &rarr; Generate Token.</p>
+                    </div>
+                  </div>
+                  <table class="help-table">
+                    <thead><tr><th>Option</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead>
+                    <tbody>
+                      <tr><td>serverUrl</td><td>string</td><td>Yes</td><td>—</td><td>Base URL of your UReport server</td></tr>
+                      <tr><td>apiToken</td><td>string</td><td>Yes</td><td>—</td><td>API token for authentication</td></tr>
+                      <tr><td>product</td><td>string</td><td>Yes</td><td>—</td><td>Product name</td></tr>
+                      <tr><td>type</td><td>string</td><td>Yes</td><td>—</td><td>Test type / lane (e.g. "E2E", "Integration")</td></tr>
+                      <tr><td>buildNumber</td><td>string | number</td><td>No</td><td>Date.now()</td><td>CI build number</td></tr>
+                      <tr><td>team</td><td>string</td><td>No</td><td>—</td><td>Team responsible for the tests</td></tr>
+                      <tr><td>browser</td><td>string</td><td>No</td><td>—</td><td>Browser (if applicable)</td></tr>
+                      <tr><td>device</td><td>string</td><td>No</td><td>—</td><td>Device type (if applicable)</td></tr>
+                      <tr><td>platform</td><td>string</td><td>No</td><td>auto-detected</td><td>Operating system</td></tr>
+                      <tr><td>platform_version</td><td>string</td><td>No</td><td>auto-detected</td><td>OS version</td></tr>
+                      <tr><td>stage</td><td>string</td><td>No</td><td>—</td><td>Environment stage</td></tr>
+                      <tr><td>version</td><td>string</td><td>No</td><td>—</td><td>Application version</td></tr>
+                      <tr><td>batchSize</td><td>number</td><td>No</td><td>50</td><td>Tests submitted per API call</td></tr>
+                      <tr><td>saveRelations</td><td>boolean</td><td>No</td><td>true</td><td>Save test relation records after the run</td></tr>
+                      <tr><td>autoDetectPlatform</td><td>boolean</td><td>No</td><td>true</td><td>Auto-detect OS platform and version</td></tr>
+                      <tr><td>quickInfoAnnotations</td><td>string[]</td><td>No</td><td>[]</td><td>Annotation names stored as quickInfo (never saved to relations)</td></tr>
+                      <tr><td>outputFile</td><td>string</td><td>No</td><td>—</td><td>Write payload to JSON file (debugging)</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">How do I annotate tests?</div>
+                <div class="answer">
+                  <p>Use the <code>ureport()</code> helper to attach metadata to your tests.</p>
+                  <div class="code-block"><div class="code-block-header">Install the helper</div><pre>const { ureport } = require('ureport-mocha-reporter');</pre></div>
+                  <div class="code-block"><div class="code-block-header">Stable UID + relations</div><pre>it('user can log in', function() {
+  ureport({
+    uid:        'auth-login-001',
+    components: ['Auth'],
+    teams:      ['Frontend'],
+    tags:       ['smoke'],
+  });
+  // ... assertions
+});</pre></div>
+                  <div class="info-box important"><i class="fas fa-exclamation-circle"></i>
+                    <div class="info-box-content">
+                      <p>Always set a <code>uid</code>. Without it the reporter uses the test title as the uid — which breaks tracking if you rename the test.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== TESTNG ===== -->
+            <div class="tab-panel" id="tab-4">
+              <div class="qa-item">
+                <div class="question">How do I install the reporter?</div>
+                <div class="answer">
+                  <div class="reporter-card">
+                    <div class="reporter-card-header">
+                      <div class="reporter-card-title"><i class="fab fa-java"></i> TestNG</div>
+                      <div class="reporter-card-links">
+                        <a href="https://central.sonatype.com/artifact/io.github.ureport-web/ureport-testng-reporter" target="_blank"><i class="fas fa-cube"></i> Maven Central</a>
+                        <a href="https://github.com/ureport-web/ureport-testng-reporter" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                      </div>
+                    </div>
+                    <p>Install:</p>
+                    <div class="code-block"><div class="code-block-header">Maven (pom.xml)</div><pre>&lt;dependency&gt;
+  &lt;groupId&gt;io.github.ureport-web&lt;/groupId&gt;
+  &lt;artifactId&gt;ureport-testng-reporter&lt;/artifactId&gt;
+  &lt;version&gt;1.0.0&lt;/version&gt;
+  &lt;scope&gt;test&lt;/scope&gt;
+&lt;/dependency&gt;</pre></div>
+                    <div class="code-block"><div class="code-block-header">Gradle (Kotlin DSL)</div><pre>testImplementation("io.github.ureport-web:ureport-testng-reporter:1.0.0")</pre></div>
+                    <p>Register the listener and set system properties in Maven Surefire:</p>
+                    <div class="code-block"><div class="code-block-header">pom.xml (Surefire)</div><pre>&lt;plugin&gt;
+  &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+  &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+  &lt;configuration&gt;
+    &lt;properties&gt;
+      &lt;property&gt;
+        &lt;name&gt;listener&lt;/name&gt;
+        &lt;value&gt;io.ureport.testng.UReportListener&lt;/value&gt;
+      &lt;/property&gt;
+    &lt;/properties&gt;
+    &lt;systemPropertyVariables&gt;
+      &lt;ureport.serverUrl&gt;${env.UREPORT_SERVER_URL}&lt;/ureport.serverUrl&gt;
+      &lt;ureport.apiToken&gt;${env.UREPORT_API_TOKEN}&lt;/ureport.apiToken&gt;
+      &lt;ureport.product&gt;MyProduct&lt;/ureport.product&gt;
+      &lt;ureport.type&gt;E2E&lt;/ureport.type&gt;
+    &lt;/systemPropertyVariables&gt;
+  &lt;/configuration&gt;
+&lt;/plugin&gt;</pre></div>
+                  </div>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">What are all the available configuration options?</div>
+                <div class="answer">
+                  <div class="info-box note"><i class="fas fa-info-circle"></i>
+                    <div class="info-box-content">
+                      <p>The <code>ureport.apiToken</code> is your UReport API token. Generate one: click your avatar &rarr; Edit Profile &rarr; API Token &rarr; Generate Token.</p>
+                    </div>
+                  </div>
+                  <table class="help-table">
+                    <thead><tr><th>System property</th><th>Env variable</th><th>Required</th><th>Default</th><th>Description</th></tr></thead>
+                    <tbody>
+                      <tr><td>ureport.serverUrl</td><td>UREPORT_SERVER_URL</td><td>Yes</td><td>—</td><td>Base URL of your UReport server</td></tr>
+                      <tr><td>ureport.apiToken</td><td>UREPORT_API_TOKEN</td><td>Yes</td><td>—</td><td>API token for authentication</td></tr>
+                      <tr><td>ureport.product</td><td>UREPORT_PRODUCT</td><td>Yes</td><td>—</td><td>Product name</td></tr>
+                      <tr><td>ureport.type</td><td>UREPORT_TYPE</td><td>Yes</td><td>—</td><td>Test type / lane</td></tr>
+                      <tr><td>ureport.buildNumber</td><td>UREPORT_BUILD_NUMBER</td><td>No</td><td>timestamp</td><td>CI build number</td></tr>
+                      <tr><td>ureport.team</td><td>UREPORT_TEAM</td><td>No</td><td>—</td><td>Team name</td></tr>
+                      <tr><td>ureport.browser</td><td>UREPORT_BROWSER</td><td>No</td><td>—</td><td>Browser</td></tr>
+                      <tr><td>ureport.stage</td><td>UREPORT_STAGE</td><td>No</td><td>—</td><td>Environment stage</td></tr>
+                      <tr><td>ureport.version</td><td>UREPORT_VERSION</td><td>No</td><td>—</td><td>Application version</td></tr>
+                      <tr><td>ureport.saveRelations</td><td>—</td><td>No</td><td>true</td><td>Save test relation records after the run</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">How do I annotate tests?</div>
+                <div class="answer">
+                  <p>Use the <code>@UReport</code> annotation on your test classes or methods to attach metadata.</p>
+                  <div class="code-block"><div class="code-block-header">Stable UID + relations</div><pre>import io.ureport.testng.UReport;
+
+@UReport(uid = "auth-login-001", components = "Auth", teams = "Frontend", tags = "smoke")
+@Test
+public void userCanLogIn() {
+    // ... assertions
+}</pre></div>
+                  <div class="info-box important"><i class="fas fa-exclamation-circle"></i>
+                    <div class="info-box-content">
+                      <p>Always set a <code>uid</code>. Without it the reporter uses the method name as the uid — which breaks tracking if you rename the method.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== RAW API ===== -->
+            <div class="tab-panel" id="tab-5">
+              <div class="qa-item">
+                <div class="question">How do I authenticate with the API?</div>
+                <div class="answer">
+                  <p>UReport supports two auth methods. Use API token for CI/CD — it's simpler and doesn't require a login step.</p>
+                  <div class="info-box note"><i class="fas fa-key"></i>
+                    <div class="info-box-content">
+                      <strong>API Token (recommended for CI/CD)</strong>
+                      <p>Each user can generate a personal API token from their profile. Click your avatar &rarr; <strong>Edit Profile &rarr; API Token &rarr; Generate Token</strong>. Pass it in every request:</p>
+                    </div>
+                  </div>
+                  <div class="code-block"><div class="code-block-header">HTTP header</div><pre>Authorization: Bearer YOUR_API_TOKEN</pre></div>
+                  <div class="code-block"><div class="code-block-header">curl example</div><pre>curl -X POST https://your-ureport-url/api/build \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"product":"MyApp","type":"E2E","build":123}'</pre></div>
+                  <div class="info-box note"><i class="fas fa-user"></i>
+                    <div class="info-box-content">
+                      <strong>Session cookie (alternative)</strong>
+                      <p>Login via <code>POST /api/login</code> with username/password, then use the returned <code>connect.sid</code> cookie for subsequent requests.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">How do I send test results to UReport?</div>
+                <div class="answer">
+                  <p>After authenticating, sending test results requires three API calls:</p>
+                  <div class="steps">
+                    <div class="step">
+                      <div class="step-number">1</div>
+                      <div class="step-content">
+                        <h4>Create a Build Session</h4>
+                        <p>Initialize a test execution session with your product lane information.</p>
+                        <div class="api-endpoint"><span class="method">POST</span><span class="path">/api/build</span></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="info-box important"><i class="fas fa-exclamation-circle"></i>
+                    <div class="info-box-content">
+                      <p>The combination of <code>product</code> and <code>type</code> creates the minimal Product Lane — the fundamental organizing unit in UReport. All test relations, investigated issues, custom states, and analytics are scoped to this Product Lane.</p>
+                    </div>
+                  </div>
+                  <div class="example-box">
+                    <h5>Build Payload Fields</h5>
+                    <div class="field-list">
+                      <div class="field-item"><div class="field-name">product</div><div class="field-desc">(Required) The application or system being tested. Examples: "WebPortal", "MobileApp"</div></div>
+                      <div class="field-item"><div class="field-name">type</div><div class="field-desc">(Required) The category of testing. Combined with product, this creates your Product Lane. Examples: "UI", "API", "E2E"</div></div>
+                      <div class="field-item"><div class="field-name">build</div><div class="field-desc">(Required) A numeric build number from your CI/CD pipeline. Must be a number.</div></div>
+                      <div class="field-item"><div class="field-name">team</div><div class="field-desc">(Optional) Team responsible for the tests.</div></div>
+                      <div class="field-item"><div class="field-name">browser</div><div class="field-desc">(Optional) Web browser used. Validated: Chrome, Firefox, Safari, Edge, Opera, Electron, Chromium, IE</div></div>
+                      <div class="field-item"><div class="field-name">version</div><div class="field-desc">(Optional) Application version (e.g. "1.2.3")</div></div>
+                      <div class="field-item"><div class="field-name">stage</div><div class="field-desc">(Optional) Environment stage (e.g. "Development", "Staging", "Production")</div></div>
+                      <div class="field-item"><div class="field-name">device</div><div class="field-desc">(Optional) Device type (e.g. "Desktop", "Mobile")</div></div>
+                      <div class="field-item"><div class="field-name">platform</div><div class="field-desc">(Optional) Operating system (e.g. "Windows", "macOS", "Linux")</div></div>
+                      <div class="field-item"><div class="field-name">platform_version</div><div class="field-desc">(Optional) Specific OS version (e.g. "Windows-11")</div></div>
+                      <div class="field-item"><div class="field-name">start_time / end_time</div><div class="field-desc">(Optional) ISO 8601 timestamps. start_time defaults to current time if not provided.</div></div>
+                      <div class="field-item"><div class="field-name">owner</div><div class="field-desc">(Optional) Owner or initiator of the build.</div></div>
+                      <div class="field-item"><div class="field-name">environments</div><div class="field-desc">(Optional) Free-form object for environment-related data (env vars, config values, deployment info).</div></div>
+                      <div class="field-item"><div class="field-name">settings</div><div class="field-desc">(Optional) Free-form object for test run parameters or custom metadata.</div></div>
+                      <div class="field-item"><div class="field-name">is_archive</div><div class="field-desc">(Optional) Boolean. Set to <code>true</code> to archive the build — hidden from default views.</div></div>
+                    </div>
+                  </div>
+                  <div class="code-block"><div class="code-block-header">Required Fields</div><pre>{
+  "product": "MyApplication",
+  "type": "E2E",
+  "build": 123
+}</pre></div>
+                  <div class="code-block"><div class="code-block-header">Response</div><pre>{
+  "_id": "65abc123def456789",
+  "product": "ECommerce",
+  "type": "API",
+  "build": 456,
+  "start_time": "2026-03-12T18:19:36.564Z",
+}</pre></div>
+                  <div class="info-box note"><i class="fas fa-info-circle"></i>
+                    <div class="info-box-content">
+                      <p>Save the returned <code>_id</code> — you'll need it to submit test results.</p>
+                    </div>
+                  </div>
+                  <div class="steps">
+                    <div class="step">
+                      <div class="step-number">2</div>
+                      <div class="step-content">
+                        <h4>Submit Test Results</h4>
+                        <p>Send test results to the build session. Max 100 tests per call — batch multiple calls for larger suites.</p>
+                        <div class="api-endpoint"><span class="method">POST</span><span class="path">/api/test/multi</span></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="example-box">
+                    <h5>Test Payload Fields</h5>
+                    <div class="field-list">
+                      <div class="field-item"><div class="field-name">build</div><div class="field-desc">(Required) The <code>_id</code> from build creation. Links this test to the build session.</div></div>
+                      <div class="field-item"><div class="field-name">uid</div><div class="field-desc">(Required) Stable unique identifier for tracking the test across builds. Must NEVER change. Examples: "TC-1234", "login-001"</div></div>
+                      <div class="field-item"><div class="field-name">name</div><div class="field-desc">(Required) Display name shown in UReport UI. Can be more descriptive. Use dot notation for tree view hierarchy.</div></div>
+                      <div class="field-item"><div class="field-name">status</div><div class="field-desc">(Required) Test result status: PASS, FAIL, SKIP, WARNING, RERUN_PASS, RERUN_FAIL, RERUN_SKIP</div></div>
+                      <div class="field-item"><div class="field-name">start_time / end_time</div><div class="field-desc">(Optional) ISO 8601 timestamps for timeline view and duration calculation.</div></div>
+                      <div class="field-item"><div class="field-name">is_rerun</div><div class="field-desc">(Optional) Boolean — true if this is a retry of a previously failed test.</div></div>
+                      <div class="field-item"><div class="field-name">failure</div><div class="field-desc">(Optional) Object with error_message, stack_trace, and token for failed tests.</div></div>
+                      <div class="field-item"><div class="field-name">info</div><div class="field-desc">(Optional) Free-form object for metadata. Special keys: file, path, description, duration, components, teams, tags.</div></div>
+                      <div class="field-item"><div class="field-name">setup / body / teardown</div><div class="field-desc">(Optional) Arrays of test steps with status, detail, timestamp, and optional screenshot attachments.</div></div>
+                    </div>
+                  </div>
+                  <div class="code-block"><div class="code-block-header">Single Test (Minimal)</div><pre>{
+  "tests": [
+    {
+      "build": "65abc123def456789",
+      "uid": "login-test-valid-credentials",
+      "name": "com.myapp.LoginTest.testValidCredentials",
+      "status": "PASS"
+    }
+  ]
+}</pre></div>
+                  <div class="steps">
+                    <div class="step">
+                      <div class="step-number">3</div>
+                      <div class="step-content">
+                        <h4>Finalize Build Status</h4>
+                        <p>When your test session completes, call this endpoint to calculate the final build status.</p>
+                        <div class="api-endpoint"><span class="method">POST</span><span class="path">/api/build/status/calculate/{buildId}</span></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="code-block"><div class="code-block-header">Request</div><pre>POST /api/build/status/calculate/65abc123def456789
+
+{
+  "is_update_build_status": true
+}</pre></div>
+                  <div class="code-block"><div class="code-block-header">Response</div><pre>{
+  "pass": 45,
+  "fail": 3,
+  "skip": 2,
+  "total": 50
+}</pre></div>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">What's the difference between uid and name?</div>
+                <div class="answer">
+                  <table class="help-table">
+                    <thead><tr><th>Aspect</th><th>uid</th><th>name</th></tr></thead>
+                    <tbody>
+                      <tr><td>Purpose</td><td>Test identity for tracking</td><td>Display label for users</td></tr>
+                      <tr><td>Visibility</td><td>Internal (used by UReport)</td><td>Shown in UI (test list, tree view, reports)</td></tr>
+                      <tr><td>Stability</td><td>Must NEVER change</td><td>Can be updated anytime</td></tr>
+                      <tr><td>Used for</td><td>Behavior analysis, flaky detection, historical trends</td><td>Tree view hierarchy, search, readability</td></tr>
+                      <tr><td>Format</td><td>Short, stable ID (e.g., "TC-1234")</td><td>Descriptive (e.g., "com.myapp.LoginTest.testValidCredentials")</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="info-box important"><i class="fas fa-exclamation-circle"></i>
+                    <div class="info-box-content">
+                      <p>Think of <code>uid</code> as the test's "social security number" — it never changes and uniquely identifies the test forever. The <code>name</code> is the "display name" — it's what people see and can be updated without losing history.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">What test statuses are supported?</div>
+                <div class="answer">
+                  <table class="help-table">
+                    <thead><tr><th>Status</th><th>Description</th><th>When to Use</th></tr></thead>
+                    <tbody>
+                      <tr><td><span class="status-badge pass">PASS</span></td><td>Test executed successfully</td><td>Test assertions passed without errors</td></tr>
+                      <tr><td><span class="status-badge fail">FAIL</span></td><td>Test failed</td><td>Assertion errors or exceptions occurred</td></tr>
+                      <tr><td><span class="status-badge skip">SKIP</span></td><td>Test was skipped</td><td>Test was ignored or conditionally skipped</td></tr>
+                      <tr><td><span class="status-badge rerun">RERUN_PASS</span></td><td>Rerun passed</td><td>Test passed after being retried</td></tr>
+                      <tr><td><span class="status-badge rerun">RERUN_FAIL</span></td><td>Rerun failed</td><td>Test failed again after retry</td></tr>
+                      <tr><td><span class="status-badge rerun">RERUN_SKIP</span></td><td>Rerun skipped</td><td>Test was skipped during retry</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="info-box note"><i class="fas fa-info-circle"></i>
+                    <div class="info-box-content">
+                      <p>Use the <code>is_rerun</code> field set to <code>true</code> along with RERUN_* statuses to properly track test retries in UReport.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="qa-item">
+                <div class="question">How do I add test relations (components, teams, tags)?</div>
+                <div class="answer">
+                  <p>Test relations enable powerful filtering and grouping. Add them via the <code>info</code> object:</p>
+                  <div class="code-block"><div class="code-block-header">Test with Relations</div><pre>{
+  "tests": [
+    {
+      "build": "65abc123def456789",
+      "uid": "checkout-payment-001",
+      "name": "CheckoutTest.testPaymentFlow",
+      "status": "PASS",
+      "info": {
+        "file": "tests/checkout/payment.spec.ts",
+        "path": "tests/checkout",
+        "components": ["Checkout", "Payment"],
+        "teams": ["E-Commerce"],
+        "tags": ["smoke", "critical"],
+        "priority": "P1"
+      }
+    }
+  ]
+}</pre></div>
+                  <div class="example-box">
+                    <h5>Special Info Fields</h5>
+                    <div class="field-list">
+                      <div class="field-item"><div class="field-name">file</div><div class="field-desc">Source file path. Used for tree view organization.</div></div>
+                      <div class="field-item"><div class="field-name">path</div><div class="field-desc">Package or directory path. Enables hierarchical organization.</div></div>
+                      <div class="field-item"><div class="field-name">components</div><div class="field-desc">Array of component names. Becomes a filterable relation.</div></div>
+                      <div class="field-item"><div class="field-name">teams</div><div class="field-desc">Array of team names. Becomes a filterable relation.</div></div>
+                      <div class="field-item"><div class="field-name">tags</div><div class="field-desc">Array of tag strings. Becomes a filterable relation.</div></div>
+                      <div class="field-item"><div class="field-name">[custom keys]</div><div class="field-desc">Any other keys (like "priority", "feature") automatically become custom filterable relations.</div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section" id="product-lanes">
+          <h2><i class="fas fa-road"></i>Product Lanes</h2>
+          <div class="qa-item">
+            <div class="question">What are Product Lanes?</div>
+            <div class="answer">
+              <p>Product Lanes are the fundamental organizing principle in UReport. They define how test executions are grouped, filtered, and analyzed by combining product information with optional metadata.</p>
+              <div class="info-box important"><i class="fas fa-key"></i>
+                <div class="info-box-content">
+                  <p>Product Lanes enable you to slice and dice your test data across different dimensions like products, environments, browsers, teams, and platforms.</p>
+                </div>
+              </div>
+              <p>Every test execution belongs to a Product Lane, which determines:</p>
+              <ul>
+                <li>How tests are grouped in dashboards and widgets</li>
+                <li>What data appears in comparisons and trends</li>
+                <li>How filtering and search operations work</li>
+                <li>Which tests are included in analytics</li>
+              </ul>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">What fields make up a Product Lane?</div>
+            <div class="answer">
+              <p>Product Lanes consist of 2 mandatory fields and 7 optional fields:</p>
+              <div class="example-box">
+                <h5>Mandatory Fields (Required)</h5>
+                <div class="field-list">
+                  <div class="field-item"><div class="field-name">product</div><div class="field-desc">The application or system being tested (e.g., "MyApp", "WebPortal")</div></div>
+                  <div class="field-item"><div class="field-name">type</div><div class="field-desc">The category of testing (e.g., "UI", "API", "E2E", "Unit")</div></div>
+                </div>
+              </div>
+              <div class="example-box">
+                <h5>Optional Fields (Enhance Filtering)</h5>
+                <div class="field-list">
+                  <div class="field-item"><div class="field-name">team</div><div class="field-desc">Team responsible for the tests (e.g., "Frontend", "Backend")</div></div>
+                  <div class="field-item"><div class="field-name">browser</div><div class="field-desc">Web browser used (e.g., "Chrome", "Firefox", "Safari")</div></div>
+                  <div class="field-item"><div class="field-name">version</div><div class="field-desc">Application version (e.g., "1.2.3", "v2.0-beta")</div></div>
+                  <div class="field-item"><div class="field-name">stage</div><div class="field-desc">Environment (e.g., "Development", "Staging", "Production")</div></div>
+                  <div class="field-item"><div class="field-name">device</div><div class="field-desc">Device type (e.g., "Desktop", "Mobile", "Tablet")</div></div>
+                  <div class="field-item"><div class="field-name">platform</div><div class="field-desc">Operating system (e.g., "Windows", "macOS", "Linux")</div></div>
+                  <div class="field-item"><div class="field-name">platform_version</div><div class="field-desc">OS version (e.g., "Windows-11", "macOS-13")</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I set up Product Lanes via API?</div>
+            <div class="answer">
+              <p>Product Lanes are created automatically when you submit a build. Here are examples from simple to complex:</p>
+              <div class="code-block"><div class="code-block-header">Basic Product Lane</div><pre>POST /api/build
+{
+  "product": "MyApp",
+  "type": "API"
+}</pre></div>
+              <div class="code-block"><div class="code-block-header">With Environment</div><pre>POST /api/build
+{
+  "product": "MyApp",
+  "type": "UI",
+  "stage": "Staging",
+  "browser": "Chrome"
+}</pre></div>
+              <div class="code-block"><div class="code-block-header">Full Enterprise Setup</div><pre>POST /api/build
+{
+  "product": "ECommerce",
+  "type": "E2E",
+  "team": "QA",
+  "browser": "Chrome",
+  "version": "v2.1.0",
+  "stage": "Production",
+  "device": "Desktop",
+  "platform": "Windows",
+  "platform_version": "Windows-11"
+}</pre></div>
+              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
+                <div class="info-box-content">
+                  <p>Start simple with just Product + Type. Add more fields as your testing needs grow.</p>
+                </div>
+              </div>
+              <div class="info-box warning"><i class="fas fa-exclamation-triangle"></i>
+                <div class="info-box-content">
+                  <p>Choose your <code>product</code> and <code>type</code> values carefully before sending data. Changing them later will create a new Product Lane, and historical data won't be connected.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top"><i class="fas fa-arrow-up"></i></button>
+
+  <script>
+    function showTab(n) {
+      document.querySelectorAll('.tab-btn').forEach(function(btn, i) {
+        btn.classList.toggle('active', i === n);
+      });
+      document.querySelectorAll('.tab-panel').forEach(function(panel, i) {
+        panel.classList.toggle('active', i === n);
+        panel.style.display = (i === n) ? 'block' : 'none';
+      });
+    }
+    // init
+    document.querySelectorAll('.tab-panel').forEach(function(panel, i) {
+      panel.style.display = i === 0 ? 'block' : 'none';
+    });
+  </script>
+</body>
+</html>

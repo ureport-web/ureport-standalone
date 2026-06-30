@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Analysis | UReport Docs</title>
+  <meta name="description" content="Analyze test results, triage failures, and track known issues across builds in UReport.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --p-primary-color: #1d9e75; --p-primary-50: #e6f7f1; --p-primary-100: #cceee3; --p-primary-200: #99ddc7;
+      --p-surface-0: #ffffff; --p-surface-50: #f9fafb; --p-surface-100: #f3f4f6; --p-surface-border: #e5e7eb;
+      --p-text-color: #111827; --p-text-muted-color: #6b7280;
+      --p-green-50: #f0fdf4; --p-green-100: #dcfce7; --p-green-200: #bbf7d0; --p-green-500: #22c55e; --p-green-700: #15803d;
+      --p-blue-50: #eff6ff; --p-blue-100: #dbeafe; --p-blue-200: #bfdbfe; --p-blue-500: #3b82f6; --p-blue-700: #1d4ed8;
+      --p-orange-50: #fff7ed; --p-orange-200: #fed7aa; --p-orange-500: #f97316; --p-orange-700: #c2410c;
+      --p-red-50: #fef2f2; --p-red-100: #fee2e2; --p-red-500: #ef4444; --p-red-700: #b91c1c;
+      --p-yellow-100: #fef9c3; --p-yellow-600: #ca8a04; --p-yellow-700: #a16207;
+      --p-gray-100: #f3f4f6; --p-gray-500: #6b7280; --p-gray-700: #374151;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'DM Sans', sans-serif; color: var(--p-text-color); }
+    .docs-nav { position: sticky; top: 0; z-index: 100; background: rgba(10,10,15,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .docs-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 2rem; height: 60px; display: flex; align-items: center; gap: 2rem; }
+    .docs-nav-brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.05rem; color: rgba(255,255,255,0.9); text-decoration: none; margin-right: auto; }
+    .docs-nav-brand i { color: #1d9e75; }
+    .docs-nav-links { display: flex; align-items: center; gap: 0.25rem; }
+    .docs-nav-link { padding: 0.4rem 0.9rem; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.9rem; font-weight: 500; border-radius: 6px; transition: color 0.15s, background 0.15s; }
+    .docs-nav-link:hover { color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.06); }
+    .docs-nav-btn { padding: 0.4rem 1.1rem; background: #1d9e75; color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600; border-radius: 6px; }
+    .docs-nav-btn:hover { opacity: 0.85; }
+    @media (max-width: 600px) { .docs-nav-inner { padding: 0 1rem; gap: 0.5rem; } .docs-nav-link { padding: 0.4rem 0.5rem; font-size: 0.8rem; } }
+    .docs-page-content { min-height: calc(100vh - 60px); }
+    .help-page { min-height: 100%; background: var(--p-surface-0); padding: 2rem; }
+    .help-content { max-width: 900px; margin: 0 auto; }
+    .docs-top-nav { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); font-size: 0.875rem; flex-wrap: wrap; }
+    .docs-home-link { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--p-primary-color); text-decoration: none; }
+    .docs-home-link:hover { text-decoration: underline; }
+    .docs-divider { color: var(--p-text-muted-color); }
+    .docs-top-nav-link { color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
+    .docs-top-nav-link:hover { text-decoration: underline; }
+    .docs-nav-current { color: var(--p-text-muted-color); }
+    .back-link { margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem; color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
+    .back-link:hover { text-decoration: underline; }
+    .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); }
+    .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.75rem; }
+    .page-header h1 i { color: var(--p-primary-color); }
+    .page-header p { font-size: 1.1rem; color: var(--p-text-muted-color); margin: 0; }
+    .help-section { margin-bottom: 2.5rem; }
+    .help-section > h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 1.5rem 0; padding-bottom: 0.75rem; border-bottom: 2px solid var(--p-primary-color); display: flex; align-items: center; gap: 0.6rem; }
+    .help-section > h2 i { color: var(--p-primary-color); }
+    .qa-item { margin-bottom: 1.5rem; border: 1px solid var(--p-surface-border); border-radius: 12px; overflow: hidden; }
+    .question { padding: 1rem 1.25rem; background: var(--p-surface-50); font-weight: 600; font-size: 1rem; border-bottom: 1px solid var(--p-surface-border); }
+    .answer { padding: 1.25rem; line-height: 1.6; }
+    .answer p { margin: 0 0 1rem 0; } .answer p:last-child { margin-bottom: 0; }
+    .answer ul, .answer ol { margin: 0.5rem 0 1rem 1.5rem; } .answer li { margin-bottom: 0.3rem; }
+    .answer strong { font-weight: 600; }
+    .answer em { font-style: italic; }
+    .answer h5 { margin: 1.25rem 0 0.5rem 0; font-size: 0.9rem; font-weight: 700; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .feature-card { padding: 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; }
+    .feature-card h4 { margin: 0 0 0.5rem 0; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+    .feature-card h4 i { color: var(--p-primary-color); }
+    .feature-card p { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--p-text-muted-color); }
+    .feature-card ul { margin: 0.25rem 0 0 1.25rem; font-size: 0.875rem; color: var(--p-text-muted-color); }
+    .feature-card li { margin-bottom: 0.2rem; }
+    .steps { display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0; }
+    .step { display: flex; gap: 1rem; }
+    .step-number { flex-shrink: 0; width: 32px; height: 32px; background: var(--p-primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+    .step-content { flex: 1; }
+    .step-content h4 { margin: 0 0 0.4rem 0; font-size: 0.95rem; font-weight: 600; }
+    .step-content p { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
+    .step-content ul { margin: 0.25rem 0 0.5rem 1.25rem; font-size: 0.875rem; } .step-content li { margin-bottom: 0.2rem; }
+    .help-table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.875rem; }
+    .help-table th { text-align: left; padding: 0.6rem 1rem; background: var(--p-surface-100); font-weight: 600; border-bottom: 2px solid var(--p-surface-border); }
+    .help-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--p-surface-border); vertical-align: top; }
+    .help-table tr:last-child td { border-bottom: none; }
+    .help-table code { background: var(--p-surface-100); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.8em; font-family: monospace; }
+    .info-box { display: flex; gap: 0.75rem; padding: 0.875rem 1rem; border-radius: 8px; margin: 0.75rem 0; border: 1px solid; font-size: 0.875rem; background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
+    .info-box > i { flex-shrink: 0; font-size: 1rem; margin-top: 0.1rem; color: var(--p-blue-500); }
+    .info-box-content { flex: 1; line-height: 1.5; }
+    .info-box-content p { margin: 0.25rem 0 0 0; }
+    .info-box.tip { background: var(--p-green-50); border-color: var(--p-green-200); color: var(--p-green-700); }
+    .info-box.tip > i { color: var(--p-green-500); }
+    .info-box.note { background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
+    .info-box.note > i { color: var(--p-blue-500); }
+    .info-box.warning { background: var(--p-orange-50); border-color: var(--p-orange-200); color: var(--p-orange-700); }
+    .info-box.warning > i { color: var(--p-orange-500); }
+    .info-box.important { background: var(--p-primary-50); border-color: var(--p-primary-200); color: var(--p-text-color); }
+    .info-box.important > i { color: var(--p-primary-color); }
+    .example-box { padding: 1rem 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; margin: 0.75rem 0; }
+    .example-box h5 { margin: 0 0 0.75rem 0; font-size: 0.9rem; font-weight: 700; }
+    .example-box ul { margin: 0.25rem 0 0.5rem 1.25rem; font-size: 0.875rem; } .example-box li { margin-bottom: 0.2rem; }
+    .example-box p { margin: 0 0 0.5rem 0; font-size: 0.875rem; }
+    .field-list { display: flex; flex-direction: column; }
+    .field-item { display: flex; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--p-surface-border); }
+    .field-item:last-child { border-bottom: none; }
+    .field-name { min-width: 160px; font-weight: 600; font-size: 0.875rem; font-family: monospace; color: var(--p-primary-color); flex-shrink: 0; }
+    .field-desc { font-size: 0.875rem; color: var(--p-text-muted-color); flex: 1; }
+    .code-block { margin: 1rem 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--p-surface-border); }
+    .code-block-header { padding: 0.5rem 1rem; background: var(--p-surface-100); font-size: 0.8rem; font-weight: 600; font-family: monospace; color: var(--p-text-muted-color); border-bottom: 1px solid var(--p-surface-border); }
+    .code-block pre { margin: 0; padding: 1rem; background: #1e1e2e; color: #cdd6f4; font-family: 'Courier New', monospace; font-size: 0.82rem; line-height: 1.6; overflow-x: auto; white-space: pre; }
+    .next-page-link { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 2rem; padding: 0.75rem 1.5rem; background: var(--p-primary-color); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.95rem; }
+    .next-page-link:hover { opacity: 0.85; }
+    @media (max-width: 768px) { .help-page { padding: 1rem; } .feature-grid { grid-template-columns: 1fr; } .field-item { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <nav class="docs-nav">
+    <div class="docs-nav-inner">
+      <a class="docs-nav-brand" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+      <div class="docs-nav-links">
+        <a class="docs-nav-link" href="/docs">Docs</a>
+        <a class="docs-nav-link" href="https://github.com/ureport-web/ureport-standalone" target="_blank">GitHub</a>
+        <a class="docs-nav-link" href="/contact">Contact</a>
+        <a class="docs-nav-btn" href="/nextgen/login">Log In</a>
+      </div>
+    </div>
+  </nav>
+  <div class="docs-page-content">
+    <div class="help-page">
+      <div class="help-content">
+        <div class="docs-top-nav">
+          <a class="docs-home-link" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
+          <span class="docs-divider">/</span>
+          <a class="docs-top-nav-link" href="/docs">Docs</a>
+          <span class="docs-divider">/</span>
+          <span class="docs-nav-current">Test Analysis</span>
+          <a class="back-link" href="/docs"><i class="fas fa-arrow-left"></i> Back to Docs</a>
+        </div>
+        <div class="page-header">
+          <h1><i class="fas fa-microscope"></i>Test Analysis</h1>
+          <p>Analyze test results, triage failures, and track known issues across builds.</p>
+        </div>
+
+        <div class="help-section" id="test-launches">
+          <h2><i class="fas fa-rocket"></i>Test Launches</h2>
+          <div class="qa-item">
+            <div class="question">What are the different view modes in Launches?</div>
+            <div class="answer">
+              <p>UReport provides three view modes for browsing test execution results:</p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-list"></i>List View</h4>
+                  <p>Tabular display with sorting and detailed test information.</p>
+                  <ul>
+                    <li>Sortable columns (name, status, duration, start time)</li>
+                    <li>Configurable column visibility</li>
+                    <li>Group by failure message, tracking number, issue type, or date</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-sitemap"></i>Tree View</h4>
+                  <p>Hierarchical display showing package/class/method structure.</p>
+                  <ul>
+                    <li>Expandable/collapsible folder hierarchy</li>
+                    <li>Folder-based organization by file path</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-clock"></i>Timeline View</h4>
+                  <p>Chronological visualization of test execution over time.</p>
+                  <ul>
+                    <li>Time-based visualization of parallel test execution</li>
+                    <li>Identify performance bottlenecks</li>
+                  </ul>
+                </div>
+              </div>
+              <p>In addition to the three view modes, a <strong>Comparison</strong> toggle is available in the Launches toolbar. Enabling it opens a split-panel overlay that shows the same test results side-by-side across multiple product lanes — it works alongside any of the three views above.</p>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I filter and search tests?</div>
+            <div class="answer">
+              <p>The toolbar above the test list gives you several ways to narrow down results:</p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-search"></i>Text Search</h4>
+                  <ul>
+                    <li>Search by test name</li>
+                    <li>Instant filter as you type</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-check-circle"></i>Status Filter</h4>
+                  <ul>
+                    <li>Multi-select pass/fail/skip statuses</li>
+                    <li>Filter triaged, outage, or custom state tests</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-tachometer-alt"></i>Speed Filter</h4>
+                  <ul>
+                    <li>Filter by Fast, Medium, Slow, Very Slow</li>
+                    <li>See average and total duration</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-brain"></i>Behavior Insights</h4>
+                  <ul>
+                    <li>Click tags in the info bar to filter by behavior</li>
+                    <li>New Failures, Recently Fixed, Intermittent, Consistently Failing</li>
+                  </ul>
+                </div>
+              </div>
+              <p>The <strong>Display Settings</strong> button (sliders icon) controls history mode, sort order, and visible columns. The <strong>Filter</strong> button (funnel icon) controls quarantine visibility, speed, group-by, and pinned-only mode.</p>
+              <h5>Quarantine filter modes</h5>
+              <p>The quarantine filter has three modes:</p>
+              <table class="help-table">
+                <thead>
+                  <tr>
+                    <th>Mode</th>
+                    <th>Behaviour</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Hide</strong> (default)</td>
+                    <td>Quarantined tests are excluded from the test list</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Only</strong></td>
+                    <td>Show only quarantined tests — useful when triaging the quarantine backlog</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Both</strong></td>
+                    <td>Show all tests regardless of quarantine status</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section" id="test-detail">
+          <h2><i class="fas fa-info-circle"></i>Test Detail Panel</h2>
+          <div class="qa-item">
+            <div class="question">What appears in the test detail panel?</div>
+            <div class="answer">
+              <p>Click any test to open the detail panel on the right. It contains four tabs (or five when multiple lanes are selected in comparison mode):</p>
+              <table class="help-table">
+                <thead>
+                  <tr>
+                    <th>Tab</th>
+                    <th>Contents</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Overview</strong></td>
+                    <td>Status banners (triaged, assigned, quarantined), error message, stack trace, AI analysis, test metadata, quick info</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Steps</strong></td>
+                    <td>Setup, body, and teardown steps with search and rerun comparison</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Analytics</strong></td>
+                    <td>Duration history chart with min/avg/max stats</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Issue History</strong></td>
+                    <td>Full triage history — all past triage records for this test UID</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Comparison</strong></td>
+                    <td>Per-lane status, metadata, and step diff against the base run — only visible when multiple lanes are selected in the product-lane selector</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p>At the top of the panel, the <strong>&#8942; button</strong> opens the test actions menu with options to triage, link as outage, link as custom state, assign, pin, and more.</p>
+              <p>If the test has been triaged and has a tracking ticket, a <strong>tracking number button</strong> appears in the header — click it to open the linked issue directly in your issue tracker.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section" id="test-investigation">
+          <h2><i class="fas fa-flag"></i>Triage</h2>
+          <div class="qa-item">
+            <div class="question">What does "Triage" do?</div>
+            <div class="answer">
+              <p>When a test fails and you know why, you <strong>triage it</strong>. This records the root cause (issue type + tracking ticket) and attaches it to the failure pattern. Any future test run that fails with the same pattern is automatically matched to the same triage record — so you never have to re-triage the same known issue twice.</p>
+              <p>Triaged tests are excluded from the "new failures" count and are visually distinguished so the team can focus on genuinely unknown failures.</p>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I triage a test?</div>
+            <div class="answer">
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">1</div>
+                  <div class="step-content">
+                    <h4>Open the test actions menu</h4>
+                    <p>Click the failed test to open the detail panel, then click the <strong>&#8942; button</strong> at the top of the panel.</p>
+                    <div class="info-box note"><i class="fas fa-info-circle"></i>
+                      <div class="info-box-content">
+                        <p>The &#8942; menu is only available to <strong>admin</strong> and <strong>operator</strong> roles.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">2</div>
+                  <div class="step-content">
+                    <h4>Select an issue type</h4>
+                    <p>Hover over <strong>"Triage"</strong> — a submenu lists the configured issue types (e.g. Defect, Automation Issue). Click the one that describes the root cause.</p>
+                    <p>Issue types are configured in <strong>Product Lane Settings &rarr; Issue Types</strong>. If none are configured, the defaults (Defect and Automation Issue) are used.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">3</div>
+                  <div class="step-content">
+                    <h4>Fill in the dialog</h4>
+                    <p>The <strong>"Triage Test"</strong> dialog opens. Fields:</p>
+                    <table class="help-table">
+                      <thead>
+                        <tr>
+                          <th>Field</th>
+                          <th>Description</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Issue Type</td>
+                          <td>Pre-selected from the submenu. Change if needed.</td>
+                        </tr>
+                        <tr>
+                          <td>Tracking Ticket</td>
+                          <td>Required. Enter the ticket number (e.g. <code>JIRA-1234</code>). An autocomplete dropdown shows previously used tickets for quick lookup.</td>
+                        </tr>
+                        <tr>
+                          <td>Compare By Strategy</td>
+                          <td>Controls how future failing tests are matched to this investigation. See "Compare By Strategy" below.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">4</div>
+                  <div class="step-content">
+                    <h4>Apply to similar tests (optional)</h4>
+                    <p>The dialog shows other tests in the <strong>same build</strong> that have the same failure message. Check the ones you want to link together in one step.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">5</div>
+                  <div class="step-content">
+                    <h4>Apply to history tests (optional)</h4>
+                    <p>Toggle <strong>Similarity Matching</strong> to also link matching tests from <em>previous builds</em>. Adjust the similarity percentage (60–100%) to control how strict the match is. Matched history tests are shown with their similarity score and error text before you confirm.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">6</div>
+                  <div class="step-content">
+                    <h4>Submit</h4>
+                    <p>Click <strong>"Link Test"</strong>. The test immediately shows a blue <em>"Triaged test with known issue"</em> banner with the issue type badge. The tracking ticket appears as a button in the detail panel header — click it to open the issue in your tracker.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
+                <div class="info-box-content">
+                  <p>After linking, the overview tab shows <strong>impact counts</strong>: how many tests were matched to this investigation this week and in total. Click "Show list" to see all affected tests.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item" id="compare-by-strategies">
+            <div class="question">How does UReport match future failing tests to a triage record?</div>
+            <div class="answer">
+              <p>When you triage a test, UReport stores a <strong>matching strategy</strong> on the record. Every subsequent failing test is compared against all triage records using that strategy to decide if it is already a known issue.</p>
+              <p><strong>By default</strong>, the Compare By selector is not shown in the modal — it is an opt-in feature. An admin must enable it under <strong>Settings &rarr; Advanced Analysis &rarr; Allow Compare By Selection</strong>. Until then, every triage record uses the default <strong>automatic cascade</strong> described below.</p>
+              <h5>Default behavior — automatic cascade</h5>
+              <p>When no explicit strategy is stored, UReport tries each rule in order and stops at the first match:</p>
+              <table class="help-table">
+                <thead>
+                  <tr>
+                    <th>Priority</th>
+                    <th>Condition</th>
+                    <th>Match rule</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>Both tests have a <strong>token</strong></td>
+                    <td>Token must be identical (exact string match)</td>
+                  </tr>
+                  <tr>
+                    <td>2</td>
+                    <td>Both tests have a <strong>failure message</strong></td>
+                    <td>Failure message must be identical; if messages differ but both also have a stack trace, fall back to exact stack trace match</td>
+                  </tr>
+                  <tr>
+                    <td>3</td>
+                    <td>Both tests have a <strong>stack trace</strong> (no failure message)</td>
+                    <td>Stack trace must be identical</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="info-box note"><i class="fas fa-info-circle"></i>
+                <div class="info-box-content">
+                  <p>This cascade means <strong>providing a token is the most reliable way</strong> to get consistent matching — once a token is present, the failure message is ignored entirely.</p>
+                </div>
+              </div>
+              <h5>Explicit strategies (admin opt-in)</h5>
+              <p>When "Allow Compare By Selection" is enabled, a <strong>Compare By</strong> selector appears in the triage modal. Users can override the cascade per triage record:</p>
+              <table class="help-table">
+                <thead>
+                  <tr>
+                    <th>Strategy</th>
+                    <th>How it matches</th>
+                    <th>Best for</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Failure Message</strong></td>
+                    <td>Exact failure message match only</td>
+                    <td>Stable, deterministic assertions — e.g. <code>Expected 200 but got 404</code></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Token &amp; Stack Trace</strong></td>
+                    <td>Token match first; if no token, falls back to exact stack trace match</td>
+                    <td>Errors whose message varies per run (IDs, timestamps) but always originate from the same code location</td>
+                  </tr>
+                </tbody>
+              </table>
+              <h5>The token field</h5>
+              <p>The <code>token</code> is an optional string you include in the test <code>failure</code> payload. UReport stores and compares it exactly as provided.</p>
+              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
+                <div class="info-box-content">
+                  <p><strong>Auto-token support by reporter:</strong></p>
+                  <table class="help-table">
+                    <thead>
+                      <tr>
+                        <th>Reporter</th>
+                        <th>Auto-token</th>
+                        <th>Format</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Playwright</td>
+                        <td>Yes — enabled by default (<code>autoToken: true</code>)</td>
+                        <td><code>relative/path/file.spec.ts:line</code> — source file and failure line number</td>
+                      </tr>
+                      <tr>
+                        <td>Jest</td>
+                        <td>No</td>
+                        <td>Set <code>token</code> manually in the <code>failure</code> payload</td>
+                      </tr>
+                      <tr>
+                        <td>pytest</td>
+                        <td>Yes — enabled by default (<code>ureport_auto_token = true</code>)</td>
+                        <td><code>path/to/file.py:line</code> — derived from stack trace, same format as Playwright</td>
+                      </tr>
+                      <tr>
+                        <td>Mocha / Cypress</td>
+                        <td>No</td>
+                        <td>Set via the <code>ureport({ token })</code> helper</td>
+                      </tr>
+                      <tr>
+                        <td>TestNG</td>
+                        <td>No</td>
+                        <td>Not supported — <code>@UReport</code> has no <code>token</code> field</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="example-box">
+                <h5>Choosing a good token value</h5>
+                <p>A useful token identifies the failure's origin in a stable, run-independent way:</p>
+                <ul>
+                  <li>Source file and line number — e.g. <code>"payment.spec.ts:42"</code></li>
+                  <li>Error code — e.g. <code>"ERR_TIMEOUT"</code> or <code>"checkout.payment.null_response"</code></li>
+                  <li>Class and method name — e.g. <code>"CheckoutService.processPayment"</code></li>
+                </ul>
+                <p>Keep tokens stable across runs. Avoid including dynamic values (IDs, timestamps) in the token.</p>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">What is similarity matching in the investigation dialog?</div>
+            <div class="answer">
+              <p>Similarity matching lets you back-fill investigations onto <strong>historical failures</strong> in previous builds. This is separate from the current-build "similar tests" checkboxes.</p>
+              <ul>
+                <li>Toggle on <strong>Enable Similarity Matching</strong></li>
+                <li>Adjust the percentage slider (60–100%) — higher means stricter match</li>
+                <li>The dialog shows all history tests that meet the threshold, with a percentage score and highlighted diff of the error message</li>
+                <li>On submit, those history tests are also triaged with the same tracking ticket</li>
+              </ul>
+              <div class="info-box note"><i class="fas fa-info-circle"></i>
+                <div class="info-box-content">
+                  <p>Similarity matching is not available in the Outage dialog — outage matching is done by exact failure message string.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I remove or update a triage record?</div>
+            <div class="answer">
+              <p>To <strong>update</strong> a test that is already triaged, open the &#8942; menu — the "Triage" submenu is still available. Choosing a different issue type re-opens the dialog pre-filled with the existing data.</p>
+              <p>To <strong>remove</strong> the triage, open the &#8942; menu and click <strong>"Remove Triage"</strong>. This deletes the triage record immediately.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section" id="outage-management">
+          <h2><i class="fas fa-exclamation-triangle"></i>Link as Outage</h2>
+          <div class="qa-item">
+            <div class="question">What is an outage and when should I use it?</div>
+            <div class="answer">
+              <p>An <strong>outage</strong> is for failures caused by an infrastructure or environment problem — not a bug in the application or test code. Examples: database down, network timeout, CI agent misconfiguration, third-party service unavailable.</p>
+              <p>When you link a test as an outage, UReport creates an <strong>Outage record</strong> with the failure message as the match pattern. Every test in that build that produces the same failure message is automatically marked as outage-affected — even tests you did not open individually.</p>
+              <p>Outage-affected tests are <strong>excluded from pass rate calculations</strong>, so your quality metrics stay clean during infrastructure incidents.</p>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How is an outage different from a triaged test?</div>
+            <div class="answer">
+              <div class="info-box warning"><i class="fas fa-exclamation-triangle"></i>
+                <div class="info-box-content">
+                  <p><strong>Outages are scoped to a single build run.</strong> When you link a test as an outage, the outage record is stored on that specific build. It does <em>not</em> carry over to future builds — even if the same test fails again with the exact same error message in the next run, it will <em>not</em> be automatically marked as outage.</p>
+                </div>
+              </div>
+              <p>This is the key difference from "Triage": triaged tests persist globally and automatically match future failing tests across all subsequent builds until removed. Outages must be re-applied each time the infrastructure issue recurs.</p>
+              <p>Use outages for <strong>one-off incidents</strong> (a CI environment was down during build #123). Use triage for <strong>recurring known failures</strong> that need to be suppressed across many builds.</p>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I link a test as an outage?</div>
+            <div class="answer">
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">1</div>
+                  <div class="step-content">
+                    <h4>Open the test actions menu</h4>
+                    <p>Click the failed test &rarr; &#8942; button &rarr; hover over <strong>"Link as Outage"</strong> &rarr; select the issue type from the submenu.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">2</div>
+                  <div class="step-content">
+                    <h4>Fill in the dialog</h4>
+                    <p>The <strong>"Link Test as Outage"</strong> dialog shows the test's error message for context, then asks for:</p>
+                    <ul>
+                      <li><strong>Issue Type</strong> — pre-selected, change if needed</li>
+                      <li><strong>Tracking Ticket</strong> — required (e.g. an incident ticket <code>INC-567</code>)</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">3</div>
+                  <div class="step-content">
+                    <h4>Review similar tests</h4>
+                    <p>The dialog lists other tests in the same build that share the same failure message. These tests will <em>automatically</em> be marked as outage-affected when you submit.</p>
+                    <p>If any of those tests should <strong>not</strong> be marked as outage (for example, they failed for an unrelated reason), <strong>deselect</strong> them. Deselected tests are added to an exception list and will not receive the outage tag.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">4</div>
+                  <div class="step-content">
+                    <h4>Submit</h4>
+                    <p>Click <strong>"Link Test"</strong>. All selected tests are immediately tagged as outage-affected. Their status icons update to reflect the outage state.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="info-box note"><i class="fas fa-info-circle"></i>
+                <div class="info-box-content">
+                  <p>If a test is already triaged when you apply an outage, the triage record is removed first and the outage takes precedence.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I remove an outage from a specific test?</div>
+            <div class="answer">
+              <p>Open the &#8942; menu on the outage-affected test and click <strong>"Remove Outage"</strong>. This does not delete the outage record — it adds the test to the exception list so only that test is no longer affected. Other tests matched by the same outage pattern remain unaffected.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section" id="custom-states">
+          <h2><i class="fas fa-flag"></i>Link as Custom State</h2>
+          <div class="qa-item">
+            <div class="question">What are custom states?</div>
+            <div class="answer">
+              <p>Custom states are product-lane-specific categories you can apply to failing tests when neither "Triaged" nor "Outage" fits your workflow. They are useful for temporary or workflow-specific classifications.</p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-clock"></i>TTL (Time to Live)</h4>
+                  <p>Each custom state has a TTL that automatically clears the state after a configured number of days. This prevents tests from being stuck in temporary states indefinitely.</p>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-palette"></i>Custom Labels and Colors</h4>
+                  <p>Each state has a configurable label, icon color, and key. Custom states appear as colored badges in the test list and detail panel.</p>
+                </div>
+              </div>
+              <div class="info-box note"><i class="fas fa-info-circle"></i>
+                <div class="info-box-content">
+                  <p>The <strong>"Link as Custom State"</strong> menu item only appears if at least one custom state is configured for the product lane. If you don't see it, ask your admin to configure states in Product Lane Settings.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I set up custom states?</div>
+            <div class="answer">
+              <p>Custom states are configured per product lane in <strong>Settings &rarr; Product Lanes &rarr; Edit Lane &rarr; Custom States</strong>:</p>
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">1</div>
+                  <div class="step-content">
+                    <h4>Go to Settings &rarr; Product Lanes</h4>
+                    <p>Find the lane you want to configure and click Edit.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">2</div>
+                  <div class="step-content">
+                    <h4>Add Custom States</h4>
+                    <p>In the Custom States section, add states with:</p>
+                    <ul>
+                      <li><strong>Label</strong> — display name (e.g. "Under Review", "Waiting for Fix", "Deferred")</li>
+                      <li><strong>Color</strong> — hex color for the badge</li>
+                      <li><strong>TTL</strong> — number of days until the state auto-expires</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="example-box">
+                <h5>Example custom states</h5>
+                <div class="field-list">
+                  <div class="field-item">
+                    <div class="field-name">Under Review</div>
+                    <div class="field-desc">TTL: 7 days — test is being actively triaged by the team</div>
+                  </div>
+                  <div class="field-item">
+                    <div class="field-name">Waiting for Fix</div>
+                    <div class="field-desc">TTL: 14 days — a bug fix is in progress; test expected to pass soon</div>
+                  </div>
+                  <div class="field-item">
+                    <div class="field-name">Deferred</div>
+                    <div class="field-desc">TTL: 30 days — test deferred to a future sprint</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I apply a custom state to a test?</div>
+            <div class="answer">
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">1</div>
+                  <div class="step-content">
+                    <h4>Open the test actions menu</h4>
+                    <p>Click the failed test &rarr; &#8942; button &rarr; hover over <strong>"Link as Custom State"</strong> &rarr; select the state from the submenu.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">2</div>
+                  <div class="step-content">
+                    <h4>Fill in the dialog</h4>
+                    <p>The <strong>"Link Test as Custom State"</strong> dialog opens. Fields:</p>
+                    <ul>
+                      <li><strong>Custom State</strong> — pre-selected from the submenu</li>
+                      <li><strong>Tracking Ticket</strong> — required</li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">3</div>
+                  <div class="step-content">
+                    <h4>Apply to similar and history tests (optional)</h4>
+                    <p>Same as the triage dialog — you can select similar tests in the current build and use similarity matching to back-fill into history.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">4</div>
+                  <div class="step-content">
+                    <h4>Submit</h4>
+                    <p>Click <strong>"Link Test"</strong>. The state badge appears on the test immediately.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
+                <div class="info-box-content">
+                  <p>Custom states share the same underlying storage as investigations — a test can only have one active investigation record at a time. Applying a custom state replaces an existing investigation, and vice versa.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section" id="test-assignment">
+          <h2><i class="fas fa-user-tag"></i>Assign Tests</h2>
+          <div class="qa-item">
+            <div class="question">How do I assign a failed test to a team member?</div>
+            <div class="answer">
+              <p>Assigning a test marks a specific person as responsible for investigating or fixing a failure. This is separate from investigating — you can assign without knowing the root cause yet.</p>
+              <div class="info-box note"><i class="fas fa-info-circle"></i>
+                <div class="info-box-content">
+                  <p>Email notification on assignment only works if SMTP is configured. Without email set up, the assignment is still recorded and visible in the UI — but the assignee receives no notification. Configure SMTP in <strong>Settings &rarr; Notification &rarr; Email</strong>.</p>
+                </div>
+              </div>
+              <div class="steps">
+                <div class="step">
+                  <div class="step-number">1</div>
+                  <div class="step-content">
+                    <h4>Open the test actions menu</h4>
+                    <p>Click the failed test &rarr; &#8942; button &rarr; click <strong>"Assign Test"</strong>.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">2</div>
+                  <div class="step-content">
+                    <h4>Select a user</h4>
+                    <p>An assignment dialog opens. Select the team member to assign and confirm.</p>
+                  </div>
+                </div>
+                <div class="step">
+                  <div class="step-number">3</div>
+                  <div class="step-content">
+                    <h4>View assignment</h4>
+                    <p>An <em>"Assigned to [username]"</em> banner appears in the test detail panel. To unassign, open the &#8942; menu and click <strong>"Unassign Test"</strong>.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-project-diagram"></i>Test Relations</h2>
+          <div class="qa-item">
+            <div class="question">What are test relations?</div>
+            <div class="answer">
+              <p>Test relations are metadata labels you attach to tests — teams, components, tags, and custom key-value pairs. Once attached, relations become a first-class dimension you can slice data by across the entire platform:</p>
+              <ul>
+                <li><strong>Filter tests in Launches</strong> — narrow down results to tests owned by a specific team or covering a specific component</li>
+                <li><strong>Dashboard widgets</strong> — build pass-rate charts, failure trend charts, and heat maps scoped to a team, component, or tag</li>
+                <li><strong>Comparison analysis</strong> — compare quality across teams or components side by side</li>
+                <li><strong>Accountability</strong> — assign ownership so the right team sees their failures immediately</li>
+              </ul>
+              <p>Without relations, dashboards and filters can only work at the product lane level. With relations, you get granular visibility into which part of the system is failing and who owns it.</p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-users"></i>Teams</h4>
+                  <p>Associate tests with the team responsible for them.</p>
+                  <ul>
+                    <li>Filter failures by team</li>
+                    <li>Per-team pass rate widgets on dashboards</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-cubes"></i>Components</h4>
+                  <p>Tag tests by the application module they cover.</p>
+                  <ul>
+                    <li>Authentication, Payment, User Management</li>
+                    <li>Component health widgets and trend charts</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-tags"></i>Tags</h4>
+                  <p>Flexible labels for test categories.</p>
+                  <ul>
+                    <li>Smoke, Regression, Critical, etc.</li>
+                    <li>Filter and chart by test category</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-cog"></i>Custom Relations</h4>
+                  <p>Arbitrary key-value metadata for org-specific grouping.</p>
+                  <ul>
+                    <li>Business domain, priority, feature flag</li>
+                    <li>Use as filter dimensions in dashboards</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">Which reporters support automatic relation upload?</div>
+            <div class="answer">
+              <p>All official reporters let you attach relation metadata directly in test code. How those relations are saved to UReport differs by reporter:</p>
+              <table class="help-table">
+                <thead>
+                  <tr>
+                    <th>Reporter</th>
+                    <th>Inline (with test result)</th>
+                    <th>Auto-save to relation store</th>
+                    <th>Syntax</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Playwright</td>
+                    <td>Yes</td>
+                    <td>Yes — <code>saveRelations: true</code> (default)</td>
+                    <td><code>test.info().annotations.push({ type: 'components', description: 'Auth' })</code></td>
+                  </tr>
+                  <tr>
+                    <td>Jest</td>
+                    <td>Yes</td>
+                    <td>Yes — <code>saveRelations: true</code> (default)</td>
+                    <td><code>ureport({ components: ['Auth'], teams: ['Frontend'] })</code></td>
+                  </tr>
+                  <tr>
+                    <td>pytest</td>
+                    <td>Yes</td>
+                    <td>Yes — <code>ureport_save_relations = true</code> (default)</td>
+                    <td><code>@pytest.mark.ureport_components("Auth", "Payment")</code></td>
+                  </tr>
+                  <tr>
+                    <td>Mocha / Cypress</td>
+                    <td>Yes</td>
+                    <td>Yes — <code>saveRelations: true</code> (default)</td>
+                    <td><code>ureport({ components: ['Auth'] })</code></td>
+                  </tr>
+                  <tr>
+                    <td>TestNG</td>
+                    <td>Yes</td>
+                    <td>Yes — <code>ureport.saveRelations=true</code> (default)</td>
+                    <td><code>@UReport(components = "Auth", teams = "Frontend")</code></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="info-box note"><i class="fas fa-info-circle"></i>
+                <div class="info-box-content">
+                  <p><strong>Inline</strong> means relations are submitted with each test result. <strong>Auto-save to relation store</strong> means the reporter additionally calls <code>POST /api/test_relation</code> after the run, storing relations once per uid. To disable auto-save: set <code>saveRelations: false</code> (Playwright/Jest/Mocha), <code>ureport_save_relations = false</code> (pytest), or <code>ureport.saveRelations=false</code> (TestNG).</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="question">How do I add test relations via API?</div>
+            <div class="answer">
+              <p>There are two ways to add relations:</p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-file-code"></i>Option 1: Inline with test results</h4>
+                  <p>Include an <code>info</code> object in each test when calling <code>POST /api/test/multi</code>.</p>
+                  <ul>
+                    <li>Takes effect per-submission</li>
+                    <li>Best for dynamic relations that change per run</li>
+                    <li>Overrides pre-configured relations if both exist</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-database"></i>Option 2: Pre-configured relations</h4>
+                  <p>Create a relation record once via <code>POST /api/test_relation</code>.</p>
+                  <ul>
+                    <li>Stored once per product + type + uid</li>
+                    <li>Automatically matched on every submission</li>
+                    <li>Best for stable relations that rarely change</li>
+                  </ul>
+                </div>
+              </div>
+              <h5>Option 1: Inline with test results</h5>
+              <div class="code-block">
+                <div class="code-block-header">POST /api/test/multi</div>
+                <pre>{
+  "tests": [
+    {
+      "build": "65abc123def456789",
+      "uid": "checkout-payment-001",
+      "name": "CheckoutTest.testPaymentFlow",
+      "status": "PASS",
+      "info": {
+        "file": "tests/checkout/payment.spec.ts",
+        "path": "tests/checkout",
+        "components": ["Checkout", "Payment"],
+        "teams": ["E-Commerce"],
+        "tags": ["smoke", "critical"],
+        "priority": "P1"
+      }
+    }
+  ]
+}</pre>
+              </div>
+              <h5>Option 2: Pre-configured relations</h5>
+              <div class="code-block">
+                <div class="code-block-header">POST /api/test_relation</div>
+                <pre>{
+  "uid": "checkout-payment-001",
+  "product": "ECommerce",
+  "type": "E2E",
+  "file": "tests/checkout/payment.spec.ts",
+  "path": "tests/checkout",
+  "components": [{"name": "Checkout"}, {"name": "Payment"}],
+  "teams": [{"name": "E-Commerce"}],
+  "tags": [{"name": "smoke"}, {"name": "critical"}],
+  "customs": {
+    "priority": "P1",
+    "feature": "Payment Processing"
+  }
+}</pre>
+              </div>
+              <div class="info-box important"><i class="fas fa-exclamation-circle"></i>
+                <div class="info-box-content">
+                  <p>If you use both methods, inline relations (Option 1) take priority and override pre-configured relations for that test run.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-brain"></i>Test Behavior Analysis</h2>
+          <div class="qa-item">
+            <div class="question">What behavior categories does UReport detect?</div>
+            <div class="answer">
+              <p>UReport automatically analyzes test execution history to surface patterns. Behavior tags appear as clickable chips in the filter bar — click one to filter to only those tests.</p>
+              <table class="help-table">
+                <thead>
+                  <tr>
+                    <th>Behavior</th>
+                    <th>Description</th>
+                    <th>Use Case</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><i class="fas fa-exclamation-triangle" style="color: var(--p-orange-500)"></i> New Failures</td>
+                    <td>Tests that recently started failing</td>
+                    <td>Identify regressions from recent changes</td>
+                  </tr>
+                  <tr>
+                    <td><i class="fas fa-check-circle" style="color: var(--p-green-500)"></i> Recently Fixed</td>
+                    <td>Tests that were recently resolved</td>
+                    <td>Track successful bug fixes</td>
+                  </tr>
+                  <tr>
+                    <td><i class="fas fa-random" style="color: var(--p-blue-500)"></i> Intermittent</td>
+                    <td>Tests with inconsistent results across runs</td>
+                    <td>Identify flaky tests needing stabilization</td>
+                  </tr>
+                  <tr>
+                    <td><i class="fas fa-plus" style="color: var(--p-primary-color)"></i> New Tests</td>
+                    <td>Recently added test cases</td>
+                    <td>Monitor new test coverage</td>
+                  </tr>
+                  <tr>
+                    <td><i class="fas fa-times-circle" style="color: var(--p-red-500)"></i> Consistently Failing</td>
+                    <td>Tests that fail across multiple consecutive builds</td>
+                    <td>Identify persistent issues with no active investigation</td>
+                  </tr>
+                  <tr>
+                    <td><i class="fas fa-shield-alt" style="color: var(--p-gray-500)"></i> Stable</td>
+                    <td>Tests with consistent pass/fail patterns</td>
+                    <td>Identify reliable tests</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-tachometer-alt"></i>Performance Insights</h2>
+          <div class="qa-item">
+            <div class="question">How does UReport categorize test performance?</div>
+            <div class="answer">
+              <p>UReport automatically categorizes test speed based on duration. Thresholds differ between API and UI tests:</p>
+              <h5>API Test Thresholds</h5>
+              <table class="help-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Duration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><i class="fas fa-bolt" style="color: var(--p-green-500)"></i> Fast</td>
+                    <td>Under 1 second</td>
+                  </tr>
+                  <tr>
+                    <td><i class="fas fa-bolt" style="color: var(--p-yellow-600)"></i> Medium</td>
+                    <td>1–3 seconds</td>
+                  </tr>
+                  <tr>
+                    <td><i class="fas fa-bolt" style="color: var(--p-orange-500)"></i> Slow</td>
+                    <td>3–5 seconds</td>
+                  </tr>
+                  <tr>
+                    <td><i class="fas fa-bolt" style="color: var(--p-red-500)"></i> Very Slow</td>
+                    <td>Over 5 seconds</td>
+                  </tr>
+                </tbody>
+              </table>
+              <h5>UI Test Thresholds</h5>
+              <table class="help-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Duration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><i class="fas fa-bolt" style="color: var(--p-green-500)"></i> Fast</td>
+                    <td>Under 30 seconds</td>
+                  </tr>
+                  <tr>
+                    <td><i class="fas fa-bolt" style="color: var(--p-yellow-600)"></i> Medium</td>
+                    <td>30–60 seconds</td>
+                  </tr>
+                  <tr>
+                    <td><i class="fas fa-bolt" style="color: var(--p-orange-500)"></i> Slow</td>
+                    <td>60–120 seconds</td>
+                  </tr>
+                  <tr>
+                    <td><i class="fas fa-bolt" style="color: var(--p-red-500)"></i> Very Slow</td>
+                    <td>Over 120 seconds</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="info-box note"><i class="fas fa-info-circle"></i>
+                <div class="info-box-content">
+                  <p>Test type is determined from the product lane's <code>type</code> field. Types containing "UI", "WEB", or "BROWSER" use UI thresholds. Types containing "API", "REST", or "SERVICE" use API thresholds. Unknown types default to API thresholds.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-code-compare"></i>Comparison Analysis</h2>
+          <div class="qa-item">
+            <div class="question">How do I compare test results across configurations?</div>
+            <div class="answer">
+              <p>Comparison View shows the same test side-by-side across multiple product lanes. Use it to isolate environment-, browser-, or version-specific failures.</p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-globe"></i>Cross-Browser</h4>
+                  <p>Compare results across different browsers to identify browser-specific failures.</p>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-server"></i>Environment</h4>
+                  <p>Compare Dev, Staging, and Production to validate environment parity.</p>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-users"></i>Team Performance</h4>
+                  <p>Compare pass rates across teams to surface quality patterns.</p>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-code-branch"></i>Version</h4>
+                  <p>Compare across application versions to track regressions.</p>
+                </div>
+              </div>
+              <p>In the test detail panel, the <strong>Comparison</strong> tab (visible when multiple lanes are selected) shows per-lane status, metadata, and a step-by-step diff against the base run.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-section">
+          <h2><i class="fas fa-star"></i>User Favorites &amp; Pinning</h2>
+          <div class="qa-item">
+            <div class="question">How do I pin tests for quick access?</div>
+            <div class="answer">
+              <p>Pinning marks a test so you can easily find it again. Pin status is personal and saved to your account on the server — it persists permanently until you manually unpin, surviving logout, browser refresh, and device changes.</p>
+              <div class="feature-grid">
+                <div class="feature-card">
+                  <h4><i class="fas fa-thumbtack"></i>Pin a test</h4>
+                  <ul>
+                    <li>Click the test &rarr; &#8942; button &rarr; <strong>"Pin Test"</strong></li>
+                    <li>To unpin, open the same menu &rarr; <strong>"Unpin Test"</strong></li>
+                    <li>Pinned tests show a thumbtack indicator</li>
+                  </ul>
+                </div>
+                <div class="feature-card">
+                  <h4><i class="fas fa-filter"></i>Show only pinned tests</h4>
+                  <ul>
+                    <li>Click the <strong>Filter</strong> button (funnel icon)</li>
+                    <li>Enable <strong>"Show Pinned Only"</strong></li>
+                    <li>Combine with other filters as needed</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
+                <div class="info-box-content">
+                  <p>Use pinning to track critical tests you are actively monitoring or investigating across multiple build runs.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <a class="next-page-link" href="/docs/administration">Next: Administration <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
