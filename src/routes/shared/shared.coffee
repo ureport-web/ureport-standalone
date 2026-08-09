@@ -8,8 +8,39 @@ Test = require('../../models/test')
 InvestigatedTest = require('../../models/investigated_test')
 TestRelation = require('../../models/test_relation')
 Setting = require('../../models/setting')
+QuarantinedTest = require('../../models/quarantined_test')
+AiAnalysis = require('../../models/ai_analysis')
 ObjectId = require('mongoose').Types.ObjectId;
 getSystemSetting = require('../../utils/getSystemSetting')
+cache = require('../../lib/cache')
+
+TEST_CACHE_TTL = 20 * 24 * 60 * 60
+CACHE_PROJECTION = {setup: 0, body: 0, teardown: 0}
+
+SCOPE_FIELDS = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage']
+
+applyScopeQuery = (query, buildScope) ->
+    SCOPE_FIELDS.forEach (f) ->
+        raw = buildScope[f]
+        vals = if Array.isArray(raw) then raw.filter((v) -> v) else if raw then [raw] else []
+        if vals.length > 0
+            query['scope.' + f] = { $in: [''].concat(vals) }
+        else
+            query['scope.' + f] = ''
+
+applyStatusFilter = (tests, statusParam) ->
+    return tests unless statusParam
+    statuses = if Array.isArray(statusParam) then statusParam else [statusParam]
+    return tests if statuses.indexOf('All') != -1
+    tests.filter (t) -> statuses.indexOf(t.status) != -1
+
+applyExclude = (tests, excludeMap) ->
+    fields = Object.keys(excludeMap)
+    return tests if fields.length == 0
+    tests.map (t) ->
+        obj = if t.toObject? then t.toObject() else Object.assign({}, t)
+        delete obj[f] for f in fields
+        obj
 
 # Return the dashboard resolved by isShareTokenMid
 router.get '/dashboard', (req, res, next) ->
@@ -274,48 +305,6 @@ router.post '/test/filter', (req, res, next) ->
         res.json tests
     );
 
-router.post '/test/filter/nonpass', (req, res, next) ->
-    if(!req.body.build)
-        res.status(400)
-        return res.json {error: "Build id is mandatory"}
-
-    if( typeof req.body.build == 'string' )
-        query = {
-          build: new ObjectId(req.body.build)
-        }
-    else
-        ins = []
-        Test.buildBuildsQuery(ins,req.body.build)
-        query = {
-            build : {
-                $in : ins
-            }
-        }
-    conditions = [{ $or: [{is_rerun:false},{is_rerun:null}] }]
-    if(req.body.status)
-        status = []
-        Test.buildStatusQuery(status,req.body.status)
-        conditions.push({ $or: status })
-
-    query.$or = [
-        { $and: conditions },
-        {
-            $and: [{ $or: [{is_rerun:true}] }]
-        }
-    ]
-
-    if(req.body.exclude)
-        exclude = {}
-        Test.buildExcludeFieldQuery(exclude,req.body.exclude)
-
-    Test.find(query,exclude)
-    .sort({uid:1})
-    .exec((err, tests) ->
-        if(err)
-            next err
-        res.json tests
-    );
-
 router.post '/test/aggregate/stable', (req, res, next) ->
     if(req.body.builds)
         Test.aggregate()
@@ -560,26 +549,77 @@ router.post '/test/filter/all', (req, res, next) ->
 
   buildIds = if typeof req.body.build == 'string' then [req.body.build] else req.body.build
 
-  ins = []
-  Test.buildBuildsQuery(ins, buildIds)
-  query = { build: { $in: ins } }
+  async.map buildIds, ((buildId, cb) -> cache.get "test:v2:#{buildId}", cb), (err, cacheResults) ->
+    cachedResults = []
+    uncachedBuildIds = []
 
-  conditions = [{ $or: [{is_rerun:false},{is_rerun:null}] }]
-  query.$or = [
-    { $and: conditions },
-    { $and: [{ $or: [{is_rerun:true}] }] }
-  ]
+    for i in [0...buildIds.length]
+      buildId = buildIds[i]
+      cached = cacheResults[i]
+      if cached != undefined && cached != null && cached.length > 0
+        cachedResults = cachedResults.concat(cached)
+      else
+        uncachedBuildIds.push(buildId)
 
-  if(req.body.exclude)
-    exclude = {}
-    Test.buildExcludeFieldQuery(exclude, req.body.exclude)
+    respond = (tests) ->
+      result = applyStatusFilter(tests, req.body.status)
+      if req.body.exclude
+        excl = {}
+        Test.buildExcludeFieldQuery(excl, req.body.exclude)
+        result = applyExclude(result, excl)
+      res.json result
 
-  Test.find(query, exclude)
-  .sort({uid:1})
-  .exec((err, tests) ->
-    if(err)
-      return next(err)
-    res.json tests
+    if uncachedBuildIds.length == 0
+      return respond(cachedResults)
+
+    ins = []
+    Test.buildBuildsQuery(ins, uncachedBuildIds)
+    query = { build: { $in: ins } }
+
+    Test.find(query, CACHE_PROJECTION)
+    .sort({uid:1})
+    .exec((err, tests) ->
+      if(err)
+        return next(err)
+
+      testsByBuild = {}
+      for test in tests
+        buildId = test.build.toString()
+        testsByBuild[buildId] ?= []
+        testsByBuild[buildId].push(test)
+
+      for buildId, buildTests of testsByBuild
+        cache.set "test:v2:#{buildId}", buildTests, TEST_CACHE_TTL
+
+      respond(cachedResults.concat(tests))
+    )
+
+router.post '/quarantine/filter', (req, res, next) ->
+  query = {}
+  if req.body.product
+    query.product = req.body.product
+  if req.body.type
+    query.type = req.body.type
+  if req.body.is_active != undefined
+    query.is_active = req.body.is_active
+  if req.body.scope
+    applyScopeQuery(query, req.body.scope)
+
+  QuarantinedTest.find(query).exec (err, docs) ->
+    if err
+      return next err
+    res.json docs
+
+router.get '/ai/analyses', (req, res, next) ->
+  { product, type } = req.query
+  if not product or not type
+    return res.status(400).json({ error: 'product and type required' })
+  AiAnalysis.find({ product: product, type: type })
+  .select('test_id result provider model created_at')
+  .sort({ created_at: -1 })
+  .exec((err, records) ->
+    if err then return next(err)
+    res.json(records)
   )
 
 module.exports = router

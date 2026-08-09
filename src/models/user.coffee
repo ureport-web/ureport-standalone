@@ -100,7 +100,11 @@ userSchema = new Schema(
               default: true
             },
             status : Schema.Types.Mixed
-          }, {_id: false})
+          }, {_id: false}),
+      filter_favorites: {
+        type: Schema.Types.Mixed,
+        default: []
+      }
     }, {_id: false})
 , { timestamps: true })
 
@@ -217,6 +221,14 @@ userSchema.statics.updateReportSetting = (id, payload, callback) ->
 
       user.settings.report = payload.report
       callback user
+
+userSchema.statics.updateFilterFavorites = (id, payload, callback) ->
+  User.findOne({_id: id}).exec (err, user) ->
+    if err then return callback(null)
+    if !user then return callback(null)
+    if !user.settings then user.settings = {}
+    user.settings.filter_favorites = payload.filter_favorites
+    callback user
 
 User = mongoose.model('users', userSchema)
 module.exports = User

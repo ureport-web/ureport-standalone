@@ -9,6 +9,7 @@ ObjectId = require('mongoose').Types.ObjectId;
 registerAudit = require('../utils/register_audit')
 AccessControl = require('../utils/ac_grants')
 getSystemSetting = require('../utils/getSystemSetting')
+autoTriageEvaluator = require('../utils/auto_triage_evaluator')
 
 component = 'investigate'
 
@@ -192,6 +193,29 @@ router.put '/comment/:id',  (req, res, next) ->
       res.status(404)
       res.json {"error": "Cannot find investigated test with id " + req.params.id}
   );
+
+###
+ * Auto-triage: match failing tests against existing InvestigatedTest patterns.
+ * POST /auto-triage?dryRun=true
+ * Body: { product, type, tests: [{ uid, name, token, errorMessage, stackTrace }] }
+ * Auth: any authenticated user (read-only on dryRun, creates docs on apply)
+###
+router.post '/auto-triage', (req, res, next) ->
+    dryRun        = req.query.dryRun isnt 'false'
+    product       = req.body.product
+    type          = req.body.type
+    eligibleTests = req.body.tests or []
+    promoteUids   = req.body.promoteUids or []
+
+    unless product and type
+        return res.status(400).json({ error: 'product and type are required' })
+
+    autoTriageEvaluator.runAutoTriage product, type, eligibleTests, dryRun, promoteUids, (err, result) ->
+        if err
+            status = err.status or 500
+            message = err.message or 'auto-triage failed'
+            return res.status(status).json({ error: message })
+        res.json(result)
 
 router.post '/:page/:perPage',  (req, res, next) ->
     if (!req.params.perPage)

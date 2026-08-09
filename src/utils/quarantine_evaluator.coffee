@@ -124,8 +124,6 @@ evaluateQuarantineRules = (build) ->
     logger.debug "#{prefix} skipping — is_archive"
     return
 
-  logger.info "#{prefix} evaluator started"
-
   Setting.findOne({ product: build.product, type: build.type }).exec (err, setting) ->
     if err
       logger.error "#{prefix} Setting.findOne error", err
@@ -140,13 +138,9 @@ evaluateQuarantineRules = (build) ->
       logger.debug "#{prefix} no enabled rules, skipping"
       return
 
-    logger.info "#{prefix} #{enabledRules.length} enabled rule(s)"
-
     globalBuilds = setting.quarantine_rules.builds or 10
     globalMinBuilds = setting.quarantine_rules.min_builds or 0
     globalMinPassRate = Math.max(setting.quarantine_rules.min_pass_rate or 70, 50)
-
-    logger.debug "#{prefix} global settings — window=#{globalBuilds} minBuilds=#{globalMinBuilds} minPassRate=#{globalMinPassRate}%"
 
     # Get failed UIDs from the current build (last status per uid)
     Test.aggregate([
@@ -159,22 +153,16 @@ evaluateQuarantineRules = (build) ->
         logger.error "#{prefix} failed-UIDs aggregate error", tErr
         return
       failedUids = (failedItems or []).map (item) -> item._id
-      unless failedUids.length
-        logger.debug "#{prefix} no failed/skipped UIDs in this build, skipping"
-        return
+      hasFailures = failedUids.length > 0
 
       # Current build pass rate (used for per-rule guard)
       total = build.status?.total or 0
       passCount = build.status?.pass or 0
       currentPassRate = if total > 0 then (passCount / total * 100) else 0
 
-      logger.info "#{prefix} failedUids=#{failedUids.length} currentPassRate=#{currentPassRate.toFixed(1)}%"
-
-      maxWindow = globalBuilds
-
       # Fetch previous qualifying builds once, shared across all rules
       # Over-fetch to keep window full after min_pass_rate filtering
-      fetchLimit = Math.min(maxWindow * 2, 100)
+      fetchLimit = Math.min(globalBuilds * 2, 100)
       # Match scope of current build so cross-team builds don't pollute the window
       scopeFields = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage']
       buildScopeFilter = {}
@@ -188,7 +176,6 @@ evaluateQuarantineRules = (build) ->
         start_time: { $lte: build.start_time or new Date() },
         is_archive: { $ne: true }
       }, buildScopeFilter)
-      logger.debug "#{prefix} prevBuilds scope filter: #{JSON.stringify(buildScopeFilter)}"
       Build.find(prevBuildsQuery)
       .sort({ start_time: -1 })
       .limit(fetchLimit)
@@ -198,25 +185,22 @@ evaluateQuarantineRules = (build) ->
           logger.error "#{prefix} prevBuilds query error", bErr
           return
         prevBuilds = prevBuilds or []
-        logger.debug "#{prefix} fetched #{prevBuilds.length} previous builds (limit #{fetchLimit})"
 
         globalMaxWindowDays = setting.quarantine_rules.max_window_days or 0
         if globalMaxWindowDays > 0
           cutoff = new Date((build.start_time or new Date()).getTime() - globalMaxWindowDays * 86400000)
-          before = prevBuilds.length
           prevBuilds = prevBuilds.filter (b) -> b.start_time >= cutoff
-          logger.debug "#{prefix} max_window_days=#{globalMaxWindowDays} trimmed prevBuilds #{before}->#{prevBuilds.length}"
 
         # Fetch TestRelation cache once for relation-condition filtering
         TestRelation.find({ product: build.product, type: build.type }).exec (rErr, allRelations) ->
           allRelations = allRelations or []
 
-          # Fetch currently active quarantined UIDs for auto-resolve (scoped to current build)
-          buildScope = toScope(build)
-          QuarantinedTest.find({ product: build.product, type: build.type, is_active: true, scope: buildScope })
+          # Fetch currently active quarantined UIDs for auto-resolve
+          # No scope filter here — ruleScope (stored on the record) may differ from buildScope.
+          # The resolve window (arQualifyingBuildIds) is already scoped to this build's lane.
+          QuarantinedTest.find({ product: build.product, type: build.type, is_active: true })
           .exec (qErr, activeQuarantined) ->
             activeQuarantined = activeQuarantined or []
-            logger.debug "#{prefix} activeQuarantined=#{activeQuarantined.length}"
 
             # Fetch exempt UIDs so the upsert loop can skip them
             QuarantinedTest.find({ product: build.product, type: build.type, is_exempt: true })
@@ -224,36 +208,33 @@ evaluateQuarantineRules = (build) ->
             .exec (eErr, exemptDocs) ->
               exemptUidSet = {}
               (exemptDocs or []).forEach (e) -> exemptUidSet[e.uid] = true
-              exemptCount = Object.keys(exemptUidSet).length
-              logger.debug "#{prefix} exemptUids=#{exemptCount}" if exemptCount > 0
 
               # --- Evaluate each rule to actually do the quarantine ---
               enabledRules.forEach (rule) ->
+                return unless hasFailures
                 ruleName = rule.name or rule._id or '?'
                 threshold = rule.threshold or {}
 
-                # Guard: skip if current build pass rate is below global min_pass_rate
-                if currentPassRate < globalMinPassRate
-                  logger.debug "#{prefix} rule \"#{ruleName}\" skipped — passRate #{currentPassRate.toFixed(1)}% < minPassRate #{globalMinPassRate}%"
+                # Guard: skip if current build pass rate is below effective min_pass_rate
+                effectiveMinPassRate = if rule.threshold?.min_pass_rate? then rule.threshold.min_pass_rate else globalMinPassRate
+                if effectiveMinPassRate > 0 and currentPassRate < effectiveMinPassRate
                   return
 
                 # Scope match (same logic as notification rules)
                 unless matchesScope(rule, build)
-                  logger.debug "#{prefix} rule \"#{ruleName}\" skipped — scope mismatch"
                   return
 
-                # Filter qualifying previous builds using global settings
+                # Filter qualifying previous builds using effective min_pass_rate (per-rule override or global)
                 qualifyingBuilds = prevBuilds.filter (b) ->
+                  return true if effectiveMinPassRate == 0
                   return false unless b.status?.total and b.status.total > 0
                   pr = if b.status.pass then (b.status.pass / b.status.total * 100) else 0
-                  pr >= globalMinPassRate
+                  pr >= effectiveMinPassRate
 
                 qualifyingBuildIds = qualifyingBuilds.slice(0, globalBuilds).map (b) -> b._id
-                logger.debug "#{prefix} rule \"#{ruleName}\" qualifyingBuilds=#{qualifyingBuildIds.length}/#{globalBuilds}"
 
                 # BR7: skip rule if not enough qualifying build history
                 if globalMinBuilds > 0 and qualifyingBuildIds.length < globalMinBuilds
-                  logger.debug "#{prefix} rule \"#{ruleName}\" skipped — only #{qualifyingBuildIds.length} qualifying builds, need #{globalMinBuilds}"
                   return
 
                 # Filter failedUids by name_pattern (regex on uid)
@@ -262,7 +243,6 @@ evaluateQuarantineRules = (build) ->
                 if namePattern
                   try
                     candidateUids = filterByNamePattern(candidateUids, namePattern)
-                    logger.debug "#{prefix} rule \"#{ruleName}\" name_pattern=\"#{namePattern}\" matched #{candidateUids.length}/#{failedUids.length} UIDs"
                   catch e
                     logger.error "[quarantine] rule \"#{ruleName}\" invalid name_pattern regex: #{namePattern}", e
                     return
@@ -273,16 +253,10 @@ evaluateQuarantineRules = (build) ->
                   matchedRelations = matcher.matchesRule(rule, allRelations)
                   matchedUidSet = {}
                   matchedRelations.forEach (r) -> matchedUidSet[r.uid] = true
-                  before = candidateUids.length
                   candidateUids = candidateUids.filter (uid) -> matchedUidSet[uid]
-                  logger.debug "#{prefix} rule \"#{ruleName}\" relation filter: #{before}->#{candidateUids.length} UIDs"
 
-                unless candidateUids.length
-                  logger.debug "#{prefix} rule \"#{ruleName}\" skipped — no candidate UIDs after filters"
-                  return
-                unless qualifyingBuildIds.length
-                  logger.debug "#{prefix} rule \"#{ruleName}\" skipped — no qualifying build IDs"
-                  return
+                return unless candidateUids.length
+                return unless qualifyingBuildIds.length
 
                 logger.info "#{prefix} rule \"#{ruleName}\" evaluating #{candidateUids.length} candidate UIDs across #{qualifyingBuildIds.length} builds"
 
@@ -302,36 +276,37 @@ evaluateQuarantineRules = (build) ->
                     logger.error "#{prefix} rule \"#{ruleName}\" test-results aggregate error", aggErr
                     return
 
-                  logger.debug "#{prefix} rule \"#{ruleName}\" testResults=#{(testResults or []).length} rows from aggregate (qualifyingBuildIds=#{qualifyingBuildIds.length})"
-                  if (testResults or []).length == 0
-                    sampleUids = candidateUids.slice(0, 3).join(', ')
-                    sampleBuildIds = qualifyingBuildIds.slice(0, 3).map((id) -> id.toString()).join(', ')
-                    logger.debug "#{prefix} rule \"#{ruleName}\" DIAG sampleUids=[#{sampleUids}] sampleBuildIds=[#{sampleBuildIds}]"
-                    # Check if any tests exist for those builds at all (ignore UID filter)
-                    Test.aggregate([
-                      { $match: { build: { $in: qualifyingBuildIds } } },
-                      { $limit: 1 },
-                      { $project: { _id: 0, uid: 1, build: 1 } }
-                    ]).exec (diagErr, diagSample) ->
-                      if diagErr
-                        logger.debug "#{prefix} rule \"#{ruleName}\" DIAG build-only probe error: #{diagErr.message}"
-                      else if diagSample and diagSample.length > 0
-                        logger.debug "#{prefix} rule \"#{ruleName}\" DIAG build-only probe hit — uid=#{diagSample[0].uid} build=#{diagSample[0].build} (UID mismatch likely)"
-                      else
-                        logger.debug "#{prefix} rule \"#{ruleName}\" DIAG build-only probe=0 rows (build ID mismatch or empty builds)"
-                    # Check how many of the previous builds actually contain any candidateUid
-                    Test.aggregate([
-                      { $match: { uid: { $in: candidateUids } } },
-                      { $group: { _id: '$build' } },
-                      { $sort: { _id: -1 } },
-                      { $limit: 5 },
-                      { $project: { _id: 1 } }
-                    ]).exec (uid2Err, uidBuilds) ->
-                      unless uid2Err
-                        qualifyingSet = new Set(qualifyingBuildIds.map (id) -> id.toString())
-                        uidBuildStrs = (uidBuilds or []).map (r) -> r._id.toString()
-                        overlap = uidBuildStrs.filter (id) -> qualifyingSet.has(id)
-                        logger.debug "#{prefix} rule \"#{ruleName}\" DIAG candidateUids appear in #{uidBuildStrs.length} most-recent builds; overlap with qualifying window=#{overlap.length}; recentBuildIds=[#{uidBuildStrs.join(', ')}]"
+                  # --- DIAG: uncomment to debug UID/build-ID mismatch when testResults is empty ---
+                  # if (testResults or []).length == 0
+                  #   sampleUids = candidateUids.slice(0, 3).join(', ')
+                  #   sampleBuildIds = qualifyingBuildIds.slice(0, 3).map((id) -> id.toString()).join(', ')
+                  #   logger.warn "#{prefix} rule \"#{ruleName}\" testResults=0 sampleUids=[#{sampleUids}] sampleBuildIds=[#{sampleBuildIds}]"
+                  #   # Probe 1: check if any tests exist for those builds at all (detects UID mismatch)
+                  #   Test.aggregate([
+                  #     { $match: { build: { $in: qualifyingBuildIds } } },
+                  #     { $limit: 1 },
+                  #     { $project: { _id: 0, uid: 1, build: 1 } }
+                  #   ]).exec (diagErr, diagSample) ->
+                  #     if diagErr
+                  #       logger.warn "#{prefix} DIAG build-only probe error: #{diagErr.message}"
+                  #     else if diagSample and diagSample.length > 0
+                  #       logger.warn "#{prefix} DIAG build-only probe hit — uid=#{diagSample[0].uid} build=#{diagSample[0].build} (UID mismatch likely)"
+                  #     else
+                  #       logger.warn "#{prefix} DIAG build-only probe=0 rows (build ID mismatch or empty builds)"
+                  #   # Probe 2: find which recent builds contain the candidateUids (detects build ID mismatch)
+                  #   Test.aggregate([
+                  #     { $match: { uid: { $in: candidateUids } } },
+                  #     { $group: { _id: '$build' } },
+                  #     { $sort: { _id: -1 } },
+                  #     { $limit: 5 },
+                  #     { $project: { _id: 1 } }
+                  #   ]).exec (uid2Err, uidBuilds) ->
+                  #     unless uid2Err
+                  #       qualifyingSet = new Set(qualifyingBuildIds.map (id) -> id.toString())
+                  #       uidBuildStrs = (uidBuilds or []).map (r) -> r._id.toString()
+                  #       overlap = uidBuildStrs.filter (id) -> qualifyingSet.has(id)
+                  #       logger.warn "#{prefix} DIAG candidateUids in #{uidBuildStrs.length} recent builds; overlap with qualifying window=#{overlap.length}; recentBuildIds=[#{uidBuildStrs.join(', ')}]"
+                  # --- end DIAG ---
 
                   # Group by uid
                   uidResultMap = {}
@@ -343,7 +318,7 @@ evaluateQuarantineRules = (build) ->
                   conditions = normalizeConditions(threshold)
                   uidBestMap = {}
                   conditions.forEach (cond) ->
-                    hits = evaluateThreshold(cond, testResults, qualifyingBuildIds, (msg) -> logger.debug "#{prefix} rule \"#{ruleName}\" #{msg}")
+                    hits = evaluateThreshold(cond, testResults, qualifyingBuildIds)
                     hits.forEach (item) ->
                       existing = uidBestMap[item.uid]
                       if !existing or item.failCount > existing.failCount
@@ -383,29 +358,17 @@ evaluateQuarantineRules = (build) ->
                     )
 
               # --- Auto-resolve: re-check active quarantined UIDs ---
-              unless activeQuarantined.length and enabledRules.length
-                logger.debug "#{prefix} auto-resolve skipped — activeQuarantined=#{activeQuarantined.length}"
+              if activeQuarantined.length == 0
                 return
 
               activeUids = activeQuarantined.map (q) -> q.uid
               logger.info "#{prefix} auto-resolve checking #{activeUids.length} active quarantined UID(s)"
 
-              # Auto-resolve window uses global settings
-              arQualifyingBuildIds = prevBuilds.filter (b) ->
-                return false unless b.status?.total and b.status.total > 0
-                pr = if b.status.pass then (b.status.pass / b.status.total * 100) else 0
-                pr >= globalMinPassRate
-              .slice(0, globalBuilds).map (b) -> b._id
+              # Auto-resolve window: use all recent builds regardless of pass rate
+              # (min_pass_rate applies to quarantine triggering, not resolving)
+              arQualifyingBuildIds = [build._id].concat(prevBuilds.slice(0, globalBuilds).map (b) -> b._id)
 
-              unless arQualifyingBuildIds.length
-                logger.debug "#{prefix} auto-resolve skipped — no qualifying builds"
-                return
-
-              # Prepend current build so resolve_passes=N means exactly N consecutive passes
-              if currentPassRate >= globalMinPassRate
-                arQualifyingBuildIds = [build._id].concat(arQualifyingBuildIds)
-
-              logger.debug "#{prefix} auto-resolve window=#{arQualifyingBuildIds.length} builds"
+              return unless arQualifyingBuildIds.length
 
               Test.aggregate([
                 { $match: { build: { $in: arQualifyingBuildIds }, uid: { $in: activeUids } } },
@@ -440,16 +403,16 @@ evaluateQuarantineRules = (build) ->
                   requiredPasses = threshold.resolve_passes or 3
                   shouldResolve = hasConsecutivePasses(results, arQualifyingBuildIds, requiredPasses)
 
-                  logger.debug "#{prefix} auto-resolve uid=#{q.uid} hasConsecutivePasses(#{requiredPasses})=#{shouldResolve}"
-
                   if shouldResolve
                     QuarantinedTest.findOneAndUpdate(
                       { _id: q._id },
                       { is_active: false, resolved_at: new Date() },
                       { new: true },
                       (rErr, doc) ->
-                        if doc
-                          logger.info "[quarantine] auto-resolved uid=#{q.uid}"
+                        if rErr
+                          logger.error "[quarantine] auto-resolve update error uid=#{q.uid}", rErr
+                        else if doc
+                          logger.info "[quarantine] auto-resolved uid=#{q.uid} after #{requiredPasses} consecutive passes"
                     )
 
 module.exports = { evaluateQuarantineRules, matchesScope, evaluateThreshold, hasConsecutivePasses, filterByNamePattern, toScope }

@@ -18,12 +18,28 @@ getSystemSetting = require('../utils/getSystemSetting')
 async = require("async")
 ObjectId = require('mongoose').Types.ObjectId;
 registerAudit = require('../utils/register_audit')
-NodeCache = require('node-cache')
 logger = require('../utils/logger')
+cache = require('../lib/cache')
 
 AccessControl = require('../utils/ac_grants')
 component = 'test'
-testCache = new NodeCache({ stdTTL: 86400, maxKeys: 10000 })
+TEST_CACHE_TTL = 20 * 24 * 60 * 60  # 20 days — safe because writes invalidate cache
+
+CACHE_PROJECTION = {setup: 0, body: 0, teardown: 0}
+
+applyExclude = (tests, excludeMap) ->
+    fields = Object.keys(excludeMap)
+    return tests if fields.length == 0
+    tests.map (t) ->
+        obj = if t.toObject? then t.toObject() else Object.assign({}, t)
+        delete obj[f] for f in fields
+        obj
+
+applyStatusFilter = (tests, statusParam) ->
+    return tests unless statusParam
+    statuses = if Array.isArray(statusParam) then statusParam else [statusParam]
+    return tests if statuses.indexOf('All') != -1
+    tests.filter (t) -> statuses.indexOf(t.status) != -1
 
 router.get '/:id',  (req, res, next) ->
     Test.findOne({
@@ -74,10 +90,12 @@ router.post '/multi', (req, res, next) ->
         state = "Success"
         if(req.body.tests.length != tests.length)
           state = "Partial Success, you might have missing fields in your paylaod, not all tests are saved."
-        res.json { 
+        # Invalidate build cache so next read reflects newly saved tests
+        cache.del "test:v2:#{req.body.tests[0].build}"
+        res.json {
           state : state
           provided : req.body.tests.length
-          saved : tests.length 
+          saved : tests.length
         }
       );
     catch e
@@ -127,6 +145,7 @@ router.post '/history/:uid',  (req, res, next) ->
     }, include).
     sort({"start_time": -1}).
     limit(limit).
+    lean().
     exec((err, test) ->
       res.json test
     );
@@ -165,50 +184,7 @@ router.post '/filter',  (req, res, next) ->
 
     Test.find(query,exclude)
     .sort({uid:1})
-    .exec((err, tests) ->
-        if(err)
-            next err
-        res.json tests
-    );
-
-router.post '/filter/nonpass',  (req, res, next) ->
-    if(!req.body.build)
-        res.status(400)
-        return res.json {error: "Build id is mandatory"}
-
-    if( typeof req.body.build == 'string' )
-        query = {
-          build: new ObjectId(req.body.build)
-        }
-    else
-        ins = []
-        Test.buildBuildsQuery(ins,req.body.build)
-        query = {
-            build : {
-                $in : ins
-            }
-        }
-    # build filter and condition
-    conditions = [{ $or: [{is_rerun:false},{is_rerun:null}] }]
-    if(req.body.status)
-        status = []
-        Test.buildStatusQuery(status,req.body.status)
-        conditions.push({ $or: status })
-    
-    query.$or = [
-        { $and: conditions }, 
-        { 
-            $and: [{ $or: [{is_rerun:true}] }]
-        }
-    ]
-
-    #build exclude doc
-    if(req.body.exclude)
-        exclude = {}
-        Test.buildExcludeFieldQuery(exclude,req.body.exclude)
-
-    Test.find(query,exclude)
-    .sort({uid:1})
+    .lean()
     .exec((err, tests) ->
         if(err)
             next err
@@ -223,86 +199,82 @@ router.post '/filter/all',  (req, res, next) ->
 
     # Get build IDs array
     buildIds = if typeof req.body.build == 'string' then [req.body.build] else req.body.build
-    
-    # Check cache for each build
+
     cacheStartTime = Date.now()
-    cachedResults = []
-    uncachedBuildIds = []
-    
-    for buildId in buildIds
-        cacheKey = "#{buildId}"
-        try
-            cached = testCache.get(cacheKey)
-            # node-cache returns the value directly, not wrapped in an object
-            if cached != undefined && cached != null && Object.keys(cached).length > 0
-                cachedResults = cachedResults.concat(cached[cacheKey])
+
+    # Check cache for all build IDs in parallel via async.map
+    async.map buildIds, ((buildId, cb) -> cache.get "test:v2:#{buildId}", cb), (err, cacheResults) ->
+        cacheTime = Date.now() - cacheStartTime
+
+        cachedResults = []
+        uncachedBuildIds = []
+
+        for i in [0...buildIds.length]
+            buildId = buildIds[i]
+            cached = cacheResults[i]
+            if cached != undefined && cached != null && cached.length > 0
+                cachedResults = cachedResults.concat(cached)
             else
                 uncachedBuildIds.push(buildId)
-        catch err
-            logger.warn("Cache get error for #{buildId}:", err)
-            uncachedBuildIds.push(buildId)
-    
-    cacheTime = Date.now() - cacheStartTime
-    logger.debug("Uncached build IDs:", uncachedBuildIds)
-        
-    # If all builds are cached, return immediately
-    if uncachedBuildIds.length == 0
-        totalTime = Date.now() - startTime
-        logger.debug("All builds found in cache - Total response time: #{totalTime}ms")
-        return res.json cachedResults
 
-    # Query only uncached builds
-    dbStartTime = Date.now()
-    ins = []
-    Test.buildBuildsQuery(ins, uncachedBuildIds)
-    query = { build: { $in: ins } }
-    
-    # build filter and condition - no status condition
-    conditions = [{ $or: [{is_rerun:false},{is_rerun:null}] }]
-    
-    query.$or = [
-        { $and: conditions }, 
-        { 
-            $and: [{ $or: [{is_rerun:true}] }]
-        }
-    ]
+        logger.debug("Uncached build IDs:", uncachedBuildIds)
 
-    #build exclude doc
-    if(req.body.exclude)
-        exclude = {}
-        Test.buildExcludeFieldQuery(exclude,req.body.exclude)
+        # If all builds are cached, return immediately
+        if uncachedBuildIds.length == 0
+            totalTime = Date.now() - startTime
+            logger.debug("All builds found in cache - Total response time: #{totalTime}ms")
+            result = applyStatusFilter(cachedResults, req.body.status)
+            if req.body.exclude
+                excl = {}
+                Test.buildExcludeFieldQuery(excl, req.body.exclude)
+                result = applyExclude(result, excl)
+            return res.json result
 
-    Test.find(query,exclude)
-    .sort({uid:1})
-    .exec((err, tests) ->
-        dbTime = Date.now() - dbStartTime
-        logger.debug("DB query took #{dbTime}ms")
-        if(err)
-            return next err
-        
-        # Group tests by build and cache each build separately
-        testsByBuild = {}
-        for test in tests
-            buildId = test.build.toString()
-            testsByBuild[buildId] ?= []
-            testsByBuild[buildId].push(test)
-        
-        # Cache each build's data
-        for buildId, buildTests of testsByBuild
-            cacheKey = "#{buildId}"
-            try
-                testCache.set(cacheKey, buildTests)
-            catch err
-                logger.warn("Cache set error for #{buildId}:", err)
-        
-        # Combine cached and new results
-        allResults = cachedResults.concat(tests)
-        totalTime = Date.now() - startTime
-        logger.debug("Total response time: #{totalTime}ms (Cache: #{cacheTime}ms, DB: #{dbTime}ms)")
-        logger.debug("Cache stats:", testCache.getStats())
-        res.json allResults
-    )
+        # Query only uncached builds
+        dbStartTime = Date.now()
+        ins = []
+        Test.buildBuildsQuery(ins, uncachedBuildIds)
+        query = { build: { $in: ins } }
 
+        # build filter and condition - no status condition
+        conditions = [{ $or: [{is_rerun:false},{is_rerun:null}] }]
+
+        query.$or = [
+            { $and: conditions },
+            {
+                $and: [{ $or: [{is_rerun:true}] }]
+            }
+        ]
+
+        Test.find(query, CACHE_PROJECTION)
+        .sort({uid:1})
+        .lean()
+        .exec((err, tests) ->
+            dbTime = Date.now() - dbStartTime
+            logger.debug("DB query took #{dbTime}ms")
+            if(err)
+                return next err
+
+            # Group tests by build and cache full docs at shared key test:#{buildId}
+            testsByBuild = {}
+            for test in tests
+                buildId = test.build.toString()
+                testsByBuild[buildId] ?= []
+                testsByBuild[buildId].push(test)
+
+            for buildId, buildTests of testsByBuild
+                cache.set "test:v2:#{buildId}", buildTests, TEST_CACHE_TTL
+
+            # Combine cached and new results, apply status filter + exclude in memory
+            allResults = applyStatusFilter(cachedResults.concat(tests), req.body.status)
+            if req.body.exclude
+                excl = {}
+                Test.buildExcludeFieldQuery(excl, req.body.exclude)
+                allResults = applyExclude(allResults, excl)
+            totalTime = Date.now() - startTime
+            logger.debug("Total response time: #{totalTime}ms (Cache: #{cacheTime}ms, DB: #{dbTime}ms)")
+            res.json allResults
+        )
 
 router.post '/find/test/:id',  (req, res, next) ->
     if (!AccessControl.canAccessCreateAny(req.user.role,component))
@@ -566,5 +538,48 @@ router.post '/aggregate/by/failure', (req, res, next) ->
     # else
     #     res.status(404)
     #     res.json {"error": "uid is mandatory"}
+
+router.post '/cache/refresh', (req, res, next) ->
+  if !AccessControl.canAccessDeleteAny(req.user.role, component)
+    return res.status(403).json({ error: "You don't have permission to perform this action" })
+
+  buildIds = req.body.buildIds
+  if !buildIds or !Array.isArray(buildIds) or buildIds.length == 0
+    return res.status(400).json({ error: "buildIds array is required" })
+
+  if buildIds.length > 50
+    return res.status(400).json({ error: "Maximum 50 build IDs per request" })
+
+  ins = []
+  Test.buildBuildsQuery(ins, buildIds)
+  query = { build: { $in: ins } }
+  conditions = [{ $or: [{is_rerun: false}, {is_rerun: null}] }]
+  query.$or = [
+    { $and: conditions },
+    { $and: [{ $or: [{is_rerun: true}] }] }
+  ]
+
+  Test.find(query, CACHE_PROJECTION)
+  .sort({ uid: 1 })
+  .lean()
+  .exec((err, tests) ->
+    if err
+      return next(err)
+
+    testsByBuild = {}
+    for test in tests
+      buildId = test.build.toString()
+      testsByBuild[buildId] ?= []
+      testsByBuild[buildId].push(test)
+
+    for buildId, buildTests of testsByBuild
+      cache.set "test:v2:#{buildId}", buildTests, TEST_CACHE_TTL
+
+    results = buildIds.map (buildId) ->
+      buildTests = testsByBuild[buildId] or []
+      { buildId, status: 'ok', testCount: buildTests.length }
+
+    res.json({ refreshed: buildIds.length, results })
+  )
 
 module.exports = router

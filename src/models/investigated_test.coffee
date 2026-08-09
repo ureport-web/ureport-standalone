@@ -36,8 +36,12 @@ invTestSchema = new Schema(
 	}, {_id: true})],
 	configuration: Schema({
 		similarity: Schema.Types.Mixed,
-		compare_by: String
-	}, {_id: false})
+		compare_by: String,
+		ttl: Number
+	}, {_id: false}),
+	is_auto_triaged: { type: Boolean, default: false },
+	auto_triage_source_uid: String,
+	auto_triage_match_type: String
 )
 
 invTestSchema.statics.buildExcludeFieldQuery = (rs, payload) ->

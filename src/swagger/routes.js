@@ -842,33 +842,10 @@ router.post('/test/filter', (req, res) => {
   */
 });
 
-router.post('/test/filter/nonpass', (req, res) => {
-  /*
-    #swagger.tags = ['Test']
-    #swagger.summary = 'Filter non-passing tests (FAIL, SKIP, WARNING)'
-    #swagger.requestBody = {
-      required: true,
-      content: {
-        'application/json': {
-          schema: { $ref: '#/components/schemas/FilterRequest' }
-        }
-      }
-    }
-    #swagger.responses[200] = {
-      description: 'Non-passing tests',
-      content: {
-        'application/json': {
-          schema: { type: 'array', items: { $ref: '#/components/schemas/Test' } }
-        }
-      }
-    }
-  */
-});
-
 router.post('/test/filter/all', (req, res) => {
   /*
     #swagger.tags = ['Test']
-    #swagger.summary = 'Filter all tests without status restriction'
+    #swagger.summary = 'Filter tests with optional status and field exclusion (cached)'
     #swagger.requestBody = {
       required: true,
       content: {
@@ -878,7 +855,7 @@ router.post('/test/filter/all', (req, res) => {
       }
     }
     #swagger.responses[200] = {
-      description: 'All matching tests',
+      description: 'Matching tests. Pass status array to filter by status (default: All). Pass exclude array to strip fields.',
       content: {
         'application/json': {
           schema: { type: 'array', items: { $ref: '#/components/schemas/Test' } }

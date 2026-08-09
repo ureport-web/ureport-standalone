@@ -75,6 +75,17 @@ router.put '/:id', (req, res, next) ->
         res.status(404).json { error: 'Not found' }
   )
 
+# DELETE / — bulk hard delete by ids array
+router.delete '/', (req, res, next) ->
+  ids = req.body?.ids
+  unless Array.isArray(ids) and ids.length > 0
+    return res.status(400).json { error: 'ids array required' }
+  objectIds = ids.map (id) -> new ObjectId(id)
+  QuarantinedTest.deleteMany({ _id: { $in: objectIds } }).exec (err, result) ->
+    if err
+      return next err
+    res.json { deleted: result.deletedCount }
+
 # DELETE /:id — hard delete
 router.delete '/:id', (req, res, next) ->
   registerAudit(req, res, 'RELEASE', 'Release Quarantine', 'quarantine', { uid: req.params.id, product: 'SYSTEM', type: 'QUARANTINE' })

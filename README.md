@@ -230,6 +230,34 @@ Top-level view of all test execution lanes grouped by product, showing live pass
 
 **Docker:** `NODE_ENV=docker` is set automatically by `docker-compose.yml`. It uses `config/docker.json` which points to the bundled MongoDB service.
 
+### Cache
+
+By default the server uses an **in-process cache** (`node-cache`) — no setup needed. This is fine for single-instance deployments. For multi-instance or production setups, point all nodes at a shared Redis or AWS ElastiCache (Valkey) instance.
+
+**Option A — Redis / Valkey URL** (simplest):
+
+| Variable | Example | Notes |
+| --- | --- | --- |
+| `REDIS_URL` | `redis://localhost:6379` | Standard Redis URL |
+| `VALKEY_URL` | `valkey://localhost:6379` | Valkey URL (converted internally to `redis://`) |
+
+Set one of these as an environment variable or in `.env` (Docker) / `config/dev.json` (bare metal).
+
+**Option B — AWS ElastiCache (Valkey) with IAM auth**:
+
+| Variable | Description |
+| --- | --- |
+| `VALKEY_PRIMARY_ENDPOINT` | ElastiCache primary endpoint hostname |
+| `VALKEY_USER` | IAM-enabled Valkey user |
+| `VALKEY_REPLICATION_GROUP` | Replication group ID (used in SigV4 token) |
+| `AWS_REGION` | AWS region (default: `us-east-1`) |
+
+When all three Valkey vars are set, the server authenticates via SigV4 presigned tokens and rotates them automatically every 12 minutes.
+
+**Fallback:** if none of the above are configured, the server logs `No cache configured, using node-cache` and continues with the in-process cache.
+
+---
+
 ### Seed / init credentials (Docker only)
 
 These env vars are read by `initialize.js` at first startup when the DB is empty:

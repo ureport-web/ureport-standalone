@@ -3,6 +3,9 @@ router = express.Router()
 
 Build = require('../models/build')
 Test = require('../models/test')
+cache = require('../lib/cache')
+
+ANALYTICS_CACHE_TTL = 2 * 60 * 60  # 2 hours in seconds
 
 toMatch = (val) -> if Array.isArray(val) then { $in: val } else val
 
@@ -181,88 +184,84 @@ parseSinceDuration = (since) ->
     return new Date(Date.now() - since * 24 * 60 * 60 * 1000)
   return new Date(since)
 
-_topFailuresCache = {}
-_unstableCache = {}
-CACHE_TTL = 2 * 60 * 60 * 1000
-
 router.post '/global-top-failures', (req, res, next) ->
   { since, limit = 10 } = req.body
-  cacheKey = "#{since}:#{limit}"
-  now = Date.now()
-  if _topFailuresCache[cacheKey]?.data and now < _topFailuresCache[cacheKey].expires
-    return res.json _topFailuresCache[cacheKey].data
+  cacheKey = "analytics:top-failures:#{since}:#{limit}"
 
-  sinceDate = parseSinceDuration(since)
-  lim = parseInt(limit)
+  cache.get cacheKey, (err, cached) ->
+    if cached then return res.json cached
 
-  Build.find({ start_time: { $gte: sinceDate }, is_archive: false })
-  .sort({ start_time: -1 }).limit(1000)
-  .select('_id product type').lean().exec (err, builds) ->
-    if err then return next(err)
-    if builds.length is 0 then return res.json []
+    sinceDate = parseSinceDuration(since)
+    lim = parseInt(limit)
 
-    buildMap = {}
-    buildIds = builds.map (b) ->
-      buildMap[b._id.toString()] = { product: b.product, type: b.type }
-      b._id
-
-    Test.aggregate([
-      { $match: { build: { $in: buildIds }, status: 'FAIL', is_rerun: false } },
-      { $group: {
-        _id: '$uid',
-        name: { $first: '$name' },
-        failCount: { $sum: 1 },
-        lastFailedAt: { $max: '$start_time' },
-        lastBuild: { $last: '$build' }
-      }},
-      { $sort: { failCount: -1 } },
-      { $limit: lim }
-    ]).exec (err, results) ->
+    Build.find({ start_time: { $gte: sinceDate }, is_archive: false })
+    .sort({ start_time: -1 }).limit(1000)
+    .select('_id product type').lean().exec (err, builds) ->
       if err then return next(err)
+      if builds.length is 0 then return res.json []
 
-      data = results.map (r) ->
-        lane = buildMap[r.lastBuild?.toString()] or {}
-        {
-          test_uid: r._id
-          test_name: r.name
-          product: lane.product or ''
-          type: lane.type or ''
-          fail_count: r.failCount
-          last_failed: r.lastFailedAt
-        }
+      buildMap = {}
+      buildIds = builds.map (b) ->
+        buildMap[b._id.toString()] = { product: b.product, type: b.type }
+        b._id
 
-      _topFailuresCache[cacheKey] = { data: data, expires: Date.now() + CACHE_TTL }
-      res.json data
+      Test.aggregate([
+        { $match: { build: { $in: buildIds }, status: 'FAIL', is_rerun: false } },
+        { $group: {
+          _id: '$uid',
+          name: { $first: '$name' },
+          failCount: { $sum: 1 },
+          lastFailedAt: { $max: '$start_time' },
+          lastBuild: { $last: '$build' }
+        }},
+        { $sort: { failCount: -1 } },
+        { $limit: lim }
+      ]).exec (err, results) ->
+        if err then return next(err)
+
+        data = results.map (r) ->
+          lane = buildMap[r.lastBuild?.toString()] or {}
+          {
+            test_uid: r._id
+            test_name: r.name
+            product: lane.product or ''
+            type: lane.type or ''
+            fail_count: r.failCount
+            last_failed: r.lastFailedAt
+          }
+
+        cache.set cacheKey, data, ANALYTICS_CACHE_TTL
+        res.json data
 
 router.post '/global-unstable-count', (req, res, next) ->
   { since } = req.body
-  cacheKey = since
-  now = Date.now()
-  if _unstableCache[cacheKey]?.data isnt undefined and now < _unstableCache[cacheKey].expires
-    return res.json _unstableCache[cacheKey].data
+  cacheKey = "analytics:unstable-count:#{since}"
 
-  sinceDate = parseSinceDuration(since)
+  cache.get cacheKey, (err, cached) ->
+    if cached isnt null and cached isnt undefined then return res.json cached
 
-  Build.find({ start_time: { $gte: sinceDate }, is_archive: false })
-  .sort({ start_time: -1 }).limit(1000)
-  .select('_id').lean().exec (err, builds) ->
-    if err then return next(err)
-    if builds.length is 0
-      result = { count: 0 }
-      _unstableCache[cacheKey] = { data: result, expires: Date.now() + CACHE_TTL }
-      return res.json result
+    sinceDate = parseSinceDuration(since)
 
-    buildIds = builds.map (b) -> b._id
-
-    Test.aggregate([
-      { $match: { build: { $in: buildIds }, status: { $in: ['PASS', 'FAIL'] }, is_rerun: false } },
-      { $group: { _id: '$uid', statuses: { $addToSet: '$status' } } },
-      { $match: { statuses: { $all: ['PASS', 'FAIL'] } } },
-      { $count: 'count' }
-    ]).exec (err, results) ->
+    Build.find({ start_time: { $gte: sinceDate }, is_archive: false })
+    .sort({ start_time: -1 }).limit(1000)
+    .select('_id').lean().exec (err, builds) ->
       if err then return next(err)
-      result = { count: if results.length > 0 then results[0].count else 0 }
-      _unstableCache[cacheKey] = { data: result, expires: Date.now() + CACHE_TTL }
-      res.json result
+      if builds.length is 0
+        result = { count: 0 }
+        cache.set cacheKey, result, ANALYTICS_CACHE_TTL
+        return res.json result
+
+      buildIds = builds.map (b) -> b._id
+
+      Test.aggregate([
+        { $match: { build: { $in: buildIds }, status: { $in: ['PASS', 'FAIL'] }, is_rerun: false } },
+        { $group: { _id: '$uid', statuses: { $addToSet: '$status' } } },
+        { $match: { statuses: { $all: ['PASS', 'FAIL'] } } },
+        { $count: 'count' }
+      ]).exec (err, results) ->
+        if err then return next(err)
+        result = { count: if results.length > 0 then results[0].count else 0 }
+        cache.set cacheKey, result, ANALYTICS_CACHE_TTL
+        res.json result
 
 module.exports = router

@@ -338,11 +338,19 @@ if (config !== undefined) {
     if (res.headersSent) {
       return next(err);
     }
+    // Client cancelled the request — stream destroyed before body-parser could read it
+    if (err && err.type === 'stream.not.readable') {
+      if (!res.headersSent) res.end();
+      return;
+    }
     console.error("Internal Error:", err);
     if (err && err.name === "ValidationError") {
-      return res.status(500).json({ error: err });
+      if (!res.headersSent) res.status(500).json({ error: err });
+      return;
     }
-    res.status(500).json({ error: "Internal server error" });
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Internal server error" });
+    }
   });
 } else {
   console.error("Cannot find configuration file, Server will not be started.");
