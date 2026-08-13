@@ -86,14 +86,18 @@ if valkeyEndpoint and valkeyUser and valkeyReplicationGroup
   setInterval createIamConnection, TOKEN_REFRESH_MS
 
 else if redisUrl
+  _redisErrorLogged = false
   _redis = new Redis redisUrl,
     enableReadyCheck: true
     maxRetriesPerRequest: 2
     lazyConnect: false
   _redis.on 'ready', ->
+    _redisErrorLogged = false
     logger.info '[cache] Redis/Valkey connected'
   _redis.on 'error', (err) ->
-    logger.warn '[cache] Redis error (falling back to in-process):', err.message
+    unless _redisErrorLogged
+      _redisErrorLogged = true
+      logger.warn '[cache] Redis error (falling back to in-process):', err.message or err.code or String(err)
 
 else
   logger.info '[cache] No cache configured, using node-cache'
@@ -101,41 +105,50 @@ else
 module.exports =
 
   get: (key, cb) ->
-    if _redis
-      _redis.get key, (err, val) ->
-        if err
-          logger.warn '[cache] get error:', err.message
-          return cb(null, null)
-        cb(null, if val then JSON.parse(val) else null)
-    else
+    nodeCacheGet = ->
       try
         raw = _nodeCache.get(key)
-        # node-cache v1.1.0 returns {key: value} — unwrap to match Redis behaviour
         val = if raw != undefined then raw[key] else null
         cb(null, val)
       catch err
         logger.warn '[cache] node-cache get error:', err.message
         cb(null, null)
+    if _redis
+      _redis.get key, (err, val) ->
+        if err
+          logger.warn '[cache] get error (using in-process):', err.message
+          return nodeCacheGet()
+        cb(null, if val then JSON.parse(val) else null)
+    else
+      nodeCacheGet()
 
   set: (key, value, ttlSeconds) ->
-    if _redis
-      _redis.set key, JSON.stringify(value), 'EX', ttlSeconds, (err) ->
-        if err then logger.warn '[cache] set error:', err.message
-    else
+    nodeCacheSet = ->
       try
         _nodeCache.set(key, value, ttlSeconds)
       catch err
         logger.warn '[cache] node-cache set error:', err.message
+    if _redis
+      _redis.set key, JSON.stringify(value), 'EX', ttlSeconds, (err) ->
+        if err
+          logger.warn '[cache] set error (using in-process):', err.message
+          nodeCacheSet()
+    else
+      nodeCacheSet()
 
   del: (key) ->
-    if _redis
-      _redis.del key, (err) ->
-        if err then logger.warn '[cache] del error:', err.message
-    else
+    nodeCacheDel = ->
       try
         _nodeCache.del(key)
       catch err
         logger.warn '[cache] node-cache del error:', err.message
+    if _redis
+      _redis.del key, (err) ->
+        if err
+          logger.warn '[cache] del error (using in-process):', err.message
+          nodeCacheDel()
+    else
+      nodeCacheDel()
 
   isRedis: -> !!_redis
   isConnected: -> !!_redis and _redis.status is 'ready'

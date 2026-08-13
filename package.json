@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "mocha",
+    "test:plugin": "mocha --compilers coffee:coffee-script/register --recursive test plugins/*/test",
     "start": "node server",
     "seed": "node seedGenerator",
     "initialize": "node initialize.js",
@@ -26,8 +27,8 @@
     "@aws-sdk/client-bedrock-runtime": "^3.1047.0",
     "@aws-sdk/client-sts": "^3.1056.0",
     "@aws-sdk/credential-provider-node": "^3.972.0",
-    "@smithy/signature-v4": "^5.0.0",
     "@modelcontextprotocol/sdk": "^1.12.0",
+    "@smithy/signature-v4": "^5.0.0",
     "accesscontrol": "^2.2.1",
     "async": "^3.1.0",
     "bcrypt": "^5.0.0",
@@ -52,6 +53,7 @@
     "passport-local": "^1.0.0",
     "rotating-file-stream": "^1.4.6",
     "swagger-ui-express": "^4.1.4",
+    "tar": "^7.5.22",
     "underscore": "^1.9.1",
     "uuid": "^3.3.3",
     "zod": "^3.24.0"

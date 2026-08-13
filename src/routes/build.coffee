@@ -10,7 +10,6 @@ async = require("async")
 
 registerAudit = require('../utils/register_audit')
 AccessControl = require('../utils/ac_grants')
-matcher = require('../utils/notification_rule_matcher')
 { getLicenseState } = require('../utils/license')
 cache = require('../lib/cache')
 component = 'build'
@@ -18,12 +17,10 @@ component = 'build'
 Setting = require('../models/setting')
 TestRelation = require('../models/test_relation')
 User = require('../models/user')
-sendBuildNotification = require('../utils/send_build_notification_email')
 logger = require('../utils/logger')
 QuarantinedTest = require('../models/quarantined_test')
 evaluator = require('../utils/quarantine_evaluator')
-autoTriageEvaluator = require('../utils/auto_triage_evaluator')
-InvestigatedTest = require('../models/investigated_test')
+hooks = require('../lib/plugin_hooks')
 
 # NOTE: Lane quota is enforced on the frontend only (applyLaneQuota in license.service.ts).
 # Backend intentionally returns the full unfiltered list — lanes are derived aggregations,
@@ -253,9 +250,8 @@ router.post '/status/calculate/:id',  (req, res, next) ->
                 status: rs,
                 end_time: foundBuild.end_time
               }
-              fireNotificationRules(req, res, foundBuild, rs)
               evaluator.evaluateQuarantineRules(foundBuild)
-              # fireAutoTriage(foundBuild)
+              hooks.emit('onBuildComplete', { build: foundBuild, statusSummary: rs })
           else
             res.status(404)
             res.json {message: "Cannot find build id " + req.params.id}
@@ -1005,168 +1001,5 @@ router.post '/search', (req, res, next) ->
   })
   .exec((err, builds) -> res.json builds );
 
-
-fireAutoTriage = (build) ->
-  product = build.product
-  type    = build.type
-  prefix  = "[auto-fire] #{product}/#{type} build=#{build._id}"
-
-  Test.find({ build: build._id, status: { $in: ['FAIL', 'RERUN_FAIL'] } })
-  .select('uid name failure')
-  .lean()
-  .exec (testErr, failingTests) ->
-    if testErr
-      logger.error "#{prefix} Test.find error", testErr
-      return
-    return unless failingTests and failingTests.length
-
-    failingUids = failingTests.map (t) -> t.uid
-
-    InvestigatedTest.find({ uid: { $in: failingUids }, product, type })
-    .select('uid create_at configuration is_auto_triaged')
-    .lean()
-    .exec (invErr, existingInvests) ->
-      if invErr
-        logger.error "#{prefix} InvestigatedTest.find error", invErr
-        return
-
-      now = Date.now()
-      coveredUids = new Set()
-      for inv in (existingInvests or [])
-        unless inv.is_auto_triaged
-          coveredUids.add(inv.uid)
-          continue
-        ttl = inv.configuration?.ttl
-        if ttl is -1
-          coveredUids.add(inv.uid)
-        else if ttl > 0
-          expiresAt = new Date(inv.create_at).getTime() + (ttl * 24 * 60 * 60 * 1000)
-          coveredUids.add(inv.uid) if expiresAt > now
-
-      eligibleTests = failingTests
-        .filter (t) -> !coveredUids.has(t.uid)
-        .map (t) ->
-          uid:          t.uid
-          name:         t.name
-          token:        t.failure?.token
-          errorMessage: t.failure?.error_message
-          stackTrace:   t.failure?.stack_trace
-
-      return unless eligibleTests.length
-
-      autoTriageEvaluator.runAutoTriage product, type, eligibleTests, false, [], (atErr, result) ->
-        if atErr
-          # Not-enabled (400) is expected when auto-triage is off — log at debug level
-          if atErr.status is 400
-            logger.debug "#{prefix} #{atErr.message}"
-          else
-            logger.error "#{prefix} error", atErr
-        else
-          logger.info "#{prefix} #{result.created} auto-triage doc(s) created"
-
-fireNotificationRules = (req, res, build, statusSummary) ->
-  # Fetch quarantined UIDs to exclude from notification triggers
-  QuarantinedTest.find({ product: build.product, type: build.type, is_active: true })
-  .select('uid')
-  .exec (qErr, qTests) ->
-    quarantinedUids = (qTests or []).map (q) -> q.uid
-
-    Setting.findOne({ product: build.product, type: build.type }).exec (err, setting) ->
-      return unless setting?.notification?.rules?.length
-      return unless getLicenseState().features.includes('notifications')
-      enabledRules = setting.notification.rules.filter (r) -> r.enabled
-      return unless enabledRules.length
-
-      matchedRules = []
-      pending = enabledRules.length
-
-      dispatchGrouped = ->
-        return unless matchedRules.length
-        recipientRuleMap = {}
-        matchedRules.forEach (rule) ->
-          (rule.recipients or []).forEach (recipientId) ->
-            id = recipientId.toString()
-            recipientRuleMap[id] = [] unless recipientRuleMap[id]
-            recipientRuleMap[id].push rule.name
-        allRecipientIds = Object.keys(recipientRuleMap)
-        return unless allRecipientIds.length
-        User.find({ _id: { $in: allRecipientIds } }).exec (err, users) ->
-          validUsers = (users or []).filter (u) -> u.email
-          return unless validUsers.length
-          validUsers.forEach (user) ->
-            ruleNames = recipientRuleMap[user._id.toString()] or []
-            sendBuildNotification(req, res, [user], build, statusSummary, ruleNames)
-
-      checkDone = ->
-        pending -= 1
-        dispatchGrouped() if pending == 0
-
-      matchesScope = (rule, build) ->
-        scope = rule.scope or {}
-        ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage'].every (f) ->
-          return true unless scope[f]
-          build[f] == scope[f]
-
-      enabledRules.forEach (rule) ->
-        unless matchesScope(rule, build)
-          checkDone()
-          return
-        filter    = rule.filter or {}
-        statuses  = filter.statuses or ['FAIL']
-        search    = filter.search or ''
-        relations = filter.relations or []
-        logic     = filter.logic or 'AND'
-
-        testQuery = { build: build._id, status: { $in: statuses } }
-        # Exclude quarantined UIDs from notification queries
-        if quarantinedUids.length
-          testQuery.uid = { $nin: quarantinedUids }
-        if search
-          testQuery.$or = [
-            { uid:  { $regex: search, $options: 'i' } },
-            { name: { $regex: search, $options: 'i' } }
-          ]
-
-        if relations.length == 0
-          Test.find(testQuery).limit(1).exec (testErr, tests) ->
-            matchedRules.push rule if tests?.length
-            checkDone()
-        else
-          TestRelation.find({ product: build.product, type: build.type }).exec (relErr, allRelations) ->
-            logger.debug '[notify] rule "' + rule.name + '": found ' + (allRelations?.length or 0) + ' TestRelations for ' + build.product + '/' + build.type
-            if allRelations?.length
-              sample = allRelations[0]
-              logger.debug '[notify] first relation sample: uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
-
-            matchedRelations = matcher.matchesRule(rule, allRelations or [])
-
-            logger.debug '[notify] rule "' + rule.name + '": ' + matchedRelations.length + ' relations matched out of ' + (allRelations?.length or 0)
-            if matchedRelations.length > 0
-              sample = matchedRelations[0]
-              logger.debug '[notify] sample match uid=' + sample.uid + ' tags=' + JSON.stringify(sample.tags) + ' customs=' + JSON.stringify(sample.customs)
-
-            unless matchedRelations.length
-              checkDone()
-              return
-
-            matchedUIDs = matchedRelations.map (tr) -> tr.uid
-            logger.debug '[notify] rule "' + rule.name + '": querying tests with uids=' + JSON.stringify(matchedUIDs) + ' query=' + JSON.stringify(testQuery)
-
-            if search
-              testQuery.$or = [
-                { uid:  { $in: matchedUIDs } },
-                { name: { $regex: search, $options: 'i' } }
-              ]
-              delete testQuery.uid
-            else
-              testQuery.uid = { $in: matchedUIDs }
-              # Re-apply quarantine exclusion after uid override
-              if quarantinedUids.length
-                testQuery.uid = { $in: matchedUIDs, $nin: quarantinedUids }
-
-            Test.find(testQuery).limit(1).exec (testErr, tests) ->
-              logger.debug '[notify] rule "' + rule.name + '": test query found ' + (tests?.length or 0) + ' tests (testErr=' + testErr + ')'
-              matchedRules.push rule if tests?.length
-              checkDone()
 
 module.exports = router

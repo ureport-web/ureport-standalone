@@ -69,6 +69,15 @@ try {
         console.log("worker " + worker.process.pid + " died");
         cluster.fork();
       });
+
+      // Broadcast plugin load requests to all other workers
+      cluster.on("message", function (sender, msg) {
+        if (msg && msg.type === "UREPORT_LOAD_PLUGIN") {
+          Object.values(cluster.workers).forEach(function (worker) {
+            if (worker.id !== sender.id) worker.send(msg);
+          });
+        }
+      });
     } else {
       process.on("unhandledRejection", function (reason) {
         console.error("Unhandled Rejection:", reason);

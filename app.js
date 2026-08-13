@@ -334,6 +334,13 @@ if (config !== undefined) {
     });
   }
 
+  // Plugin system — load any installed enterprise plugins
+  const pluginLoader = require('./src/lib/plugin_loader');
+  const pluginRoutes = require('./src/routes/plugins');
+  pluginLoader.init(app, mongoose);
+  pluginLoader.loadAll();
+  app.use('/api/plugins', isAuthenticatedMid, pluginRoutes);
+
   app.use(function (err, req, res, next) {
     if (res.headersSent) {
       return next(err);

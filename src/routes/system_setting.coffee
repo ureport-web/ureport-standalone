@@ -4,7 +4,7 @@ moment = require('moment');
 
 SystemSetting = require('../models/system_setting')
 getSystemSetting = require('../utils/getSystemSetting')
-{ validateLicense, invalidateCache, setCachedState } = require('../utils/license')
+{ validateLicense, invalidateCache, setCachedState, setRawToken } = require('../utils/license')
 applyAuditTTL = require('../utils/apply_audit_ttl')
 
 ObjectId = require('mongoose').Types.ObjectId;
@@ -42,6 +42,7 @@ applyLicenseKey = (body, existing) ->
     invalidateCache()
     state = validateLicense(newKey)
     setCachedState(state)
+    setRawToken(newKey)
   body
 
 router.get '/:name',  (req, res, next) ->
