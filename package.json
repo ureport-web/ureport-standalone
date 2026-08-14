@@ -5,7 +5,6 @@
   "main": "server.js",
   "scripts": {
     "test": "mocha",
-    "test:plugin": "mocha --compilers coffee:coffee-script/register --recursive test plugins/*/test",
     "start": "node server",
     "seed": "node seedGenerator",
     "initialize": "node initialize.js",
