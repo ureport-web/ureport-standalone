@@ -334,15 +334,30 @@ if (config !== undefined) {
     });
   }
 
+  // Plugin system — load any installed enterprise plugins
+  const pluginLoader = require('./src/lib/plugin_loader');
+  const pluginRoutes = require('./src/routes/plugins');
+  pluginLoader.init(app, mongoose);
+  pluginLoader.loadAll();
+  app.use('/api/plugins', isAuthenticatedMid, pluginRoutes);
+
   app.use(function (err, req, res, next) {
     if (res.headersSent) {
       return next(err);
     }
+    // Client cancelled the request — stream destroyed before body-parser could read it
+    if (err && err.type === 'stream.not.readable') {
+      if (!res.headersSent) res.end();
+      return;
+    }
     console.error("Internal Error:", err);
     if (err && err.name === "ValidationError") {
-      return res.status(500).json({ error: err });
+      if (!res.headersSent) res.status(500).json({ error: err });
+      return;
     }
-    res.status(500).json({ error: "Internal server error" });
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Internal server error" });
+    }
   });
 } else {
   console.error("Cannot find configuration file, Server will not be started.");

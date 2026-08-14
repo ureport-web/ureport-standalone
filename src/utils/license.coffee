@@ -20,6 +20,7 @@ COMMUNITY_JWT = 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJjb21tdW5pdHkiLCJpc3MiOiJ1cmVwb3
 
 # ── State ─────────────────────────────────────────────────────────────────────
 _state = null
+_rawToken = null
 
 # ── Core ──────────────────────────────────────────────────────────────────────
 validateLicense = (key) ->
@@ -47,9 +48,14 @@ setCachedState   = (state) -> _state = state
 initLicense = (cb) ->
   SystemSetting.findOne({ name: 'SYSTEM_SETTING' }).exec (err, setting) ->
     if err
+      _rawToken = null
       _state = validateLicense(null)
     else
-      _state = validateLicense(setting?.license_key or null)
+      _rawToken = setting?.license_key or null
+      _state = validateLicense(_rawToken)
     cb?()
 
-module.exports = { validateLicense, getLicenseState, invalidateCache, setCachedState, initLicense, COMMUNITY_JWT }
+getRawToken = -> _rawToken
+setRawToken = (token) -> _rawToken = token
+
+module.exports = { validateLicense, getLicenseState, getRawToken, setRawToken, invalidateCache, setCachedState, initLicense, COMMUNITY_JWT }

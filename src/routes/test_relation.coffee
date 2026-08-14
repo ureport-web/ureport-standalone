@@ -77,6 +77,10 @@ router.post '/',  (req, res, next) ->
     else
         if(req.body.uid != undefined)
             condition = { uid: req.body.uid }
+            if(req.body.product != undefined)
+                condition.product = req.body.product
+            if(req.body.type != undefined)
+                condition.type = req.body.type
         else
             condition = { uid: 'ureport-does-not-exist' }
 

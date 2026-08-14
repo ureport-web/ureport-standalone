@@ -1,6 +1,9 @@
 
 node_modules/
 
+# Enterprise plugins — installed at runtime, never committed
+plugins/*/
+
 package-lock.json
 
 .husky/post-commit

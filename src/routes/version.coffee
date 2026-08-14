@@ -2,6 +2,7 @@ express = require('express')
 router = express.Router()
 getSystemSetting = require('../utils/getSystemSetting')
 { getLicenseState, COMMUNITY_JWT } = require('../utils/license')
+cache = require('../lib/cache')
 v = require('../../package.json');
 
 router.get '/version', (req, res, next) ->
@@ -9,6 +10,9 @@ router.get '/version', (req, res, next) ->
     generalInfo = JSON.parse(JSON.stringify(v))
     generalInfo['isDemo'] = process.env.UREPORT_IS_DEMO
     generalInfo['smtpConfigured'] = !!(setting?.notification?.email?.user and setting?.notification?.email?.password)
+    generalInfo['cache'] =
+      mode: cache.getMode()
+      connected: cache.isConnected()
     state = getLicenseState()
     generalInfo['licenseToken'] = setting?.license_key or COMMUNITY_JWT
     generalInfo['license'] =

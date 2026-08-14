@@ -87,4 +87,17 @@ router.post '/update/theme', (req, res, next) ->
         #     res.json rs
         # )
 
+router.post '/update/filter-favorites', (req, res, next) ->
+  if !req.body.user
+    return res.status(400).json { error: 'userID is mandatory' }
+  if !AccessControl.canAccessUpdateAnyIfOwn(req.user, req.body.user, component)
+    return res.status(403).json { error: "You don't have permission to perform this action" }
+  User.updateFilterFavorites req.body.user, req.body, (user) ->
+    if !user
+      return res.status(404).json { error: 'Cannot find User with id ' + req.body.user }
+    user.save { validateBeforeSave: false }, (err, rs) ->
+      if err then return next(err)
+      rs['password'] = undefined
+      res.json rs
+
 module.exports = router

@@ -75,4 +75,13 @@ module.exports = {
         res.should.have.status expectStatus
         cb(res)
 
+  autoTriage : (server, cookies, body, dryRun, expectStatus, cb) ->
+    req = chai.request(server).post(endpoint + "/auto-triage?dryRun=" + dryRun)
+    req.cookies = cookies if cookies
+
+    req.send(body).end (err, res) ->
+      target = if err then err.response else res
+      target.should.have.status expectStatus
+      cb(target)
+
 }

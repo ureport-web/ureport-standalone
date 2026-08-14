@@ -9,7 +9,6 @@ ObjectId = require('mongoose').Types.ObjectId;
 registerAudit = require('../utils/register_audit')
 AccessControl = require('../utils/ac_grants')
 getSystemSetting = require('../utils/getSystemSetting')
-
 component = 'investigate'
 
 router.get '/:id',  (req, res, next) ->

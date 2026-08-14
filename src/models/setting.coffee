@@ -16,6 +16,7 @@ quarantineThresholdSchema = new Schema(
   {
     conditions: [quarantineConditionSchema]
     resolve_passes: { type: Number }
+    min_pass_rate: { type: Number }
   }
   { _id: false }
 )
@@ -58,6 +59,32 @@ quarantineRuleSchema = new Schema(
     scope: quarantineScopeSchema
     filter: quarantineFilterSchema
     threshold: quarantineThresholdSchema
+  }
+  { _id: false }
+)
+
+autoTriageScopeRelationSchema = new Schema(
+  {
+    type: { type: String }
+    values: [String]
+  }
+  { _id: false }
+)
+
+autoTriageScopeFilterSchema = new Schema(
+  {
+    logic: { type: String }
+    relations: [autoTriageScopeRelationSchema]
+  }
+  { _id: false }
+)
+
+autoTriageSettingsSchema = new Schema(
+  {
+    enabled: { type: Boolean, default: false }
+    max_source_age_days: { type: Number, default: 90 }
+    ttl_days: { type: Number, default: 5 }
+    scope_filter: autoTriageScopeFilterSchema
   }
   { _id: false }
 )
@@ -105,6 +132,7 @@ settingSchema = new Schema(
 	)],
 	notification: Schema.Types.Mixed,
 	quarantine_rules: quarantineRulesSchema,
+	auto_triage_settings: autoTriageSettingsSchema,
 	default_framework: { type: String },
 	investigated_setting: Schema(
 		{	
@@ -166,6 +194,8 @@ settingSchema.statics.update = (setting, payload) ->
 			setting.notification = payload.notification
 		if(payload.quarantine_rules != undefined)
 			setting.quarantine_rules = payload.quarantine_rules
+		if(payload.auto_triage_settings != undefined)
+			setting.auto_triage_settings = payload.auto_triage_settings
 		if(payload.default_framework != undefined)
 			setting.default_framework = payload.default_framework
 			setting.markModified('default_framework')
