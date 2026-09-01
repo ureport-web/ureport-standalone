@@ -177,7 +177,7 @@
         background: #fff;
         color: var(--black);
         min-height: auto;
-        padding: 100px 2rem 60px;
+        padding: 100px 2rem 40px;
       }
       .section--cta {
         background: #fff;
@@ -295,8 +295,13 @@
       /* SCREENSHOT MOCK */
       .screenshot-wrap {
         max-width: 900px;
-        margin: 0 auto 80px;
+        margin: 0 auto 1.5rem;
         padding: 0 2rem;
+      }
+      .screenshot-cta {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 2rem 5rem;
       }
       .screenshot {
         border: 1px solid var(--border);
@@ -333,12 +338,85 @@
         font-family: "DM Mono", monospace;
         color: var(--gray-400);
       }
-      .screenshot-body {
-        padding: 1.5rem;
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
+      /* CAROUSEL */
+      .carousel {
+        position: relative;
+        line-height: 0;
       }
+      .carousel-track {
+        display: flex;
+        transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
+      }
+      .carousel-track img {
+        width: 100%;
+        flex-shrink: 0;
+        display: block;
+        border-radius: 0 0 10px 10px;
+      }
+      .carousel-dots {
+        position: absolute;
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 6px;
+        line-height: 1;
+      }
+      .carousel-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.2);
+        cursor: pointer;
+        border: none;
+        padding: 0;
+        transition: background 0.2s, transform 0.2s;
+      }
+      .carousel-dot.active {
+        background: var(--black);
+        transform: scale(1.3);
+      }
+      .carousel-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255,255,255,0.85);
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        color: var(--black);
+        z-index: 2;
+        transition: background 0.15s;
+      }
+      .carousel-arrow:hover { background: #fff; }
+      .carousel-arrow.prev { left: 10px; }
+      .carousel-arrow.next { right: 10px; }
+      .carousel-trust {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 1.25rem;
+        font-size: 0.8rem;
+        color: var(--gray-400);
+        flex-wrap: wrap;
+      }
+      .carousel-trust a {
+        color: var(--gray-400);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.15s;
+      }
+      .carousel-trust a:hover { color: var(--black); }
+      .carousel-trust .sep { opacity: 0.4; }
       .mock-card {
         background: #fff;
         border: 1px solid var(--border);
@@ -454,9 +532,6 @@
         color: var(--amber);
       }
       @media (max-width: 700px) {
-        .screenshot-body {
-          grid-template-columns: repeat(2, 1fr);
-        }
         .mock-bar-wrap {
           grid-column: span 2;
         }
@@ -1686,31 +1761,17 @@
       .pricing-grid--3 {
         grid-template-columns: repeat(3, 1fr);
       }
+      .pricing-grid--4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
       .pricing-card {
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1.75rem;
         background: #fff;
         position: relative;
-      }
-      .pricing-card.featured {
-        border-color: var(--primary);
-        background: var(--primary);
-        color: #fff;
-      }
-      .pricing-popular {
-        position: absolute;
-        top: -11px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 11px;
-        font-family: "DM Mono", monospace;
-        font-weight: 500;
-        background: var(--primary);
-        color: #fff;
-        padding: 3px 12px;
-        border-radius: 100px;
-        white-space: nowrap;
+        display: flex;
+        flex-direction: column;
       }
       .pricing-tier {
         font-size: 12px;
@@ -1721,9 +1782,6 @@
         letter-spacing: 0.05em;
         text-transform: uppercase;
       }
-      .pricing-card.featured .pricing-tier {
-        color: rgba(255, 255, 255, 0.5);
-      }
       .pricing-price {
         font-size: 2rem;
         font-weight: 500;
@@ -1731,16 +1789,10 @@
         color: var(--black);
         margin-bottom: 0.25rem;
       }
-      .pricing-card.featured .pricing-price {
-        color: #fff;
-      }
       .pricing-cadence {
         font-size: 13px;
         color: var(--gray-400);
         margin-bottom: 1.5rem;
-      }
-      .pricing-card.featured .pricing-cadence {
-        color: rgba(255, 255, 255, 0.4);
       }
       .pricing-desc {
         font-size: 13px;
@@ -1748,9 +1800,6 @@
         font-weight: 300;
         margin-bottom: 1.5rem;
         line-height: 1.5;
-      }
-      .pricing-card.featured .pricing-desc {
-        color: rgba(255, 255, 255, 0.6);
       }
       .pricing-features {
         list-style: none;
@@ -1767,8 +1816,12 @@
         font-size: 13px;
         color: var(--gray-600);
       }
-      .pricing-card.featured .pricing-features li {
-        color: rgba(255, 255, 255, 0.7);
+      .pricing-features li.feature-inherits {
+        padding-top: 8px;
+        margin-top: 4px;
+        border-top: 1px solid var(--border);
+        color: var(--black);
+        font-weight: 500;
       }
       .check {
         width: 16px;
@@ -1782,10 +1835,6 @@
         font-size: 10px;
         color: var(--green);
       }
-      .pricing-card.featured .check {
-        background: rgba(255, 255, 255, 0.15);
-        color: #fff;
-      }
       .btn-plan {
         display: block;
         text-align: center;
@@ -1793,6 +1842,7 @@
         font-size: 13px;
         font-weight: 500;
         padding: 9px;
+        margin-top: auto;
         border-radius: 7px;
         text-decoration: none;
         border: 1px solid var(--border);
@@ -1803,14 +1853,6 @@
       }
       .btn-plan:hover {
         background: var(--gray-100);
-      }
-      .pricing-card.featured .btn-plan {
-        background: #fff;
-        border-color: transparent;
-        color: var(--black);
-      }
-      .pricing-card.featured .btn-plan:hover {
-        opacity: 0.9;
       }
       .pricing-card--wide {
         border: 1px solid var(--border);
@@ -1826,7 +1868,8 @@
       }
       @media (max-width: 700px) {
         .pricing-grid,
-        .pricing-grid--3 {
+        .pricing-grid--3,
+        .pricing-grid--4 {
           grid-template-columns: 1fr;
         }
         .pricing-group-label::after {
@@ -2023,6 +2066,101 @@
           text-align: center;
         }
       }
+
+      /* COMPARE */
+      .compare-inner {
+        max-width: 860px;
+        margin: 0 auto;
+      }
+      .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.88rem;
+        margin-top: 2.5rem;
+      }
+      .compare-table th,
+      .compare-table td {
+        padding: 12px 16px;
+        text-align: center;
+        border-bottom: 1px solid var(--border);
+      }
+      .compare-table th:first-child,
+      .compare-table td:first-child {
+        text-align: left;
+        font-weight: 500;
+        color: var(--black);
+        width: 36%;
+      }
+      .compare-table thead th {
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--gray-400);
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 10px;
+      }
+      .compare-table thead th.col-ureport {
+        color: var(--black);
+        background: var(--gray-50);
+        border-radius: 6px 6px 0 0;
+      }
+      .compare-table tbody tr:hover {
+        background: var(--gray-50);
+      }
+      .compare-table tbody td.col-ureport {
+        background: rgba(0,0,0,0.02);
+        font-weight: 500;
+      }
+      .cmp-yes  { color: var(--green); }
+      .cmp-no   { color: var(--gray-300); }
+      .cmp-part { color: var(--amber); }
+
+      /* FAQ */
+      .faq-inner {
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      .faq-list {
+        margin-top: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .faq-item {
+        border-bottom: 1px solid var(--border);
+      }
+      .faq-q {
+        width: 100%;
+        background: none;
+        border: none;
+        text-align: left;
+        padding: 1.1rem 0;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--black);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+      }
+      .faq-q .faq-icon {
+        font-size: 1.2rem;
+        font-weight: 300;
+        color: var(--gray-400);
+        flex-shrink: 0;
+        transition: transform 0.2s;
+      }
+      .faq-item.open .faq-icon { transform: rotate(45deg); }
+      .faq-a {
+        display: none;
+        padding: 0 0 1.1rem;
+        font-size: 0.88rem;
+        color: var(--gray-500);
+        line-height: 1.7;
+      }
+      .faq-item.open .faq-a { display: block; }
     </style>
   </head>
   <body>
@@ -2035,7 +2173,9 @@
           <div class="home-nav-links">
             <a class="home-nav-link" href="#features">Features</a>
             <a class="home-nav-link" href="#integrations">Integrations</a>
+            <a class="home-nav-link" href="#compare">Compare</a>
             <a class="home-nav-link" href="#pricing">Pricing</a>
+            <a class="home-nav-link" href="#faq">FAQ</a>
             <a class="home-nav-link" href="/docs">Docs</a>
             <a
               class="home-nav-link"
@@ -2060,19 +2200,6 @@
               trends for engineers and leadership to act on — with flaky test
               quarantine and AI root cause analysis built in.
             </p>
-            <div class="hero-actions">
-              <a class="btn btn--primary" href="/nextgen/login">Try Demo →</a>
-              <a
-                class="btn btn--ghost"
-                href="https://github.com/ureport-web/ureport-standalone"
-                target="_blank"
-                ><i class="fab fa-github"></i> GitHub</a
-              >
-            </div>
-            <p class="hero-proof">
-              Free &amp; open source · MIT license · Self-host in under 2
-              minutes
-            </p>
           </div>
         </div>
       </section>
@@ -2083,108 +2210,40 @@
             <div class="dot dot-r"></div>
             <div class="dot dot-y"></div>
             <div class="dot dot-g"></div>
-            <div class="screenshot-url">ureportlab.com/overview</div>
+            <div class="screenshot-url">ureportlab.com</div>
           </div>
-          <div class="screenshot-body">
-            <div class="mock-card">
-              <div class="mock-label">pass rate</div>
-              <div class="mock-value">96.2%</div>
-              <div class="mock-trend up">↑ 1.4% vs last build</div>
+          <div class="carousel" id="heroCarousel">
+            <div class="carousel-track" id="heroTrack">
+              <!--
+                Add as many screenshots as you want here.
+                Carousel auto-adapts to however many <img> tags exist.
+              -->
+              <img src="assets/hero-screenshot-0.png" alt="UReport overview dashboard" loading="eager" />
+              <img src="assets/hero-screenshot-1.png" alt="UReport AI failure analysis" loading="lazy" />
+              <img src="assets/hero-screenshot-2.png" alt="UReport quarantine and flaky tests" loading="lazy" />
+              <img src="assets/hero-screenshot-3.png" alt="UReport build history and trends" loading="lazy" />
+              <img src="assets/hero-screenshot-4.png" alt="UReport build history and trends" loading="lazy" />
+              <img src="assets/hero-screenshot-5.png" alt="UReport build history and trends" loading="lazy" />
             </div>
-            <div class="mock-card">
-              <div class="mock-label">total tests</div>
-              <div class="mock-value">4,821</div>
-              <div class="mock-trend up">↑ 312 new</div>
-            </div>
-            <div class="mock-card">
-              <div class="mock-label">flaky tests</div>
-              <div class="mock-value">7</div>
-              <div class="mock-trend down">↓ 3 quarantined</div>
-            </div>
-            <div class="mock-card">
-              <div class="mock-label">ai analyzed</div>
-              <div class="mock-value">183</div>
-              <div class="mock-trend">failures categorized</div>
-            </div>
-            <div class="mock-card mock-bar-wrap">
-              <div class="mock-label">pass rate — last 10 builds</div>
-              <div class="mock-bars">
-                <div class="mock-bar-col">
-                  <div class="mock-bar-pct">72%</div>
-                  <div class="mock-bar pass" style="height: 72%"></div>
-                </div>
-                <div class="mock-bar-col">
-                  <div class="mock-bar-pct">85%</div>
-                  <div class="mock-bar pass" style="height: 85%"></div>
-                </div>
-                <div class="mock-bar-col">
-                  <div class="mock-bar-pct">78%</div>
-                  <div class="mock-bar pass" style="height: 78%"></div>
-                </div>
-                <div class="mock-bar-col">
-                  <div class="mock-bar-pct">62%</div>
-                  <div class="mock-bar fail" style="height: 62%"></div>
-                </div>
-                <div class="mock-bar-col">
-                  <div class="mock-bar-pct">88%</div>
-                  <div class="mock-bar pass" style="height: 88%"></div>
-                </div>
-                <div class="mock-bar-col">
-                  <div class="mock-bar-pct">91%</div>
-                  <div class="mock-bar pass" style="height: 91%"></div>
-                </div>
-                <div class="mock-bar-col">
-                  <div class="mock-bar-pct">89%</div>
-                  <div class="mock-bar pass" style="height: 89%"></div>
-                </div>
-                <div class="mock-bar-col">
-                  <div class="mock-bar-pct">94%</div>
-                  <div class="mock-bar pass" style="height: 94%"></div>
-                </div>
-                <div class="mock-bar-col">
-                  <div class="mock-bar-pct">93%</div>
-                  <div class="mock-bar pass" style="height: 93%"></div>
-                </div>
-                <div class="mock-bar-col">
-                  <div class="mock-bar-pct">96%</div>
-                  <div class="mock-bar pass" style="height: 96%"></div>
-                </div>
-              </div>
-            </div>
-            <div class="mock-card mock-bar-wrap">
-              <div class="mock-label">recent failures — ai root cause</div>
-              <div class="mock-ai-rows">
-                <div class="mock-ai-row">
-                  <span>checkout_flow_test</span
-                  ><span class="mock-tag tag-fail">Code Defect</span>
-                </div>
-                <div class="mock-ai-row">
-                  <span>login_timeout_test</span
-                  ><span class="mock-tag tag-flaky">Flakiness</span>
-                </div>
-                <div class="mock-ai-row">
-                  <span>api_auth_spec</span
-                  ><span class="mock-tag tag-fail">Env Issue</span>
-                </div>
-              </div>
-            </div>
-            <div class="mock-card mock-list">
-              <div class="mock-label">recent builds</div>
-              <div class="mock-row">
-                <span>build #1042 · main · chrome</span
-                ><span class="mock-tag tag-pass">96.2% pass</span>
-              </div>
-              <div class="mock-row">
-                <span>build #1041 · main · firefox</span
-                ><span class="mock-tag tag-pass">94.8% pass</span>
-              </div>
-              <div class="mock-row">
-                <span>build #1040 · feat/checkout · chrome</span
-                ><span class="mock-tag tag-fail">78.1% pass</span>
-              </div>
-            </div>
+            <button class="carousel-arrow prev" id="heroPrev" aria-label="Previous">&#8249;</button>
+            <button class="carousel-arrow next" id="heroNext" aria-label="Next">&#8250;</button>
+            <div class="carousel-dots" id="heroDots"></div>
           </div>
         </div>
+      </div>
+      <div class="screenshot-cta">
+        <div class="hero-actions" style="justify-content: center;">
+          <a class="btn btn--primary" href="/nextgen/login">Try Demo →</a>
+          <a
+            class="btn btn--ghost"
+            href="https://github.com/ureport-web/ureport-standalone"
+            target="_blank"
+            ><i class="fab fa-github"></i> GitHub</a
+          >
+        </div>
+        <p class="hero-proof" style="text-align: center; margin-top: 0.75rem;">
+          Free &amp; open source · MIT license · Self-host in under 2 minutes
+        </p>
       </div>
 
       <section class="section section--alt section--features-tab" id="features">
@@ -3033,6 +3092,85 @@ reporter: [
         </div>
       </section>
 
+      <section class="section section--alt" id="compare">
+        <div class="compare-inner">
+          <div class="section-label">How we compare</div>
+          <h2 class="section-headline">UReport vs the alternatives</h2>
+          <p class="section-desc">
+            Every tool has a sweet spot. Here's how UReport stacks up against the most common alternatives in the test reporting space.
+          </p>
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th class="col-ureport">UReport</th>
+                <th>Allure</th>
+                <th>ReportPortal</th>
+                <th>Currents</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Persistent build history &amp; trends</td>
+                <td class="col-ureport cmp-yes">✓</td>
+                <td class="cmp-no">—</td>
+                <td class="cmp-yes">✓</td>
+                <td class="cmp-yes">✓</td>
+              </tr>
+              <tr>
+                <td>AI root cause analysis</td>
+                <td class="col-ureport cmp-yes">✓</td>
+                <td class="cmp-no">—</td>
+                <td class="cmp-no">—</td>
+                <td class="cmp-part">Partial</td>
+              </tr>
+              <tr>
+                <td>Flaky test quarantine</td>
+                <td class="col-ureport cmp-yes">✓</td>
+                <td class="cmp-no">—</td>
+                <td class="cmp-part">Partial</td>
+                <td class="cmp-yes">✓</td>
+              </tr>
+              <tr>
+                <td>Self-host (your infra, your data)</td>
+                <td class="col-ureport cmp-yes">✓</td>
+                <td class="cmp-yes">✓</td>
+                <td class="cmp-yes">✓</td>
+                <td class="cmp-no">—</td>
+              </tr>
+              <tr>
+                <td>Free &amp; open source</td>
+                <td class="col-ureport cmp-yes">✓</td>
+                <td class="cmp-yes">✓</td>
+                <td class="cmp-yes">✓</td>
+                <td class="cmp-no">—</td>
+              </tr>
+              <tr>
+                <td>Multi-framework support</td>
+                <td class="col-ureport cmp-yes">✓</td>
+                <td class="cmp-yes">✓</td>
+                <td class="cmp-yes">✓</td>
+                <td class="cmp-part">Cypress-first</td>
+              </tr>
+              <tr>
+                <td>Dashboard sharing</td>
+                <td class="col-ureport cmp-yes">✓</td>
+                <td class="cmp-no">—</td>
+                <td class="cmp-part">Partial</td>
+                <td class="cmp-no">—</td>
+              </tr>
+              <tr>
+                <td>Simple setup (&lt;2 min self-host)</td>
+                <td class="col-ureport cmp-yes">✓</td>
+                <td class="cmp-yes">✓</td>
+                <td class="cmp-no">Complex</td>
+                <td class="cmp-yes">Cloud</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="section section--compact" id="pricing">
         <div class="pricing-inner">
           <div class="section-label">Pricing</div>
@@ -3045,7 +3183,7 @@ reporter: [
           </p>
           <div class="pricing-group">
             <div class="pricing-group-label">Self-Host</div>
-            <div class="pricing-grid pricing-grid--3">
+            <div class="pricing-grid pricing-grid--4">
               <div class="pricing-card">
                 <div class="pricing-tier">Community</div>
                 <div class="pricing-price">$0</div>
@@ -3055,7 +3193,7 @@ reporter: [
                   required.
                 </div>
                 <ul class="pricing-features">
-                  <li><span class="check">✓</span>3 seats</li>
+                  <li><span class="check">✓</span>5 seats</li>
                   <li><span class="check">✓</span>3 product lanes</li>
                   <li><span class="check">✓</span>3 dashboards</li>
                   <li><span class="check">✓</span>MCP server included</li>
@@ -3068,19 +3206,19 @@ reporter: [
                   >Get started →</a
                 >
               </div>
-              <div class="pricing-card featured">
-                <div class="pricing-popular">Most popular</div>
+              <div class="pricing-card">
                 <div class="pricing-tier">Pro</div>
-                <div class="pricing-price">$39</div>
-                <div class="pricing-cadence">per month · billed $468 / yr</div>
+                <div class="pricing-price">$149</div>
+                <div class="pricing-cadence">per month · billed $1,788 / yr</div>
                 <div class="pricing-desc">
                   Higher limits and the full feature set — dashboard sharing and
                   data export.
                 </div>
                 <ul class="pricing-features">
-                  <li><span class="check">✓</span>10 seats</li>
-                  <li><span class="check">✓</span>10 product lanes</li>
-                  <li><span class="check">✓</span>10 dashboards</li>
+                  <li class="feature-inherits"><span class="check">✓</span><strong>Everything in Community</strong></li>
+                  <li><span class="check">✓</span>15 seats</li>
+                  <li><span class="check">✓</span>15 product lanes</li>
+                  <li><span class="check">✓</span>15 dashboards</li>
                   <li><span class="check">✓</span>Dashboard share links</li>
                   <li><span class="check">✓</span>Data export</li>
                 </ul>
@@ -3089,24 +3227,42 @@ reporter: [
                 >
               </div>
               <div class="pricing-card">
-                <div class="pricing-tier">Enterprise</div>
-                <div class="pricing-price">$159</div>
-                <div class="pricing-cadence">
-                  per month · billed $1,908 / yr
-                </div>
+                <div class="pricing-tier">Business</div>
+                <div class="pricing-price">$299</div>
+                <div class="pricing-cadence">per month · billed $3,588 / yr</div>
                 <div class="pricing-desc">
-                  Unlimited seats, lanes, and dashboards. For teams that have
-                  outgrown Pro.
+                  For growing teams that need more seats, audit log, and
+                  email priority support.
+                </div>
+                <ul class="pricing-features">
+                  <li><span class="check">✓</span>30 seats</li>
+                  <li><span class="check">✓</span>30 product lanes</li>
+                  <li><span class="check">✓</span>30 dashboards</li>
+                  <li class="feature-inherits"><span class="check">✓</span><strong>Everything in Pro</strong></li>
+                  <li><span class="check">✓</span>Audit log</li>
+                  <li><span class="check">✓</span>Priority support (email)</li>
+                </ul>
+                <a class="btn-plan" href="mailto:ureport@outlook.com"
+                  >Contact us →</a
+                >
+              </div>
+              <div class="pricing-card">
+                <div class="pricing-tier">Enterprise</div>
+                <div class="pricing-desc">
+                  Unlimited everything. Custom contracts, SSO, and dedicated
+                  support for large organizations.
                 </div>
                 <ul class="pricing-features">
                   <li>
                     <span class="check">✓</span>Unlimited seats, lanes &amp;
                     dashboards
                   </li>
-                  <li><span class="check">✓</span>Everything in Pro</li>
+                  <li class="feature-inherits"><span class="check">✓</span><strong>Everything in Business</strong></li>
                   <li><span class="check">✓</span>Email notifications</li>
-                  <li><span class="check">✓</span>Audit log</li>
-                  <li><span class="check">✓</span>Priority support</li>
+                  <li><span class="check">✓</span>Auto-triage</li>
+                  <li><span class="check">✓</span>SSO / SAML</li>
+                  <li><span class="check">✓</span>Custom contracts &amp; SLA</li>
+                  <li><span class="check">✓</span>Dedicated support</li>
                 </ul>
                 <a class="btn-plan" href="mailto:ureport@outlook.com"
                   >Contact us →</a
@@ -3118,28 +3274,127 @@ reporter: [
             <div class="pricing-group-label">
               Cloud<span class="pricing-group-badge">Coming Soon</span>
             </div>
-            <div class="pricing-card pricing-card--wide">
-              <div class="pricing-tier">Cloud · Managed</div>
-              <div class="pricing-price">$15</div>
-              <div class="pricing-cadence">
-                per seat / month · fully managed
+            <div class="pricing-grid pricing-grid--3">
+              <div class="pricing-card">
+                <div class="pricing-tier">Cloud · Pro</div>
+                <div class="pricing-price">$199</div>
+                <div class="pricing-cadence">per month · billed $2,388 / yr · up to 10 seats · $20 / seat after</div>
+                <div class="pricing-desc">
+                  All Pro features, zero infrastructure. We handle MongoDB,
+                  backups, and updates.
+                </div>
+                <ul class="pricing-features">
+                  <li><span class="check">✓</span>Up to 10 seats included</li>
+                  <li><span class="check">✓</span>$20 / seat over 10</li>
+                  <li><span class="check">✓</span>Dashboard share links</li>
+                  <li><span class="check">✓</span>Data export</li>
+                  <li><span class="check">✓</span>30-day data retention</li>
+                  <li><span class="check">✓</span>500 AI credits / mo</li>
+                  <li><span class="check">✓</span>Managed MongoDB &amp; backups</li>
+                  <li><span class="check">✓</span>Automatic updates</li>
+                </ul>
+                <a class="btn-plan" href="mailto:ureport@outlook.com"
+                  >Contact us →</a
+                >
               </div>
-              <div class="pricing-desc">
-                Zero infrastructure. We host and manage UReport for you —
-                MongoDB, backups, and updates included. All Enterprise features
-                out of the box.
+              <div class="pricing-card">
+                <div class="pricing-tier">Cloud · Business</div>
+                <div class="pricing-price">$399</div>
+                <div class="pricing-cadence">per month · billed $4,788 / yr · up to 30 seats · $15 / seat after</div>
+                <div class="pricing-desc">
+                  All Business features fully managed — audit log, 90-day
+                  retention, and priority email support.
+                </div>
+                <ul class="pricing-features">
+                  <li><span class="check">✓</span>Up to 30 seats included</li>
+                  <li><span class="check">✓</span>$15 / seat over 30</li>
+                  <li class="feature-inherits"><span class="check">✓</span><strong>Everything in Cloud Pro</strong></li>
+                  <li><span class="check">✓</span>Audit log</li>
+                  <li><span class="check">✓</span>90-day data retention</li>
+                  <li><span class="check">✓</span>1,000 AI credits / mo</li>
+                  <li><span class="check">✓</span>Managed MongoDB &amp; backups</li>
+                  <li><span class="check">✓</span>Priority support (email)</li>
+                </ul>
+                <a class="btn-plan" href="mailto:ureport@outlook.com"
+                  >Contact us →</a
+                >
               </div>
-              <ul class="pricing-features pricing-features--row">
-                <li><span class="check">✓</span>Everything in Pro</li>
-                <li>
-                  <span class="check">✓</span>Managed MongoDB &amp; backups
-                </li>
-                <li><span class="check">✓</span>SSO / SAML</li>
-                <li><span class="check">✓</span>Automatic updates</li>
-              </ul>
-              <a class="btn-plan" href="mailto:ureport@outlook.com"
-                >Join waitlist →</a
-              >
+              <div class="pricing-card">
+                <div class="pricing-tier">Cloud · Enterprise</div>
+                <div class="pricing-desc">
+                  Unlimited seats, SSO, auto-triage, custom SLA, and dedicated
+                  support. We scope it to your team.
+                </div>
+                <ul class="pricing-features">
+                  <li><span class="check">✓</span>Unlimited seats</li>
+                  <li class="feature-inherits"><span class="check">✓</span><strong>Everything in Cloud Business</strong></li>
+                  <li><span class="check">✓</span>Email notifications</li>
+                  <li><span class="check">✓</span>Auto-triage</li>
+                  <li><span class="check">✓</span>Custom data retention</li>
+                  <li><span class="check">✓</span>SSO / SAML</li>
+                  <li><span class="check">✓</span>Custom SLA &amp; contracts</li>
+                  <li><span class="check">✓</span>Dedicated support</li>
+                </ul>
+                <a class="btn-plan" href="mailto:ureport@outlook.com"
+                  >Contact us →</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--alt" id="faq">
+        <div class="faq-inner">
+          <div class="section-label">FAQ</div>
+          <h2 class="section-headline">Common questions</h2>
+          <div class="faq-list">
+            <div class="faq-item">
+              <button class="faq-q">Where does my data live?<span class="faq-icon">+</span></button>
+              <div class="faq-a">
+                <strong>Self-host:</strong> entirely on your own infrastructure. Your test data never leaves your servers. You control the MongoDB/DocumentDB instance, the network, and the retention policy — full data sovereignty.<br /><br />
+                <strong>Cloud:</strong> data is stored in UReport-managed infrastructure. Your data is isolated per organisation and never shared across tenants. If data residency or sovereignty is a hard requirement, the self-host plan gives you full control.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-q">Which databases are supported?<span class="faq-icon">+</span></button>
+              <div class="faq-a">
+                <strong>Self-host:</strong> MongoDB 4.x+ and AWS DocumentDB. Any MongoDB-compatible driver works — Atlas cluster, self-managed replica set, or DocumentDB endpoint. You own the database.<br /><br />
+                <strong>Cloud:</strong> the database is fully managed by UReport. No setup required.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-q">How do I send test results to UReport?<span class="faq-icon">+</span></button>
+              <div class="faq-a">Via REST API or one of the official reporters: <strong>ureport-playwright-reporter</strong> for Playwright, with Jest, Cypress, and others supported through the generic API. Results are pushed at the end of each test run — no agent required.</div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-q">Can I run it in an air-gapped environment?<span class="faq-icon">+</span></button>
+              <div class="faq-a">
+                <strong>Self-host:</strong> yes. UReport has no mandatory outbound connections. AI features use whichever LLM provider you configure (OpenAI-compatible), including a locally hosted model. Fully offline-capable.<br /><br />
+                <strong>Cloud:</strong> not applicable — the cloud plan requires internet access by nature.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-q">How long is test data retained?<span class="faq-icon">+</span></button>
+              <div class="faq-a">
+                <strong>Self-host:</strong> build and test data are kept indefinitely — you control cleanup directly in your database. Audit log retention is configurable in System Settings; UReport applies the TTL index automatically.<br /><br />
+                <strong>Cloud:</strong> retention is determined by your plan tier — 30 days on Pro, 90 days on Business, and configurable on Enterprise.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-q">Is SSO or LDAP supported?<span class="faq-icon">+</span></button>
+              <div class="faq-a">SSO and LDAP integration are available on the Enterprise plan. The Community and Pro tiers use built-in username/password authentication with role-based access control (admin, operator, viewer).</div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-q">What happens when my license expires?<span class="faq-icon">+</span></button>
+              <div class="faq-a">
+                <strong>Self-host:</strong> UReport gracefully downgrades to the Community tier — no lockout, no data loss. Features above the Community limit become unavailable until the license is renewed, but existing data and access remain intact.<br /><br />
+                <strong>Cloud:</strong> when a subscription ends, access to the workspace is suspended. Your data is retained for 30 days — contact us to export or renew before it is removed.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-q">How is pricing calculated?<span class="faq-icon">+</span></button>
+              <div class="faq-a">Self-host plans are per instance, not per seat — you pay once and all users within the seat cap are included. Cloud plans include a base seat count with per-seat overage after that.</div>
             </div>
           </div>
         </div>
@@ -3226,6 +3481,63 @@ reporter: [
 
       document.querySelectorAll(".animate").forEach(function (el) {
         observer.observe(el);
+      });
+
+      // Hero carousel
+      (function () {
+        var track = document.getElementById('heroTrack');
+        var dotsContainer = document.getElementById('heroDots');
+        if (!track) return;
+
+        var slides = track.querySelectorAll('img');
+        var total = slides.length;
+        var current = 0;
+        var timer;
+
+        // Build dots
+        slides.forEach(function (_, i) {
+          var btn = document.createElement('button');
+          btn.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+          btn.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+          btn.addEventListener('click', function () { goTo(i); resetTimer(); });
+          dotsContainer.appendChild(btn);
+        });
+
+        function goTo(idx) {
+          current = (idx + total) % total;
+          track.style.transform = 'translateX(-' + current * 100 + '%)';
+          dotsContainer.querySelectorAll('.carousel-dot').forEach(function (d, i) {
+            d.classList.toggle('active', i === current);
+          });
+        }
+
+        function next() { goTo(current + 1); }
+        function prev() { goTo(current - 1); }
+
+        function resetTimer() {
+          clearInterval(timer);
+          timer = setInterval(next, 4000);
+        }
+
+        document.getElementById('heroNext').addEventListener('click', function () { next(); resetTimer(); });
+        document.getElementById('heroPrev').addEventListener('click', function () { prev(); resetTimer(); });
+
+        // Pause on hover
+        var carousel = document.getElementById('heroCarousel');
+        carousel.addEventListener('mouseenter', function () { clearInterval(timer); });
+        carousel.addEventListener('mouseleave', resetTimer);
+
+        resetTimer();
+      })();
+
+      // FAQ accordion
+      document.querySelectorAll('.faq-q').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var item = btn.closest('.faq-item');
+          var isOpen = item.classList.contains('open');
+          document.querySelectorAll('.faq-item.open').forEach(function (el) { el.classList.remove('open'); });
+          if (!isOpen) item.classList.add('open');
+        });
       });
     </script>
   </body>

@@ -39,31 +39,47 @@ router.post '/login', (req, res, next) ->
         if user.status != 'active'
             createAuthAudit(req, 'LOGIN_FAIL', 'Login Failed - Account Inactive', user.username)
             return res.status(403).json({ message: 'Account not active. Please contact administrator.' })
-        # Terminate all existing sessions for this user
-        sessionColl = mongoose.connection.db.collection('sessions')
-        userIdStr = user._id.toString()
-        sessionColl.find({ session: { $regex: userIdStr } }).toArray (findErr, docs) ->
-            updates = (docs or []).map (doc) ->
-                try
-                    data = JSON.parse(doc.session)
-                    data.terminated = true
-                    sessionColl.updateOne({ _id: doc._id }, { $set: { session: JSON.stringify(data) } })
-                catch e
-                    Promise.resolve()
-            Promise.all(updates).then ->
-                req.session.regenerate (err) ->
+
+        # Fix 1: block demo user login on non-demo instances
+        isDemoInstance = process.env.UREPORT_IS_DEMO is 'true'
+        if user.username is 'demo' and not isDemoInstance
+            return res.status(403).json({ message: 'Invalid username or password' })
+
+        isDemoUser = isDemoInstance and user.username is 'demo'
+
+        doLogin = ->
+            req.session.regenerate (err) ->
+                if (err)
+                    return next(err)
+                req.login user, (err) ->
                     if (err)
                         return next(err)
-                    req.login user, (err) ->
-                        if (err)
-                            return next(err)
+                    # Fix 5: skip audit logging for demo user to avoid noise
+                    if not isDemoUser
                         createAuthAudit(req, 'LOGIN', 'Login Success', user.username)
-                        # Sign the session ID with the same secret used by express-session
-                        signedSessionId = 's:' + signature.sign(req.sessionID, 'uReport')
-                        return res.json({
-                            session: req.session,
-                            sessionId: signedSessionId
-                        })
+                    signedSessionId = 's:' + signature.sign(req.sessionID, 'uReport')
+                    return res.json({
+                        session: req.session,
+                        sessionId: signedSessionId
+                    })
+
+        if isDemoUser
+            # Fix 1 (cont): allow concurrent demo sessions — skip session termination
+            doLogin()
+        else
+            # Terminate all existing sessions for this user
+            sessionColl = mongoose.connection.db.collection('sessions')
+            userIdStr = user._id.toString()
+            sessionColl.find({ session: { $regex: userIdStr } }).toArray (findErr, docs) ->
+                updates = (docs or []).map (doc) ->
+                    try
+                        data = JSON.parse(doc.session)
+                        data.terminated = true
+                        sessionColl.updateOne({ _id: doc._id }, { $set: { session: JSON.stringify(data) } })
+                    catch e
+                        Promise.resolve()
+                Promise.all(updates).then ->
+                    doLogin()
     )(req, res, next);
 
 router.post '/signup', (req, res, next) ->
@@ -71,6 +87,9 @@ router.post '/signup', (req, res, next) ->
 
     if !username || !email || !password
         return res.status(400).json({ message: 'Username, email, and password are required' })
+
+    if username.toLowerCase() is 'demo'
+        return res.status(400).json({ message: 'Username is not allowed' })
 
     isAdminCreating = req.isAuthenticated() && req.user?.role == 'admin' && req.body.adminCreated == true
 
