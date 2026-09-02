@@ -218,17 +218,25 @@ if (config !== undefined) {
   app.use("/api/quarantine", isAuthenticatedMid);
   app.use("/api/audit", isAuthenticatedMid);
 
-  // Fix 2: block all mutating API requests for demo user
+  // Fix 2: block mutating API requests for demo user
+  // PUT/PATCH/DELETE are always writes; POST needs finer control because many
+  // read endpoints (filter, search, aggregate, pagination) use POST.
   if (process.env.UREPORT_IS_DEMO === "true") {
-    const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-    const DEMO_WRITE_WHITELIST = ["/api/login", "/api/logout"];
+    const DEMO_ALWAYS_BLOCKED_METHODS = new Set(["PUT", "PATCH", "DELETE"]);
+    const DEMO_PATH_WHITELIST = ["/login", "/logout"];
+    // POST paths that are read-only: filter, search, aggregate, pagination (:page/:perPage), etc.
+    const DEMO_POST_READ_PATTERN =
+      /\/(filter|search|aggregate|total|history|find|recommend|others|latest|stable|unstable|trend|analyze-test|top-failures|slowest|pass-rate|duration|global-)(\/|$)|\d+\/\d+\/?$/;
+
     app.use("/api", (req, res, next) => {
-      if (
-        MUTATING_METHODS.has(req.method) &&
-        !DEMO_WRITE_WHITELIST.includes(req.path) &&
-        req.isAuthenticated() &&
-        req.user?.username === "demo"
-      ) {
+      if (!req.isAuthenticated() || req.user?.username !== "demo") return next();
+      if (DEMO_PATH_WHITELIST.includes(req.path)) return next();
+
+      const isBlocked =
+        DEMO_ALWAYS_BLOCKED_METHODS.has(req.method) ||
+        (req.method === "POST" && !DEMO_POST_READ_PATTERN.test(req.path));
+
+      if (isBlocked) {
         return res.status(403).json({ message: "Demo mode: write operations are disabled." });
       }
       next();
