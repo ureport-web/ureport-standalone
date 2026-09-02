@@ -226,7 +226,7 @@ if (config !== undefined) {
     const DEMO_PATH_WHITELIST = ["/login", "/logout"];
     // POST paths that are read-only: filter, search, aggregate, pagination (:page/:perPage), etc.
     const DEMO_POST_READ_PATTERN =
-      /\/(filter|search|aggregate|total|history|find|recommend|others|latest|stable|unstable|trend|analyze-test|top-failures|slowest|pass-rate|duration|global-)(\/|$)|\d+\/\d+\/?$/;
+      /\/(filter|search|aggregate|total|history|find|recommend|others|latest|stable|unstable|trend|analyze-test|top-failures|slowest|pass-rate|duration)(\/|$)|\/global-|\d+\/\d+\/?$/;
 
     app.use("/api", (req, res, next) => {
       if (!req.isAuthenticated() || req.user?.username !== "demo") return next();
