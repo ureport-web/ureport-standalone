@@ -1,0 +1,32 @@
+UREPORT PREMIUM PLUGINS — PROPRIETARY LICENSE
+
+Copyright (c) 2024 ureport-web. All rights reserved.
+
+The UReport core platform is open source and licensed under the MIT License
+(see LICENSE). This file applies exclusively to premium plugins distributed
+through UReport's plugin server or made available under a paid plan.
+
+GRANT OF USE
+A valid UReport license key grants you a limited, non-exclusive,
+non-transferable right to install and use the premium plugins solely for your
+organisation's internal purposes, subject to the seat and feature limits of
+your plan.
+
+RESTRICTIONS
+You may not:
+  - Copy, distribute, sublicense, or resell the premium plugins.
+  - Modify, reverse-engineer, decompile, or disassemble the premium plugins.
+  - Use the premium plugins beyond the limits of your active license.
+  - Make the premium plugins available to third parties as a service.
+
+TERMINATION
+This license is effective until terminated. It terminates automatically if you
+fail to comply with any term herein or if your UReport subscription lapses.
+Upon termination you must cease all use of the premium plugins and delete any
+copies in your possession.
+
+NO WARRANTY
+The premium plugins are provided "as is" without warranty of any kind.
+UReport-web shall not be liable for any damages arising from their use.
+
+For licensing inquiries contact: hello@ureportlab.com
