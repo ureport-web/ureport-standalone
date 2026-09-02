@@ -2067,6 +2067,69 @@
         }
       }
 
+      /* MCP */
+      .mcp-inner {
+        max-width: 900px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+      }
+      .mcp-text .section-label { margin-bottom: 1rem; }
+      .mcp-text h2 { margin-bottom: 1rem; }
+      .mcp-text p { color: var(--gray-500); line-height: 1.7; margin-bottom: 1.5rem; }
+      .mcp-queries {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+      .mcp-query {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        font-size: 0.88rem;
+        color: var(--gray-500);
+      }
+      .mcp-query::before {
+        content: "→";
+        color: var(--green);
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .mcp-terminal {
+        background: #0f1117;
+        border-radius: 12px;
+        overflow: hidden;
+        font-family: "DM Mono", monospace;
+        font-size: 0.78rem;
+        line-height: 1.6;
+      }
+      .mcp-terminal-bar {
+        background: #1e2028;
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+      }
+      .mcp-terminal-bar span {
+        font-size: 0.72rem;
+        color: rgba(255,255,255,0.3);
+        margin-left: 6px;
+      }
+      .mcp-terminal-body {
+        padding: 1.25rem 1.5rem;
+        color: #e2e8f0;
+      }
+      .mcp-line-prompt { color: #7ee787; }
+      .mcp-line-response { color: #79c0ff; }
+      .mcp-line-data { color: rgba(255,255,255,0.5); }
+      @media (max-width: 800px) {
+        .mcp-inner { grid-template-columns: 1fr; gap: 2rem; }
+      }
+
       /* COMPARE */
       .compare-inner {
         max-width: 860px;
@@ -2172,6 +2235,7 @@
           >
           <div class="home-nav-links">
             <a class="home-nav-link" href="#features">Features</a>
+            <a class="home-nav-link" href="#mcp">MCP</a>
             <a class="home-nav-link" href="#integrations">Integrations</a>
             <a class="home-nav-link" href="#compare">Compare</a>
             <a class="home-nav-link" href="#pricing">Pricing</a>
@@ -3006,6 +3070,44 @@
         </div>
       </section>
 
+      <section class="section" id="mcp">
+        <div class="mcp-inner">
+          <div class="mcp-text animate from-below">
+            <div class="section-label">MCP · Model Context Protocol</div>
+            <h2 class="section-headline">Query your test data<br /><strong>in plain English</strong></h2>
+            <p>Connect Claude or Cursor to UReport via MCP. Ask questions about your test results the same way you'd ask a teammate — no dashboard, no query language required.</p>
+            <div class="mcp-queries">
+              <div class="mcp-query">"Which tests have been flaky this week?"</div>
+              <div class="mcp-query">"Show me the top 5 failure root causes on the main branch"</div>
+              <div class="mcp-query">"What's the pass rate trend for the checkout flow?"</div>
+              <div class="mcp-query">"List all quarantined tests in the payment product"</div>
+            </div>
+            <a class="btn btn--ghost" href="/docs#mcp">Read the MCP docs →</a>
+          </div>
+          <div class="mcp-terminal animate from-below">
+            <div class="mcp-terminal-bar">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+              <span>Claude · UReport MCP</span>
+            </div>
+            <div class="mcp-terminal-body">
+              <div class="mcp-line-prompt">You: Which tests are flaky this week?</div>
+              <br />
+              <div class="mcp-line-response">Claude: Found 7 flaky tests in the last 7 days:</div>
+              <br />
+              <div class="mcp-line-data">• checkout_flow_test — failed 3/10 runs</div>
+              <div class="mcp-line-data">• login_timeout_spec — failed 2/10 runs</div>
+              <div class="mcp-line-data">• api_auth_retry — failed 2/8 runs</div>
+              <div class="mcp-line-data">  + 4 more …</div>
+              <br />
+              <div class="mcp-line-response">3 are already quarantined. Want me</div>
+              <div class="mcp-line-response">to summarise the root causes?</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="section section--compact" id="integrations">
         <div class="integrations-inner">
           <div class="integrations-text">
@@ -3157,6 +3259,13 @@ reporter: [
                 <td class="col-ureport cmp-yes">✓</td>
                 <td class="cmp-no">—</td>
                 <td class="cmp-part">Partial</td>
+                <td class="cmp-no">—</td>
+              </tr>
+              <tr>
+                <td>MCP — query via Claude / Cursor</td>
+                <td class="col-ureport cmp-yes">✓</td>
+                <td class="cmp-no">—</td>
+                <td class="cmp-no">—</td>
                 <td class="cmp-no">—</td>
               </tr>
               <tr>
@@ -3391,6 +3500,10 @@ reporter: [
                 <strong>Self-host:</strong> UReport gracefully downgrades to the Community tier — no lockout, no data loss. Features above the Community limit become unavailable until the license is renewed, but existing data and access remain intact.<br /><br />
                 <strong>Cloud:</strong> when a subscription ends, access to the workspace is suspended. Your data is retained for 30 days — contact us to export or renew before it is removed.
               </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-q">What is MCP support?<span class="faq-icon">+</span></button>
+              <div class="faq-a">MCP (Model Context Protocol) lets AI assistants like Claude or Cursor connect directly to UReport and query your test data in plain English. Ask "which tests are flaky this week?" or "what caused the most failures on the main branch?" and get answers without opening a dashboard. UReport exposes an MCP server endpoint — point your AI tool at it and it works out of the box.</div>
             </div>
             <div class="faq-item">
               <button class="faq-q">How is pricing calculated?<span class="faq-icon">+</span></button>

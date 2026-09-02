@@ -218,6 +218,23 @@ if (config !== undefined) {
   app.use("/api/quarantine", isAuthenticatedMid);
   app.use("/api/audit", isAuthenticatedMid);
 
+  // Fix 2: block all mutating API requests for demo user
+  if (process.env.UREPORT_IS_DEMO === "true") {
+    const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+    const DEMO_WRITE_WHITELIST = ["/api/login", "/api/logout"];
+    app.use("/api", (req, res, next) => {
+      if (
+        MUTATING_METHODS.has(req.method) &&
+        !DEMO_WRITE_WHITELIST.includes(req.path) &&
+        req.isAuthenticated() &&
+        req.user?.username === "demo"
+      ) {
+        return res.status(403).json({ message: "Demo mode: write operations are disabled." });
+      }
+      next();
+    });
+  }
+
   app.get("/api/unauthorized", (req, res) => {
     res.status(401);
     res.send(`You need to login first!`);
@@ -258,7 +275,7 @@ if (config !== undefined) {
   const shared = require("./src/routes/shared/shared");
   const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 200,
+    max: process.env.UREPORT_IS_DEMO === "true" ? 30 : 200,
     standardHeaders: true,
     legacyHeaders: false,
   });
