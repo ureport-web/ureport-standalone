@@ -104,8 +104,6 @@ Send your first results with an official reporter — see [Sending Test Data](#s
 - **MCP:** built-in at `/mcp` — no extra service needed
 - **AI:** stateless calls to external providers; results cached by error fingerprint
 
-**Live demo:** https://ureport-standalone.onrender.com/nextgen/
-
 ## Features
 
 ### 🤖 AI Root Cause Analysis

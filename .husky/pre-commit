@@ -1,2 +1,11 @@
 . ~/.nvm/nvm.sh
-npm test
+
+# Only run tests if backend files changed
+BACKEND_CHANGED=$(git diff --cached --name-only | grep -E '^(src/|test/|app\.js|server\.js|package\.json)' || true)
+
+if [ -n "$BACKEND_CHANGED" ]; then
+  echo "[pre-commit] Backend changes detected, running tests..."
+  npm test
+else
+  echo "[pre-commit] No backend changes, skipping tests."
+fi
