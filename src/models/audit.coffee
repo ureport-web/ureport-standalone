@@ -9,7 +9,6 @@ auditSchema = new Schema(
 	},
 	uid: {
 		type: String,
-		required: "Please provide a unique uid for audit.",
 		trim: true
   	},
 	product: {

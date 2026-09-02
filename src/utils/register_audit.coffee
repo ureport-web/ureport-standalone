@@ -10,7 +10,7 @@ module.exports = (req, res, audit_type, action, entity_type = 'test', overrides 
         audit = new Audit({
             audit_type: audit_type,
             action: action,
-            uid: if overrides.uid then overrides.uid else if req.body.uid then req.body.uid else "",
+            uid: if overrides.uid then overrides.uid else if req.body.uid then req.body.uid else undefined,
             product: if overrides.product then overrides.product else if req.body.product then req.body.product else "UNKNOWN",
             type: if overrides.type then overrides.type else if req.body.type then req.body.type else "UNKNOWN",
             username: if req.user then req.user.username else ""

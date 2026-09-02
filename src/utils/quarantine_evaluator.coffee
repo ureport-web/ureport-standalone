@@ -116,6 +116,14 @@ filterByNamePattern = (uids, namePattern) ->
   regex = new RegExp(namePattern, 'i')
   uids.filter (uid) -> regex.test(uid)
 
+# In-process concurrency gate: one evaluation at a time per product+type.
+# If a second build arrives while one is running, it is queued as the pending
+# candidate. Only the latest pending build is kept — intermediate ones are
+# superseded. When the running evaluation finishes it picks up the pending one.
+# Workers are single-threaded so plain objects are safe — no races.
+_evaluating = {}
+_pending    = {}
+
 evaluateQuarantineRules = (build) ->
   buildId = build._id?.toString() or '?'
   prefix  = "[quarantine] build=#{buildId} product=#{build.product} type=#{build.type}"
@@ -124,18 +132,36 @@ evaluateQuarantineRules = (build) ->
     logger.debug "#{prefix} skipping — is_archive"
     return
 
+  gateKey = "#{build.product}|#{build.type}"
+  if _evaluating[gateKey]
+    logger.debug "#{prefix} queued as pending — evaluation already in progress for #{gateKey}"
+    _pending[gateKey] = build
+    return
+  _evaluating[gateKey] = true
+
+  release = ->
+    delete _evaluating[gateKey]
+    if _pending[gateKey]
+      pendingBuild = _pending[gateKey]
+      delete _pending[gateKey]
+      logger.debug "[quarantine] product=#{build.product} type=#{build.type} running pending evaluation for build=#{pendingBuild._id?.toString()}"
+      evaluateQuarantineRules(pendingBuild)
+
   Setting.findOne({ product: build.product, type: build.type }).exec (err, setting) ->
     if err
       logger.error "#{prefix} Setting.findOne error", err
+      release()
       return
 
     unless setting?.quarantine_rules?.rules?.length
       logger.debug "#{prefix} no quarantine_rules configured, skipping"
+      release()
       return
 
     enabledRules = setting.quarantine_rules.rules.filter (r) -> r.enabled
     unless enabledRules.length
       logger.debug "#{prefix} no enabled rules, skipping"
+      release()
       return
 
     globalBuilds = setting.quarantine_rules.builds or 10
@@ -151,6 +177,7 @@ evaluateQuarantineRules = (build) ->
     ]).exec (tErr, failedItems) ->
       if tErr
         logger.error "#{prefix} failed-UIDs aggregate error", tErr
+        release()
         return
       failedUids = (failedItems or []).map (item) -> item._id
       hasFailures = failedUids.length > 0
@@ -183,6 +210,7 @@ evaluateQuarantineRules = (build) ->
       .exec (bErr, prevBuilds) ->
         if bErr
           logger.error "#{prefix} prevBuilds query error", bErr
+          release()
           return
         prevBuilds = prevBuilds or []
 
@@ -359,6 +387,7 @@ evaluateQuarantineRules = (build) ->
 
               # --- Auto-resolve: re-check active quarantined UIDs ---
               if activeQuarantined.length == 0
+                release()
                 return
 
               activeUids = activeQuarantined.map (q) -> q.uid
@@ -368,7 +397,9 @@ evaluateQuarantineRules = (build) ->
               # (min_pass_rate applies to quarantine triggering, not resolving)
               arQualifyingBuildIds = [build._id].concat(prevBuilds.slice(0, globalBuilds).map (b) -> b._id)
 
-              return unless arQualifyingBuildIds.length
+              unless arQualifyingBuildIds.length
+                release()
+                return
 
               Test.aggregate([
                 { $match: { build: { $in: arQualifyingBuildIds }, uid: { $in: activeUids } } },
@@ -383,6 +414,7 @@ evaluateQuarantineRules = (build) ->
               ]).exec (arErr, arResults) ->
                 if arErr
                   logger.error "#{prefix} auto-resolve aggregate error", arErr
+                  release()
                   return
 
                 arUidMap = {}
@@ -414,5 +446,7 @@ evaluateQuarantineRules = (build) ->
                         else if doc
                           logger.info "[quarantine] auto-resolved uid=#{q.uid} after #{requiredPasses} consecutive passes"
                     )
+
+                release()
 
 module.exports = { evaluateQuarantineRules, matchesScope, evaluateThreshold, hasConsecutivePasses, filterByNamePattern, toScope }

@@ -66,7 +66,12 @@ try {
       });
 
       cluster.on("exit", function (worker, code, signal) {
-        console.log("worker " + worker.process.pid + " died");
+        console.error(
+          "worker " + worker.process.pid + " died" +
+          " | exit code: " + code +
+          " | signal: " + signal +
+          " | suicide: " + worker.exitedAfterDisconnect
+        );
         cluster.fork();
       });
 
@@ -79,12 +84,20 @@ try {
         }
       });
     } else {
+      var logger = require("./src/utils/logger");
+
       process.on("unhandledRejection", function (reason) {
-        console.error("Unhandled Rejection:", reason);
+        logger.error("Unhandled Rejection:", reason);
       });
 
       process.on("uncaughtException", function (err) {
-        console.error("Uncaught Exception:", err);
+        logger.error("Uncaught Exception:", err);
+        process.exit(1);
+      });
+
+      process.on("SIGTERM", function () {
+        logger.error("Worker received SIGTERM — exiting");
+        process.exit(0);
       });
 
       console.log("Listen on port " + port);
