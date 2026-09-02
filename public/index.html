@@ -2325,7 +2325,7 @@
       <section class="section section--hero">
         <div class="hero-center">
           <div class="animate from-below">
-            <div class="hero-badge">Open source · Free to self-host</div>
+            <div class="hero-badge">Open source core · Self-host or cloud</div>
             <h1 class="hero-title">
               From test reports to <strong>test intelligence</strong>
             </h1>
@@ -2376,7 +2376,7 @@
           >
         </div>
         <p class="hero-proof" style="text-align: center; margin-top: 0.75rem;">
-          Free &amp; open source · MIT license · Self-host in under 2 minutes
+          MIT licensed core · Community plan free · Self-host in under 2 minutes
         </p>
       </div>
 
@@ -3311,7 +3311,7 @@ reporter: [
                 <td class="cmp-no">—</td>
               </tr>
               <tr>
-                <td>Free &amp; open source</td>
+                <td>Open source · free community tier</td>
                 <td class="col-ureport cmp-yes">✓</td>
                 <td class="cmp-yes">✓</td>
                 <td class="cmp-yes">✓</td>
@@ -3343,7 +3343,7 @@ reporter: [
                 <td class="col-ureport cmp-yes">✓</td>
                 <td class="cmp-yes">✓</td>
                 <td class="cmp-no">Complex</td>
-                <td class="cmp-yes">Cloud</td>
+                <td class="cmp-yes">Cloud only</td>
               </tr>
             </tbody>
           </table>
@@ -3357,7 +3357,7 @@ reporter: [
             Start free, <strong>scale when ready</strong>
           </h2>
           <p class="section-desc">
-            Self-host forever at no cost. Upgrade for higher limits and Pro
+            Community tier free forever. Upgrade for higher limits and Pro
             features.
           </p>
           <div class="pricing-group">
@@ -3366,7 +3366,7 @@ reporter: [
               <div class="pricing-card">
                 <div class="pricing-tier">Community</div>
                 <div class="pricing-price">$0</div>
-                <div class="pricing-cadence">forever · MIT license</div>
+                <div class="pricing-cadence">forever · MIT licensed core</div>
                 <div class="pricing-desc">
                   Core test reporting on your own infrastructure. No credit card
                   required.
@@ -3532,14 +3532,14 @@ reporter: [
               <button class="faq-q">Where does my data live?<span class="faq-icon">+</span></button>
               <div class="faq-a">
                 <strong>Self-host:</strong> entirely on your own infrastructure. Your test data never leaves your servers. You control the MongoDB/DocumentDB instance, the network, and the retention policy — full data sovereignty.<br /><br />
-                <strong>Cloud:</strong> data is stored in UReport-managed infrastructure. Your data is isolated per organisation and never shared across tenants. If data residency or sovereignty is a hard requirement, the self-host plan gives you full control.
+                <strong>Cloud (coming soon):</strong> data is stored in UReport-managed infrastructure. Your data is isolated per organisation and never shared across tenants. If data residency or sovereignty is a hard requirement, the self-host plan gives you full control.
               </div>
             </div>
             <div class="faq-item">
               <button class="faq-q">Which databases are supported?<span class="faq-icon">+</span></button>
               <div class="faq-a">
                 <strong>Self-host:</strong> MongoDB 4.x+ and AWS DocumentDB. Any MongoDB-compatible driver works — Atlas cluster, self-managed replica set, or DocumentDB endpoint. You own the database.<br /><br />
-                <strong>Cloud:</strong> the database is fully managed by UReport. No setup required.
+                <strong>Cloud (coming soon):</strong> the database is fully managed by UReport. No setup required.
               </div>
             </div>
             <div class="faq-item">
@@ -3550,14 +3550,14 @@ reporter: [
               <button class="faq-q">Can I run it in an air-gapped environment?<span class="faq-icon">+</span></button>
               <div class="faq-a">
                 <strong>Self-host:</strong> yes. UReport has no mandatory outbound connections. AI features use whichever LLM provider you configure (OpenAI-compatible), including a locally hosted model. Fully offline-capable.<br /><br />
-                <strong>Cloud:</strong> not applicable — the cloud plan requires internet access by nature.
+                <strong>Cloud (coming soon):</strong> not applicable — the cloud plan requires internet access by nature.
               </div>
             </div>
             <div class="faq-item">
               <button class="faq-q">How long is test data retained?<span class="faq-icon">+</span></button>
               <div class="faq-a">
                 <strong>Self-host:</strong> build and test data are kept indefinitely — you control cleanup directly in your database. Audit log retention is configurable in System Settings; UReport applies the TTL index automatically.<br /><br />
-                <strong>Cloud:</strong> retention is determined by your plan tier — 30 days on Pro, 90 days on Business, and configurable on Enterprise.
+                <strong>Cloud (coming soon):</strong> retention is determined by your plan tier — 30 days on Pro, 90 days on Business, and configurable on Enterprise.
               </div>
             </div>
             <div class="faq-item">
@@ -3568,16 +3568,20 @@ reporter: [
               <button class="faq-q">What happens when my license expires?<span class="faq-icon">+</span></button>
               <div class="faq-a">
                 <strong>Self-host:</strong> UReport gracefully downgrades to the Community tier — no lockout, no data loss. Features above the Community limit become unavailable until the license is renewed, but existing data and access remain intact.<br /><br />
-                <strong>Cloud:</strong> when a subscription ends, access to the workspace is suspended. Your data is retained for 30 days — contact us to export or renew before it is removed.
+                <strong>Cloud (coming soon):</strong> when a subscription ends, access to the workspace is suspended. Your data is retained for 30 days — contact us to export or renew before it is removed.
               </div>
             </div>
             <div class="faq-item">
               <button class="faq-q">What is MCP support?<span class="faq-icon">+</span></button>
-              <div class="faq-a">MCP (Model Context Protocol) lets AI assistants like Claude or Cursor connect directly to UReport and query your test data in plain English. Ask "which tests are flaky this week?" or "what caused the most failures on the main branch?" and get answers without opening a dashboard. UReport exposes an MCP server endpoint — point your AI tool at it and it works out of the box.</div>
+              <div class="faq-a">MCP (Model Context Protocol) lets AI assistants like Claude or Cursor connect directly to UReport and query your test data in plain English. Ask "which tests are flaky this week?" or "what caused the most failures on the main branch?" and get answers without opening a dashboard. UReport exposes an MCP server endpoint — point your AI tool at it and it works out of the box. MCP is included on all self-host plans including Community.</div>
             </div>
             <div class="faq-item">
               <button class="faq-q">How is pricing calculated?<span class="faq-icon">+</span></button>
               <div class="faq-a">Self-host plans are per instance, not per seat — you pay once and all users within the seat cap are included. Cloud plans include a base seat count with per-seat overage after that.</div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-q">What is the licensing model?<span class="faq-icon">+</span></button>
+              <div class="faq-a">The UReport core platform is MIT licensed — you can use, fork, and modify it freely. Premium plugins (additional integrations and features available on paid plans) are distributed under a separate proprietary license and downloaded from UReport's servers; they are not covered by the MIT license. The source code for the core is available on <a href="https://github.com/ureport-web/ureport-standalone" target="_blank">GitHub</a>.</div>
             </div>
           </div>
         </div>
@@ -3618,7 +3622,7 @@ reporter: [
             <a href="/contact">Contact</a>
           </div>
           <div class="footer-copy">
-            © 2026 UReport — open source automation analysis platform
+            © 2026 UReport — Core platform MIT licensed · Premium plugins proprietary
           </div>
         </footer>
       </section>
