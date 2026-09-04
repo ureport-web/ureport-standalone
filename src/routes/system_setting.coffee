@@ -38,7 +38,13 @@ guardCredentials = (body, existing) ->
 
 applyLicenseKey = (body, existing) ->
   newKey = body.license_key
-  if newKey and newKey isnt MASKED and newKey isnt (existing?.license_key or '')
+  if newKey isnt undefined and newKey isnt MASKED and not newKey
+    # User explicitly cleared the license key — revert to community fallback
+    invalidateCache()
+    setCachedState(null)
+    setRawToken(null)
+    body.license_key = null
+  else if newKey and newKey isnt MASKED and newKey isnt (existing?.license_key or '')
     invalidateCache()
     state = validateLicense(newKey)
     setCachedState(state)

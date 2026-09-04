@@ -277,6 +277,7 @@ router.post '/status/latest',  (req, res, next) ->
 
   Build.aggregate()
   .match(matchQuery)
+  .sort({ start_time: 1 })
   .group(
     {
       _id:  {

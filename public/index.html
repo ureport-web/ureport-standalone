@@ -393,7 +393,9 @@
         justify-content: center;
         transition: background 0.15s;
       }
-      .lightbox-close:hover { background: rgba(255,255,255,0.25); }
+      .lightbox-close:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
       .lightbox-nav {
         position: fixed;
         top: 50%;
@@ -412,15 +414,21 @@
         transition: background 0.15s;
         z-index: 10000;
       }
-      .lightbox-nav:hover { background: rgba(255,255,255,0.25); }
-      .lightbox-nav.prev { left: 1rem; }
-      .lightbox-nav.next { right: 1rem; }
+      .lightbox-nav:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+      .lightbox-nav.prev {
+        left: 1rem;
+      }
+      .lightbox-nav.next {
+        right: 1rem;
+      }
       .lightbox-counter {
         position: fixed;
         bottom: 1.25rem;
         left: 50%;
         transform: translateX(-50%);
-        color: rgba(255,255,255,0.5);
+        color: rgba(255, 255, 255, 0.5);
         font-size: 0.8rem;
         font-family: "DM Mono", monospace;
       }
@@ -437,11 +445,13 @@
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        background: rgba(0,0,0,0.2);
+        background: rgba(0, 0, 0, 0.2);
         cursor: pointer;
         border: none;
         padding: 0;
-        transition: background 0.2s, transform 0.2s;
+        transition:
+          background 0.2s,
+          transform 0.2s;
       }
       .carousel-dot.active {
         background: var(--black);
@@ -451,7 +461,7 @@
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
-        background: rgba(255,255,255,0.85);
+        background: rgba(255, 255, 255, 0.85);
         border: 1px solid var(--border);
         border-radius: 50%;
         width: 32px;
@@ -466,9 +476,15 @@
         z-index: 2;
         transition: background 0.15s;
       }
-      .carousel-arrow:hover { background: #fff; }
-      .carousel-arrow.prev { left: 10px; }
-      .carousel-arrow.next { right: 10px; }
+      .carousel-arrow:hover {
+        background: #fff;
+      }
+      .carousel-arrow.prev {
+        left: 10px;
+      }
+      .carousel-arrow.next {
+        right: 10px;
+      }
       .carousel-trust {
         display: flex;
         align-items: center;
@@ -485,8 +501,12 @@
         font-weight: 500;
         transition: color 0.15s;
       }
-      .carousel-trust a:hover { color: var(--black); }
-      .carousel-trust .sep { opacity: 0.4; }
+      .carousel-trust a:hover {
+        color: var(--black);
+      }
+      .carousel-trust .sep {
+        opacity: 0.4;
+      }
       .mock-card {
         background: #fff;
         border: 1px solid var(--border);
@@ -1905,6 +1925,26 @@
         font-size: 10px;
         color: var(--green);
       }
+      .pricing-features li.feature-overage {
+        color: var(--red);
+        font-size: 12px;
+        font-style: italic;
+        padding-top: 6px;
+        margin-top: 2px;
+        border-top: 1px dashed var(--red-bg);
+      }
+      .feature-overage .check-no {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--red-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 10px;
+        color: var(--red);
+      }
       .btn-plan {
         display: block;
         text-align: center;
@@ -2146,9 +2186,17 @@
         gap: 4rem;
         align-items: center;
       }
-      .mcp-text .section-label { margin-bottom: 1rem; }
-      .mcp-text h2 { margin-bottom: 1rem; }
-      .mcp-text p { color: var(--gray-500); line-height: 1.7; margin-bottom: 1.5rem; }
+      .mcp-text .section-label {
+        margin-bottom: 1rem;
+      }
+      .mcp-text h2 {
+        margin-bottom: 1rem;
+      }
+      .mcp-text p {
+        color: var(--gray-500);
+        line-height: 1.7;
+        margin-bottom: 1.5rem;
+      }
       .mcp-queries {
         display: flex;
         flex-direction: column;
@@ -2182,22 +2230,31 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       }
       .mcp-terminal-bar span {
         font-size: 0.72rem;
-        color: rgba(255,255,255,0.3);
+        color: rgba(255, 255, 255, 0.3);
         margin-left: 6px;
       }
       .mcp-terminal-body {
         padding: 1.25rem 1.5rem;
         color: #e2e8f0;
       }
-      .mcp-line-prompt { color: #7ee787; }
-      .mcp-line-response { color: #79c0ff; }
-      .mcp-line-data { color: rgba(255,255,255,0.5); }
+      .mcp-line-prompt {
+        color: #7ee787;
+      }
+      .mcp-line-response {
+        color: #79c0ff;
+      }
+      .mcp-line-data {
+        color: rgba(255, 255, 255, 0.5);
+      }
       @media (max-width: 800px) {
-        .mcp-inner { grid-template-columns: 1fr; gap: 2rem; }
+        .mcp-inner {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
       }
 
       /* COMPARE */
@@ -2242,12 +2299,18 @@
         background: var(--gray-50);
       }
       .compare-table tbody td.col-ureport {
-        background: rgba(0,0,0,0.02);
+        background: rgba(0, 0, 0, 0.02);
         font-weight: 500;
       }
-      .cmp-yes  { color: var(--green); }
-      .cmp-no   { color: var(--gray-300); }
-      .cmp-part { color: var(--amber); }
+      .cmp-yes {
+        color: var(--green);
+      }
+      .cmp-no {
+        color: var(--gray-300);
+      }
+      .cmp-part {
+        color: var(--amber);
+      }
 
       /* FAQ */
       .faq-inner {
@@ -2285,7 +2348,9 @@
         flex-shrink: 0;
         transition: transform 0.2s;
       }
-      .faq-item.open .faq-icon { transform: rotate(45deg); }
+      .faq-item.open .faq-icon {
+        transform: rotate(45deg);
+      }
       .faq-a {
         display: none;
         padding: 0 0 1.1rem;
@@ -2293,7 +2358,9 @@
         color: var(--gray-500);
         line-height: 1.7;
       }
-      .faq-item.open .faq-a { display: block; }
+      .faq-item.open .faq-a {
+        display: block;
+      }
     </style>
   </head>
   <body>
@@ -2352,21 +2419,53 @@
                 Add as many screenshots as you want here.
                 Carousel auto-adapts to however many <img> tags exist.
               -->
-              <img src="assets/hero-screenshot-0.png" alt="UReport overview dashboard" loading="eager" />
-              <img src="assets/hero-screenshot-1.png" alt="UReport AI failure analysis" loading="lazy" />
-              <img src="assets/hero-screenshot-2.png" alt="UReport quarantine and flaky tests" loading="lazy" />
-              <img src="assets/hero-screenshot-3.png" alt="UReport build history and trends" loading="lazy" />
-              <img src="assets/hero-screenshot-4.png" alt="UReport build history and trends" loading="lazy" />
-              <img src="assets/hero-screenshot-5.png" alt="UReport build history and trends" loading="lazy" />
+              <img
+                src="assets/hero-screenshot-0.png"
+                alt="UReport overview dashboard"
+                loading="eager"
+              />
+              <img
+                src="assets/hero-screenshot-1.png"
+                alt="UReport AI failure analysis"
+                loading="lazy"
+              />
+              <img
+                src="assets/hero-screenshot-2.png"
+                alt="UReport quarantine and flaky tests"
+                loading="lazy"
+              />
+              <img
+                src="assets/hero-screenshot-3.png"
+                alt="UReport build history and trends"
+                loading="lazy"
+              />
+              <img
+                src="assets/hero-screenshot-4.png"
+                alt="UReport build history and trends"
+                loading="lazy"
+              />
+              <img
+                src="assets/hero-screenshot-5.png"
+                alt="UReport build history and trends"
+                loading="lazy"
+              />
             </div>
-            <button class="carousel-arrow prev" id="heroPrev" aria-label="Previous">&#8249;</button>
-            <button class="carousel-arrow next" id="heroNext" aria-label="Next">&#8250;</button>
+            <button
+              class="carousel-arrow prev"
+              id="heroPrev"
+              aria-label="Previous"
+            >
+              &#8249;
+            </button>
+            <button class="carousel-arrow next" id="heroNext" aria-label="Next">
+              &#8250;
+            </button>
             <div class="carousel-dots" id="heroDots"></div>
           </div>
         </div>
       </div>
       <div class="screenshot-cta">
-        <div class="hero-actions" style="justify-content: center;">
+        <div class="hero-actions" style="justify-content: center">
           <a class="btn btn--primary" href="/nextgen/login">Try Demo →</a>
           <a
             class="btn btn--ghost"
@@ -2375,7 +2474,7 @@
             ><i class="fab fa-github"></i> GitHub</a
           >
         </div>
-        <p class="hero-proof" style="text-align: center; margin-top: 0.75rem;">
+        <p class="hero-proof" style="text-align: center; margin-top: 0.75rem">
           MIT licensed core · Community plan free · Self-host in under 2 minutes
         </p>
       </div>
@@ -3144,13 +3243,27 @@
         <div class="mcp-inner">
           <div class="mcp-text animate from-below">
             <div class="section-label">MCP · Model Context Protocol</div>
-            <h2 class="section-headline">Query your test data<br /><strong>in plain English</strong></h2>
-            <p>Connect Claude or Cursor to UReport via MCP. Ask questions about your test results the same way you'd ask a teammate — no dashboard, no query language required.</p>
+            <h2 class="section-headline">
+              Query your test data<br /><strong>in plain English</strong>
+            </h2>
+            <p>
+              Connect Claude or Cursor to UReport via MCP. Ask questions about
+              your test results the same way you'd ask a teammate — no
+              dashboard, no query language required.
+            </p>
             <div class="mcp-queries">
-              <div class="mcp-query">"Which tests have been flaky this week?"</div>
-              <div class="mcp-query">"Show me the top 5 failure root causes on the main branch"</div>
-              <div class="mcp-query">"What's the pass rate trend for the checkout flow?"</div>
-              <div class="mcp-query">"List all quarantined tests in the payment product"</div>
+              <div class="mcp-query">
+                "Which tests have been flaky this week?"
+              </div>
+              <div class="mcp-query">
+                "Show me the top 5 failure root causes on the main branch"
+              </div>
+              <div class="mcp-query">
+                "What's the pass rate trend for the checkout flow?"
+              </div>
+              <div class="mcp-query">
+                "List all quarantined tests in the payment product"
+              </div>
             </div>
             <a class="btn btn--ghost" href="/docs#mcp">Read the MCP docs →</a>
           </div>
@@ -3162,16 +3275,28 @@
               <span>Claude · UReport MCP</span>
             </div>
             <div class="mcp-terminal-body">
-              <div class="mcp-line-prompt">You: Which tests are flaky this week?</div>
+              <div class="mcp-line-prompt">
+                You: Which tests are flaky this week?
+              </div>
               <br />
-              <div class="mcp-line-response">Claude: Found 7 flaky tests in the last 7 days:</div>
+              <div class="mcp-line-response">
+                Claude: Found 7 flaky tests in the last 7 days:
+              </div>
               <br />
-              <div class="mcp-line-data">• checkout_flow_test — failed 3/10 runs</div>
-              <div class="mcp-line-data">• login_timeout_spec — failed 2/10 runs</div>
-              <div class="mcp-line-data">• api_auth_retry — failed 2/8 runs</div>
-              <div class="mcp-line-data">  + 4 more …</div>
+              <div class="mcp-line-data">
+                • checkout_flow_test — failed 3/10 runs
+              </div>
+              <div class="mcp-line-data">
+                • login_timeout_spec — failed 2/10 runs
+              </div>
+              <div class="mcp-line-data">
+                • api_auth_retry — failed 2/8 runs
+              </div>
+              <div class="mcp-line-data">+ 4 more …</div>
               <br />
-              <div class="mcp-line-response">3 are already quarantined. Want me</div>
+              <div class="mcp-line-response">
+                3 are already quarantined. Want me
+              </div>
               <div class="mcp-line-response">to summarise the root causes?</div>
             </div>
           </div>
@@ -3269,7 +3394,8 @@ reporter: [
           <div class="section-label">How we compare</div>
           <h2 class="section-headline">UReport vs the alternatives</h2>
           <p class="section-desc">
-            Every tool has a sweet spot. Here's how UReport stacks up against the most common alternatives in the test reporting space.
+            Every tool has a sweet spot. Here's how UReport stacks up against
+            the most common alternatives in the test reporting space.
           </p>
           <table class="compare-table">
             <thead>
@@ -3366,10 +3492,15 @@ reporter: [
               <div class="pricing-card">
                 <div class="pricing-tier">Community</div>
                 <div class="pricing-price">$0</div>
-                <div class="pricing-cadence">forever · MIT licensed core</div>
+                <div
+                  class="pricing-cadence"
+                  style="color: var(--green); font-weight: 600"
+                >
+                  free forever · no credit card · MIT licensed
+                </div>
                 <div class="pricing-desc">
-                  Core test reporting on your own infrastructure. No credit card
-                  required.
+                  Core test reporting on your own infrastructure. Free forever —
+                  no trial, no expiry, no catch.
                 </div>
                 <ul class="pricing-features">
                   <li><span class="check">✓</span>5 seats</li>
@@ -3386,18 +3517,24 @@ reporter: [
                 >
               </div>
               <div class="pricing-card">
-                <div class="pricing-tier">Pro</div>
-                <div class="pricing-price">$149</div>
-                <div class="pricing-cadence">per month · billed $1,788 / yr</div>
+                <div class="pricing-tier">Team</div>
+                <div class="pricing-price" data-price="sh-team-mo">$49</div>
+                <div class="pricing-cadence" data-price="sh-team-cadence">
+                  per month · billed $490 / yr (2 months free)
+                </div>
                 <div class="pricing-desc">
                   Higher limits and the full feature set — dashboard sharing and
                   data export.
                 </div>
                 <ul class="pricing-features">
-                  <li class="feature-inherits"><span class="check">✓</span><strong>Everything in Community</strong></li>
                   <li><span class="check">✓</span>15 seats</li>
                   <li><span class="check">✓</span>15 product lanes</li>
                   <li><span class="check">✓</span>15 dashboards</li>
+                  <li class="feature-inherits">
+                    <span class="check">✓</span
+                    ><strong>Everything in Community</strong>
+                  </li>
+
                   <li><span class="check">✓</span>Dashboard share links</li>
                   <li><span class="check">✓</span>Data export</li>
                 </ul>
@@ -3407,17 +3544,22 @@ reporter: [
               </div>
               <div class="pricing-card">
                 <div class="pricing-tier">Business</div>
-                <div class="pricing-price">$299</div>
-                <div class="pricing-cadence">per month · billed $3,588 / yr</div>
+                <div class="pricing-price" data-price="sh-business-mo">$99</div>
+                <div class="pricing-cadence" data-price="sh-business-cadence">
+                  per month · billed $990 / yr (2 months free)
+                </div>
                 <div class="pricing-desc">
-                  For growing teams that need more seats, audit log, and
-                  email priority support.
+                  For growing teams that need more seats, audit log, and email
+                  priority support.
                 </div>
                 <ul class="pricing-features">
-                  <li><span class="check">✓</span>30 seats</li>
-                  <li><span class="check">✓</span>30 product lanes</li>
-                  <li><span class="check">✓</span>30 dashboards</li>
-                  <li class="feature-inherits"><span class="check">✓</span><strong>Everything in Pro</strong></li>
+                  <li><span class="check">✓</span>40 seats</li>
+                  <li><span class="check">✓</span>40 product lanes</li>
+                  <li><span class="check">✓</span>40 dashboards</li>
+                  <li class="feature-inherits">
+                    <span class="check">✓</span
+                    ><strong>Everything in Team</strong>
+                  </li>
                   <li><span class="check">✓</span>Audit log</li>
                   <li><span class="check">✓</span>Priority support (email)</li>
                 </ul>
@@ -3436,11 +3578,16 @@ reporter: [
                     <span class="check">✓</span>Unlimited seats, lanes &amp;
                     dashboards
                   </li>
-                  <li class="feature-inherits"><span class="check">✓</span><strong>Everything in Business</strong></li>
+                  <li class="feature-inherits">
+                    <span class="check">✓</span
+                    ><strong>Everything in Business</strong>
+                  </li>
                   <li><span class="check">✓</span>Email notifications</li>
                   <li><span class="check">✓</span>Auto-triage</li>
                   <li><span class="check">✓</span>SSO / SAML</li>
-                  <li><span class="check">✓</span>Custom contracts &amp; SLA</li>
+                  <li>
+                    <span class="check">✓</span>Custom contracts &amp; SLA
+                  </li>
                   <li><span class="check">✓</span>Dedicated support</li>
                 </ul>
                 <a class="btn-plan" href="mailto:ureport@outlook.com"
@@ -3453,65 +3600,120 @@ reporter: [
             <div class="pricing-group-label">
               Cloud<span class="pricing-group-badge">Coming Soon</span>
             </div>
-            <div class="pricing-grid pricing-grid--3">
+            <div class="pricing-grid pricing-grid--4">
               <div class="pricing-card">
-                <div class="pricing-tier">Cloud · Pro</div>
-                <div class="pricing-price">$199</div>
-                <div class="pricing-cadence">per month · billed $2,388 / yr · up to 10 seats · $20 / seat after</div>
+                <div class="pricing-tier">Cloud · Starter</div>
+                <div class="pricing-price" data-price="cloud-starter-mo">
+                  $29
+                </div>
+                <div class="pricing-cadence" data-price="cloud-starter-cadence">
+                  per company / month · flat rate · no per-seat fees
+                </div>
                 <div class="pricing-desc">
-                  All Pro features, zero infrastructure. We handle MongoDB,
-                  backups, and updates.
+                  Full platform, zero infrastructure. Ideal for small teams
+                  getting started.
                 </div>
                 <ul class="pricing-features">
-                  <li><span class="check">✓</span>Up to 10 seats included</li>
-                  <li><span class="check">✓</span>$20 / seat over 10</li>
+                  <li><span class="check">✓</span>5 seats</li>
+                  <li><span class="check">✓</span>~1M test records storage</li>
+                  <li><span class="check">✓</span>200 AI credits / mo</li>
                   <li><span class="check">✓</span>Dashboard share links</li>
-                  <li><span class="check">✓</span>Data export</li>
-                  <li><span class="check">✓</span>30-day data retention</li>
-                  <li><span class="check">✓</span>500 AI credits / mo</li>
-                  <li><span class="check">✓</span>Managed MongoDB &amp; backups</li>
-                  <li><span class="check">✓</span>Automatic updates</li>
+                  <li>
+                    <span class="check">✓</span>Managed backups &amp; updates
+                  </li>
+                  <li><span class="check">✓</span>Community support</li>
+                  <li class="feature-overage">
+                    <span class="check-no">+</span>$20 / seat over 5 — TBD
+                  </li>
                 </ul>
                 <a class="btn-plan" href="mailto:ureport@outlook.com"
-                  >Contact us →</a
+                  >Join waitlist →</a
+                >
+              </div>
+              <div class="pricing-card">
+                <div class="pricing-tier">Cloud · Team</div>
+                <div class="pricing-price" data-price="cloud-team-mo">$79</div>
+                <div class="pricing-cadence" data-price="cloud-team-cadence">
+                  per company / month · flat rate · no per-seat fees
+                </div>
+                <div class="pricing-desc">
+                  More storage and AI credits for active teams shipping
+                  continuously.
+                </div>
+                <ul class="pricing-features">
+                  <li><span class="check">✓</span>15 seats</li>
+                  <li><span class="check">✓</span>~5M test records storage</li>
+                  <li><span class="check">✓</span>1,000 AI credits / mo</li>
+                  <li class="feature-inherits">
+                    <span class="check">✓</span
+                    ><strong>Everything in Starter</strong>
+                  </li>
+                  <li><span class="check">✓</span>Data export</li>
+                  <li><span class="check">✓</span>Audit log</li>
+                  <li><span class="check">✓</span>Priority support (email)</li>
+                  <li class="feature-overage">
+                    <span class="check-no">+</span>$15 / seat over 15 — TBD
+                  </li>
+                </ul>
+                <a class="btn-plan" href="mailto:ureport@outlook.com"
+                  >Join waitlist →</a
                 >
               </div>
               <div class="pricing-card">
                 <div class="pricing-tier">Cloud · Business</div>
-                <div class="pricing-price">$399</div>
-                <div class="pricing-cadence">per month · billed $4,788 / yr · up to 30 seats · $15 / seat after</div>
+                <div class="pricing-price" data-price="cloud-business-mo">
+                  $199
+                </div>
+                <div
+                  class="pricing-cadence"
+                  data-price="cloud-business-cadence"
+                >
+                  per company / month · flat rate · no per-seat fees
+                </div>
                 <div class="pricing-desc">
-                  All Business features fully managed — audit log, 90-day
-                  retention, and priority email support.
+                  Large teams and enterprises — more storage, AI, SSO, and
+                  custom SLA.
                 </div>
                 <ul class="pricing-features">
-                  <li><span class="check">✓</span>Up to 30 seats included</li>
-                  <li><span class="check">✓</span>$15 / seat over 30</li>
-                  <li class="feature-inherits"><span class="check">✓</span><strong>Everything in Cloud Pro</strong></li>
-                  <li><span class="check">✓</span>Audit log</li>
-                  <li><span class="check">✓</span>90-day data retention</li>
-                  <li><span class="check">✓</span>1,000 AI credits / mo</li>
-                  <li><span class="check">✓</span>Managed MongoDB &amp; backups</li>
-                  <li><span class="check">✓</span>Priority support (email)</li>
+                  <li><span class="check">✓</span>40 seats</li>
+                  <li><span class="check">✓</span>~20M test records storage</li>
+                  <li><span class="check">✓</span>3,000 AI credits / mo</li>
+                  <li class="feature-inherits">
+                    <span class="check">✓</span
+                    ><strong>Everything in Team</strong>
+                  </li>
+                  <li><span class="check">✓</span>SSO / SAML</li>
+                  <li>
+                    <span class="check">✓</span>Custom SLA &amp; contracts
+                  </li>
+                  <li><span class="check">✓</span>Dedicated support</li>
+                  <li class="feature-overage">
+                    <span class="check-no">+</span>$12 / seat over 40 — TBD
+                  </li>
                 </ul>
                 <a class="btn-plan" href="mailto:ureport@outlook.com"
-                  >Contact us →</a
+                  >Join waitlist →</a
                 >
               </div>
               <div class="pricing-card">
                 <div class="pricing-tier">Cloud · Enterprise</div>
                 <div class="pricing-desc">
-                  Unlimited seats, SSO, auto-triage, custom SLA, and dedicated
-                  support. We scope it to your team.
+                  Custom volume, dedicated infrastructure, and contracts for
+                  large organizations.
                 </div>
                 <ul class="pricing-features">
                   <li><span class="check">✓</span>Unlimited seats</li>
-                  <li class="feature-inherits"><span class="check">✓</span><strong>Everything in Cloud Business</strong></li>
-                  <li><span class="check">✓</span>Email notifications</li>
-                  <li><span class="check">✓</span>Auto-triage</li>
-                  <li><span class="check">✓</span>Custom data retention</li>
-                  <li><span class="check">✓</span>SSO / SAML</li>
-                  <li><span class="check">✓</span>Custom SLA &amp; contracts</li>
+                  <li><span class="check">✓</span>Custom storage quota</li>
+                  <li><span class="check">✓</span>Unlimited AI credits</li>
+                  <li class="feature-inherits">
+                    <span class="check">✓</span
+                    ><strong>Everything in Business</strong>
+                  </li>
+                  <li><span class="check">✓</span>Dedicated infrastructure</li>
+                  <li><span class="check">✓</span>Custom data residency</li>
+                  <li>
+                    <span class="check">✓</span>Custom SLA &amp; contracts
+                  </li>
                   <li><span class="check">✓</span>Dedicated support</li>
                 </ul>
                 <a class="btn-plan" href="mailto:ureport@outlook.com"
@@ -3529,59 +3731,145 @@ reporter: [
           <h2 class="section-headline">Common questions</h2>
           <div class="faq-list">
             <div class="faq-item">
-              <button class="faq-q">Where does my data live?<span class="faq-icon">+</span></button>
+              <button class="faq-q">
+                Where does my data live?<span class="faq-icon">+</span>
+              </button>
               <div class="faq-a">
-                <strong>Self-host:</strong> entirely on your own infrastructure. Your test data never leaves your servers. You control the MongoDB/DocumentDB instance, the network, and the retention policy — full data sovereignty.<br /><br />
-                <strong>Cloud (coming soon):</strong> data is stored in UReport-managed infrastructure. Your data is isolated per organisation and never shared across tenants. If data residency or sovereignty is a hard requirement, the self-host plan gives you full control.
+                <strong>Self-host:</strong> entirely on your own infrastructure.
+                Your test data never leaves your servers. You control the
+                MongoDB/DocumentDB instance, the network, and the retention
+                policy — full data sovereignty.<br /><br />
+                <strong>Cloud (coming soon):</strong> data is stored in
+                UReport-managed infrastructure. Your data is isolated per
+                organisation and never shared across tenants. If data residency
+                or sovereignty is a hard requirement, the self-host plan gives
+                you full control.
               </div>
             </div>
             <div class="faq-item">
-              <button class="faq-q">Which databases are supported?<span class="faq-icon">+</span></button>
+              <button class="faq-q">
+                Which databases are supported?<span class="faq-icon">+</span>
+              </button>
               <div class="faq-a">
-                <strong>Self-host:</strong> MongoDB 4.x+ and AWS DocumentDB. Any MongoDB-compatible driver works — Atlas cluster, self-managed replica set, or DocumentDB endpoint. You own the database.<br /><br />
-                <strong>Cloud (coming soon):</strong> the database is fully managed by UReport. No setup required.
+                <strong>Self-host:</strong> MongoDB 4.x+ and AWS DocumentDB. Any
+                MongoDB-compatible driver works — Atlas cluster, self-managed
+                replica set, or DocumentDB endpoint. You own the database.<br /><br />
+                <strong>Cloud (coming soon):</strong> the database is fully
+                managed by UReport. No setup required.
               </div>
             </div>
             <div class="faq-item">
-              <button class="faq-q">How do I send test results to UReport?<span class="faq-icon">+</span></button>
-              <div class="faq-a">Via REST API or one of the official reporters: <strong>ureport-playwright-reporter</strong> for Playwright, with Jest, Cypress, and others supported through the generic API. Results are pushed at the end of each test run — no agent required.</div>
-            </div>
-            <div class="faq-item">
-              <button class="faq-q">Can I run it in an air-gapped environment?<span class="faq-icon">+</span></button>
+              <button class="faq-q">
+                How do I send test results to UReport?<span class="faq-icon"
+                  >+</span
+                >
+              </button>
               <div class="faq-a">
-                <strong>Self-host:</strong> yes. UReport has no mandatory outbound connections. AI features use whichever LLM provider you configure (OpenAI-compatible), including a locally hosted model. Fully offline-capable.<br /><br />
-                <strong>Cloud (coming soon):</strong> not applicable — the cloud plan requires internet access by nature.
+                Via REST API or one of the official reporters:
+                <strong>ureport-playwright-reporter</strong> for Playwright,
+                with Jest, Cypress, and others supported through the generic
+                API. Results are pushed at the end of each test run — no agent
+                required.
               </div>
             </div>
             <div class="faq-item">
-              <button class="faq-q">How long is test data retained?<span class="faq-icon">+</span></button>
+              <button class="faq-q">
+                Can I run it in an air-gapped environment?<span class="faq-icon"
+                  >+</span
+                >
+              </button>
               <div class="faq-a">
-                <strong>Self-host:</strong> build and test data are kept indefinitely — you control cleanup directly in your database. Audit log retention is configurable in System Settings; UReport applies the TTL index automatically.<br /><br />
-                <strong>Cloud (coming soon):</strong> retention is determined by your plan tier — 30 days on Pro, 90 days on Business, and configurable on Enterprise.
+                <strong>Self-host:</strong> yes. UReport has no mandatory
+                outbound connections. AI features use whichever LLM provider you
+                configure (OpenAI-compatible), including a locally hosted model.
+                Fully offline-capable.<br /><br />
+                <strong>Cloud (coming soon):</strong> not applicable — the cloud
+                plan requires internet access by nature.
               </div>
             </div>
             <div class="faq-item">
-              <button class="faq-q">Is SSO or LDAP supported?<span class="faq-icon">+</span></button>
-              <div class="faq-a">SSO and LDAP integration are available on the Enterprise plan. The Community and Pro tiers use built-in username/password authentication with role-based access control (admin, operator, viewer).</div>
-            </div>
-            <div class="faq-item">
-              <button class="faq-q">What happens when my license expires?<span class="faq-icon">+</span></button>
+              <button class="faq-q">
+                How long is test data retained?<span class="faq-icon">+</span>
+              </button>
               <div class="faq-a">
-                <strong>Self-host:</strong> UReport gracefully downgrades to the Community tier — no lockout, no data loss. Features above the Community limit become unavailable until the license is renewed, but existing data and access remain intact.<br /><br />
-                <strong>Cloud (coming soon):</strong> when a subscription ends, access to the workspace is suspended. Your data is retained for 30 days — contact us to export or renew before it is removed.
+                <strong>Self-host:</strong> build and test data are kept
+                indefinitely — you control cleanup directly in your database.
+                Audit log retention is configurable in System Settings; UReport
+                applies the TTL index automatically.<br /><br />
+                <strong>Cloud (coming soon):</strong> retention is determined by
+                your plan tier — 30 days on Pro, 90 days on Business, and
+                configurable on Enterprise.
               </div>
             </div>
             <div class="faq-item">
-              <button class="faq-q">What is MCP support?<span class="faq-icon">+</span></button>
-              <div class="faq-a">MCP (Model Context Protocol) lets AI assistants like Claude or Cursor connect directly to UReport and query your test data in plain English. Ask "which tests are flaky this week?" or "what caused the most failures on the main branch?" and get answers without opening a dashboard. UReport exposes an MCP server endpoint — point your AI tool at it and it works out of the box. MCP is included on all self-host plans including Community.</div>
+              <button class="faq-q">
+                Is SSO or LDAP supported?<span class="faq-icon">+</span>
+              </button>
+              <div class="faq-a">
+                SSO / SAML is available on the self-host Enterprise plan and the
+                Cloud Business plan. All other tiers use built-in
+                username/password authentication with role-based access control
+                (admin, operator, viewer).
+              </div>
             </div>
             <div class="faq-item">
-              <button class="faq-q">How is pricing calculated?<span class="faq-icon">+</span></button>
-              <div class="faq-a">Self-host plans are per instance, not per seat — you pay once and all users within the seat cap are included. Cloud plans include a base seat count with per-seat overage after that.</div>
+              <button class="faq-q">
+                What happens when my license expires?<span class="faq-icon"
+                  >+</span
+                >
+              </button>
+              <div class="faq-a">
+                <strong>Self-host:</strong> UReport gracefully downgrades to the
+                Community tier — no lockout, no data loss. Features above the
+                Community limit become unavailable until the license is renewed,
+                but existing data and access remain intact.<br /><br />
+                <strong>Cloud (coming soon):</strong> when a subscription ends,
+                access to the workspace is suspended. Your data is retained for
+                30 days — contact us to export or renew before it is removed.
+              </div>
             </div>
             <div class="faq-item">
-              <button class="faq-q">What is the licensing model?<span class="faq-icon">+</span></button>
-              <div class="faq-a">The UReport core platform is MIT licensed — you can use, fork, and modify it freely. Premium plugins (additional integrations and features available on paid plans) are distributed under a separate proprietary license and downloaded from UReport's servers; they are not covered by the MIT license. The source code for the core is available on <a href="https://github.com/ureport-web/ureport-standalone" target="_blank">GitHub</a>.</div>
+              <button class="faq-q">
+                What is MCP support?<span class="faq-icon">+</span>
+              </button>
+              <div class="faq-a">
+                MCP (Model Context Protocol) lets AI assistants like Claude or
+                Cursor connect directly to UReport and query your test data in
+                plain English. Ask "which tests are flaky this week?" or "what
+                caused the most failures on the main branch?" and get answers
+                without opening a dashboard. UReport exposes an MCP server
+                endpoint — point your AI tool at it and it works out of the box.
+                MCP is included on all self-host plans including Community.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-q">
+                How is pricing calculated?<span class="faq-icon">+</span>
+              </button>
+              <div class="faq-a">
+                Self-host plans are per instance, not per seat — you pay once
+                and all users within the seat cap are included. Cloud plans are
+                priced per company, not per seat — a flat monthly rate covers
+                everyone up to the seat limit. No per-seat overage fees.
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-q">
+                What is the licensing model?<span class="faq-icon">+</span>
+              </button>
+              <div class="faq-a">
+                The UReport core platform is MIT licensed — you can use, fork,
+                and modify it freely. Premium plugins (additional integrations
+                and features available on paid plans) are distributed under a
+                separate proprietary license and downloaded from UReport's
+                servers; they are not covered by the MIT license. The source
+                code for the core is available on
+                <a
+                  href="https://github.com/ureport-web/ureport-standalone"
+                  target="_blank"
+                  >GitHub</a
+                >.
+              </div>
             </div>
           </div>
         </div>
@@ -3622,21 +3910,131 @@ reporter: [
             <a href="/contact">Contact</a>
           </div>
           <div class="footer-copy">
-            © 2026 UReport — Core platform MIT licensed · Premium plugins proprietary
+            © 2026 UReport — Core platform MIT licensed · Premium plugins
+            proprietary
           </div>
         </footer>
       </section>
     </div>
 
-  <div class="lightbox" id="heroLightbox" role="dialog" aria-modal="true" aria-label="Screenshot preview">
-    <button class="lightbox-close" id="heroLightboxClose" aria-label="Close">&#x2715;</button>
-    <button class="lightbox-nav prev" id="heroLightboxPrev" aria-label="Previous">&#8249;</button>
-    <img class="lightbox-img" id="heroLightboxImg" src="" alt="" />
-    <button class="lightbox-nav next" id="heroLightboxNext" aria-label="Next">&#8250;</button>
-    <div class="lightbox-counter" id="heroLightboxCounter"></div>
-  </div>
+    <div
+      class="lightbox"
+      id="heroLightbox"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Screenshot preview"
+    >
+      <button class="lightbox-close" id="heroLightboxClose" aria-label="Close">
+        &#x2715;
+      </button>
+      <button
+        class="lightbox-nav prev"
+        id="heroLightboxPrev"
+        aria-label="Previous"
+      >
+        &#8249;
+      </button>
+      <img class="lightbox-img" id="heroLightboxImg" src="" alt="" />
+      <button class="lightbox-nav next" id="heroLightboxNext" aria-label="Next">
+        &#8250;
+      </button>
+      <div class="lightbox-counter" id="heroLightboxCounter"></div>
+    </div>
 
     <script>
+      // ─── Pricing config ───────────────────────────────────────────────────────
+      // Edit these variables — all prices on the page recalculate automatically.
+      //
+      // Cloud price formula (per tier):
+      //   totalCost = (machineCost + maintenanceCost + laborCost) * tierCostMultiplier
+      //   cloudPrice = round( totalCost / (1 - targetMarginPct/100), nearestDollar )
+      //
+      // Self-host price:
+      //   selfHostPrice = round( cloudEquivalentPrice * selfhostVsCloud, nearestDollar )
+      const PRICING = {
+        machineCost: 12, // $/mo infra per customer (Fly.io + Atlas share)
+        maintenanceCost: 5, // $/mo ops, monitoring, incident overhead
+        laborCost: 5, // $/mo amortized support & dev time
+        targetMarginPct: 60, // % gross margin target
+
+        // How much more infra each cloud tier uses vs Starter
+        tierCostMultiplier: {
+          starter: 0.5,
+          team: 1.3,
+          business: 3.5,
+        },
+
+        selfhostVsCloud: 0.5, // self-host price = X% of equivalent cloud tier
+        annualMonthsFree: 2, // months free on annual billing
+      };
+
+      (function applyPricing() {
+        var base =
+          PRICING.machineCost + PRICING.maintenanceCost + PRICING.laborCost;
+        var m = 1 - PRICING.targetMarginPct / 100;
+
+        // Round up to nearest price ending in 9 (193→199, 55→59, 30→39)
+        function psych(n) {
+          var candidate = Math.ceil(n / 10) * 10 - 1;
+          return candidate >= n ? candidate : candidate + 10;
+        }
+        function cloudPrice(tier) {
+          return psych((base * PRICING.tierCostMultiplier[tier]) / m);
+        }
+        function shPrice(cloudMo) {
+          return psych(cloudMo * PRICING.selfhostVsCloud);
+        }
+        function annualPrice(mo) {
+          return mo * (12 - PRICING.annualMonthsFree);
+        }
+
+        var cs = cloudPrice("starter");
+        var ct = cloudPrice("team");
+        var cb = cloudPrice("business");
+        var st = shPrice(ct);
+        var sb = shPrice(cb);
+
+        function set(attr, val) {
+          var el = document.querySelector('[data-price="' + attr + '"]');
+          if (el) el.textContent = val;
+        }
+
+        set("cloud-starter-mo", "$" + cs);
+        set(
+          "cloud-starter-cadence",
+          "per company / month · flat rate · no per-seat fees",
+        );
+        set("cloud-team-mo", "$" + ct);
+        set(
+          "cloud-team-cadence",
+          "per company / month · flat rate · no per-seat fees",
+        );
+        set("cloud-business-mo", "$" + cb);
+        set(
+          "cloud-business-cadence",
+          "per company / month · flat rate · no per-seat fees",
+        );
+        set("sh-team-mo", "$" + st);
+        set(
+          "sh-team-cadence",
+          "per month · billed $" +
+            annualPrice(st).toLocaleString() +
+            " / yr (" +
+            PRICING.annualMonthsFree +
+            " months free)",
+        );
+        set("sh-business-mo", "$" + sb);
+        set(
+          "sh-business-cadence",
+          "per month · billed $" +
+            annualPrice(sb).toLocaleString() +
+            " / yr (" +
+            PRICING.annualMonthsFree +
+            " months free)",
+        );
+      })();
+      // ─────────────────────────────────────────────────────────────────────────
+
       function setPersonaFeature(el, n) {
         var panel = el.closest(".features-tab-panel");
         panel.querySelectorAll(".persona-feature").forEach(function (f, i) {
@@ -3680,90 +4078,135 @@ reporter: [
 
       // Hero carousel
       (function () {
-        var track = document.getElementById('heroTrack');
-        var dotsContainer = document.getElementById('heroDots');
+        var track = document.getElementById("heroTrack");
+        var dotsContainer = document.getElementById("heroDots");
         if (!track) return;
 
-        var slides = track.querySelectorAll('img');
+        var slides = track.querySelectorAll("img");
         var total = slides.length;
         var current = 0;
         var timer;
 
         // Build dots
         slides.forEach(function (_, i) {
-          var btn = document.createElement('button');
-          btn.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-          btn.setAttribute('aria-label', 'Go to slide ' + (i + 1));
-          btn.addEventListener('click', function () { goTo(i); resetTimer(); });
+          var btn = document.createElement("button");
+          btn.className = "carousel-dot" + (i === 0 ? " active" : "");
+          btn.setAttribute("aria-label", "Go to slide " + (i + 1));
+          btn.addEventListener("click", function () {
+            goTo(i);
+            resetTimer();
+          });
           dotsContainer.appendChild(btn);
         });
 
         function goTo(idx) {
           current = (idx + total) % total;
-          track.style.transform = 'translateX(-' + current * 100 + '%)';
-          dotsContainer.querySelectorAll('.carousel-dot').forEach(function (d, i) {
-            d.classList.toggle('active', i === current);
-          });
+          track.style.transform = "translateX(-" + current * 100 + "%)";
+          dotsContainer
+            .querySelectorAll(".carousel-dot")
+            .forEach(function (d, i) {
+              d.classList.toggle("active", i === current);
+            });
         }
 
-        function next() { goTo(current + 1); }
-        function prev() { goTo(current - 1); }
+        function next() {
+          goTo(current + 1);
+        }
+        function prev() {
+          goTo(current - 1);
+        }
 
         function resetTimer() {
           clearInterval(timer);
           timer = setInterval(next, 4000);
         }
 
-        document.getElementById('heroNext').addEventListener('click', function () { next(); resetTimer(); });
-        document.getElementById('heroPrev').addEventListener('click', function () { prev(); resetTimer(); });
+        document
+          .getElementById("heroNext")
+          .addEventListener("click", function () {
+            next();
+            resetTimer();
+          });
+        document
+          .getElementById("heroPrev")
+          .addEventListener("click", function () {
+            prev();
+            resetTimer();
+          });
 
         // Pause on hover
-        var carousel = document.getElementById('heroCarousel');
-        carousel.addEventListener('mouseenter', function () { clearInterval(timer); });
-        carousel.addEventListener('mouseleave', resetTimer);
+        var carousel = document.getElementById("heroCarousel");
+        carousel.addEventListener("mouseenter", function () {
+          clearInterval(timer);
+        });
+        carousel.addEventListener("mouseleave", resetTimer);
 
         // Lightbox
         var lbIndex = 0;
-        var lb = document.getElementById('heroLightbox');
-        var lbImg = document.getElementById('heroLightboxImg');
-        var lbCounter = document.getElementById('heroLightboxCounter');
+        var lb = document.getElementById("heroLightbox");
+        var lbImg = document.getElementById("heroLightboxImg");
+        var lbCounter = document.getElementById("heroLightboxCounter");
 
         function lbOpen(idx) {
           lbIndex = (idx + total) % total;
           lbImg.src = slides[lbIndex].src;
           lbImg.alt = slides[lbIndex].alt;
-          lbCounter.textContent = (lbIndex + 1) + ' / ' + total;
-          lb.classList.add('open');
+          lbCounter.textContent = lbIndex + 1 + " / " + total;
+          lb.classList.add("open");
         }
-        function lbClose() { lb.classList.remove('open'); }
-        function lbNext() { lbOpen(lbIndex + 1); }
-        function lbPrev() { lbOpen(lbIndex - 1); }
+        function lbClose() {
+          lb.classList.remove("open");
+        }
+        function lbNext() {
+          lbOpen(lbIndex + 1);
+        }
+        function lbPrev() {
+          lbOpen(lbIndex - 1);
+        }
 
         slides.forEach(function (img, i) {
-          img.addEventListener('click', function () { lbOpen(i); });
+          img.addEventListener("click", function () {
+            lbOpen(i);
+          });
         });
 
-        document.getElementById('heroLightboxClose').addEventListener('click', lbClose);
-        document.getElementById('heroLightboxNext').addEventListener('click', function (e) { e.stopPropagation(); lbNext(); });
-        document.getElementById('heroLightboxPrev').addEventListener('click', function (e) { e.stopPropagation(); lbPrev(); });
-        lb.addEventListener('click', function (e) { if (e.target === lb) lbClose(); });
-        document.addEventListener('keydown', function (e) {
-          if (!lb.classList.contains('open')) return;
-          if (e.key === 'Escape') lbClose();
-          if (e.key === 'ArrowRight') lbNext();
-          if (e.key === 'ArrowLeft') lbPrev();
+        document
+          .getElementById("heroLightboxClose")
+          .addEventListener("click", lbClose);
+        document
+          .getElementById("heroLightboxNext")
+          .addEventListener("click", function (e) {
+            e.stopPropagation();
+            lbNext();
+          });
+        document
+          .getElementById("heroLightboxPrev")
+          .addEventListener("click", function (e) {
+            e.stopPropagation();
+            lbPrev();
+          });
+        lb.addEventListener("click", function (e) {
+          if (e.target === lb) lbClose();
+        });
+        document.addEventListener("keydown", function (e) {
+          if (!lb.classList.contains("open")) return;
+          if (e.key === "Escape") lbClose();
+          if (e.key === "ArrowRight") lbNext();
+          if (e.key === "ArrowLeft") lbPrev();
         });
 
         resetTimer();
       })();
 
       // FAQ accordion
-      document.querySelectorAll('.faq-q').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var item = btn.closest('.faq-item');
-          var isOpen = item.classList.contains('open');
-          document.querySelectorAll('.faq-item.open').forEach(function (el) { el.classList.remove('open'); });
-          if (!isOpen) item.classList.add('open');
+      document.querySelectorAll(".faq-q").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var item = btn.closest(".faq-item");
+          var isOpen = item.classList.contains("open");
+          document.querySelectorAll(".faq-item.open").forEach(function (el) {
+            el.classList.remove("open");
+          });
+          if (!isOpen) item.classList.add("open");
         });
       });
     </script>

@@ -12,7 +12,7 @@ describe 'validateLicense', ->
     result = validateLicense(null)
     result.valid.should.equal true
     result.isCommunity.should.equal true
-    result.seats.should.equal 3
+    result.seats.should.equal 5
     result.lanes.should.equal 3
     result.plan.should.equal 'community'
 
@@ -20,7 +20,7 @@ describe 'validateLicense', ->
     result = validateLicense(COMMUNITY_JWT)
     result.valid.should.equal true
     result.isCommunity.should.equal true
-    result.seats.should.equal 3
+    result.seats.should.equal 5
     result.lanes.should.equal 3
     result.plan.should.equal 'community'
 
@@ -44,7 +44,7 @@ describe 'getLicenseState / setCachedState / invalidateCache', ->
     result = getLicenseState()
     result.valid.should.equal true
     result.isCommunity.should.equal true
-    result.seats.should.equal 3
+    result.seats.should.equal 5
     result.lanes.should.equal 3
 
   it 'setCachedState then getLicenseState returns the injected state', ->
@@ -57,5 +57,5 @@ describe 'getLicenseState / setCachedState / invalidateCache', ->
     setCachedState({ seats: 999, lanes: 99 })
     invalidateCache()
     result = getLicenseState()
-    result.seats.should.equal 3
+    result.seats.should.equal 5
     result.lanes.should.equal 3

@@ -16,7 +16,7 @@ vwIDAQAB
 """
 
 # Paste the output of generate-community-jwt.js here
-COMMUNITY_JWT = 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJjb21tdW5pdHkiLCJpc3MiOiJ1cmVwb3J0IiwicGxhbiI6ImNvbW11bml0eSIsImxpY2Vuc2VlIjoiQ29tbXVuaXR5IEVkaXRpb24iLCJzZWF0cyI6MywibGFuZXMiOjMsImRhc2hib2FyZHMiOjMsImZlYXR1cmVzIjpbXSwiaWF0IjoxNzgxMTI1OTk2fQ.MBmiT4MQrjGlnbl4EKd6JMb8FZZFxX-6oFXG5ZrTieaGv6iGhmorTwkMgkiqDvHsKW2QNSNJ0_-UmaA1Iqn34v8Y069SOSvj_sZNNQrbWKsYghGQTTOCiyVY5656DH8VcY_UJtBrJDqdhx5lREcz2De3XXq9W0E7FED-SNh_G30C5rwSLf5BEEaes4R-8CLksJEp7zZgn_hhiw1Km3hG5ZyeJXaOAcn2Br56T_DKstXosaigKSsZX8roLPpDbr4HT8J3QJaqStmdco-DNEVVELgmv7jjr0lDUN-5zezBG8mMr9gPng8Z5RTmjJWf_5vGxg_78fQ3De909i0re2rIuw'
+COMMUNITY_JWT = 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ5aXpob25namlAZ21haWwuY29tIiwiaXNzIjoidXJlcG9ydCIsInBsYW4iOiJjb21tdW5pdHkiLCJsaWNlbnNlZSI6IkNvbW11bml0eSIsInNlYXRzIjo1LCJsYW5lcyI6MywiZGFzaGJvYXJkcyI6MywiZmVhdHVyZXMiOltdLCJpYXQiOjE3ODg0MDA1NTF9.JljN4GAGjIJOGBuFqX3MaIYJxFZabNyP9C4Rc8hHiIzHu_rn_jzsT9bUSJj2MbdXXiYOtb2w3USOdnCv669ISmXnSzJM9UtD_B2TDBkLVZYjvbfYi-XKIaMrFy-VyCWDSlA-zkUKViI0-OYgt_xRmiE3RKki8heW3AKOAPlOQIsz25GyutwQej3fCo_-orf6sur_li34Z6NNRbq_JieNa6FpEESXv_TLT_jrkxyA5EvVzgpS5fwowAJ1uHBk70eXwPXKB3xC2qIYphuBoVx5P89GMv9FOGrX7prZunjYRHIEFlKoencQcyMi7JO2dh9KFT2Mq8gekSwwVOdVGwfIWg'
 
 # ── State ─────────────────────────────────────────────────────────────────────
 _state = null
@@ -36,7 +36,7 @@ validateLicense = (key) ->
       plan:        payload.plan or 'community'
       features:    payload.features or []
       expiresAt:   if payload.exp then new Date(payload.exp * 1000) else null
-      isCommunity: payload.sub is 'community'
+      isCommunity: payload.plan is 'community'
     }
   catch err
     { valid: false, licensee: null, seats: 3, lanes: 3, dashboards: 3, plan: 'community', features: [], expiresAt: null, isCommunity: true, error: err.message }

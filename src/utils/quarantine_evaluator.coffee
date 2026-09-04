@@ -93,7 +93,8 @@ evaluateThreshold = (condition, results, qualifyingBuildIds, debugLog = ->) ->
 
 # Returns true if the test has >= requiredPasses consecutive passes
 # in the most-recent-first ordered buildIds.
-# Missing result for a build = not a pass (breaks streak).
+# Builds where the test did not run are skipped — only builds with an actual
+# result count toward the streak. A FAIL/SKIP breaks the streak.
 hasConsecutivePasses = (results, buildIds, requiredPasses) ->
   buildIdStrs = buildIds.map (id) -> id.toString()
   resultByBuild = {}
@@ -102,10 +103,12 @@ hasConsecutivePasses = (results, buildIds, requiredPasses) ->
   i = 0
   while i < buildIdStrs.length
     buildStr = buildIdStrs[i]
-    if resultByBuild[buildStr]? and resultByBuild[buildStr] == 0
-      streak++
-    else
-      i = buildIdStrs.length  # break equivalent
+    if resultByBuild[buildStr]?
+      if resultByBuild[buildStr] == 0
+        streak++
+      else
+        i = buildIdStrs.length  # FAIL/SKIP — break streak
+    # Missing result: test did not run in this build, skip it
     i++
   streak >= requiredPasses
 
@@ -128,13 +131,15 @@ evaluateQuarantineRules = (build) ->
   buildId = build._id?.toString() or '?'
   prefix  = "[quarantine] build=#{buildId} product=#{build.product} type=#{build.type}"
 
+  logger.info "#{prefix} triggered"
+
   if build.is_archive
-    logger.debug "#{prefix} skipping — is_archive"
+    logger.info "#{prefix} skipping — is_archive"
     return
 
   gateKey = "#{build.product}|#{build.type}"
   if _evaluating[gateKey]
-    logger.debug "#{prefix} queued as pending — evaluation already in progress for #{gateKey}"
+    logger.info "#{prefix} queued as pending — evaluation already in progress for #{gateKey}"
     _pending[gateKey] = build
     return
   _evaluating[gateKey] = true
@@ -154,13 +159,13 @@ evaluateQuarantineRules = (build) ->
       return
 
     unless setting?.quarantine_rules?.rules?.length
-      logger.debug "#{prefix} no quarantine_rules configured, skipping"
+      logger.info "#{prefix} no quarantine_rules configured, skipping"
       release()
       return
 
     enabledRules = setting.quarantine_rules.rules.filter (r) -> r.enabled
     unless enabledRules.length
-      logger.debug "#{prefix} no enabled rules, skipping"
+      logger.info "#{prefix} no enabled rules, skipping"
       release()
       return
 
@@ -434,6 +439,8 @@ evaluateQuarantineRules = (build) ->
                   results = arUidMap[q.uid] or []
                   requiredPasses = threshold.resolve_passes or 3
                   shouldResolve = hasConsecutivePasses(results, arQualifyingBuildIds, requiredPasses)
+
+                  logger.debug "[quarantine] auto-resolve uid=#{q.uid} results=#{results.length} required=#{requiredPasses} shouldResolve=#{shouldResolve}"
 
                   if shouldResolve
                     QuarantinedTest.findOneAndUpdate(

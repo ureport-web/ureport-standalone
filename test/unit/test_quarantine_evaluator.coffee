@@ -1,7 +1,7 @@
 chai   = require('chai')
 should = chai.should()
 
-{ matchesScope, evaluateThreshold, filterByNamePattern } = require('../../src/utils/quarantine_evaluator')
+{ matchesScope, evaluateThreshold, filterByNamePattern, hasConsecutivePasses } = require('../../src/utils/quarantine_evaluator')
 
 # ---------------------------------------------------------------------------
 # matchesScope
@@ -245,3 +245,46 @@ describe 'evaluateThreshold — mode field in results', ->
     out = evaluateThreshold({ mode: 'ratio', fail_rate: 30 }, results, tenBuildIds)
     out.length.should.equal 1
     out[0].mode.should.equal 'ratio'
+
+# ---------------------------------------------------------------------------
+# hasConsecutivePasses
+# ---------------------------------------------------------------------------
+describe 'hasConsecutivePasses', ->
+
+  mkPassResults = (uid, passBuilds, failBuilds = []) ->
+    results = []
+    passBuilds.forEach (bid) -> results.push { build: bid, failed: 0 }
+    failBuilds.forEach (bid) -> results.push { build: bid, failed: 1 }
+    results
+
+  buildIds = ['b1', 'b2', 'b3', 'b4', 'b5']
+
+  it 'returns true when last N builds all pass', ->
+    results = mkPassResults('uid-A', ['b1', 'b2', 'b3'])
+    hasConsecutivePasses(results, buildIds, 3).should.equal true
+
+  it 'returns false when streak is shorter than required', ->
+    results = mkPassResults('uid-A', ['b1', 'b2'])
+    hasConsecutivePasses(results, buildIds, 3).should.equal false
+
+  it 'returns false when most-recent build is a fail', ->
+    results = mkPassResults('uid-A', ['b2', 'b3'], ['b1'])
+    hasConsecutivePasses(results, buildIds, 2).should.equal false
+
+  it 'skips builds where test did not run (no result)', ->
+    # b1 pass, b2 missing (skipped), b3 pass — streak counts b1 and b3 = 2
+    results = mkPassResults('uid-A', ['b1', 'b3'])
+    hasConsecutivePasses(results, buildIds, 2).should.equal true
+
+  it 'streak breaks on FAIL even with missing builds before it', ->
+    # b1 pass, b2 missing, b3 fail — streak is only 1 (b1), then b2 skipped, b3 breaks
+    results = mkPassResults('uid-A', ['b1'], ['b3'])
+    hasConsecutivePasses(results, buildIds, 2).should.equal false
+
+  it 'returns false when no results at all', ->
+    hasConsecutivePasses([], buildIds, 1).should.equal false
+
+  it 'returns true when all builds are missing except enough passes', ->
+    # only b5 has a result (pass) — required 1
+    results = mkPassResults('uid-A', ['b5'])
+    hasConsecutivePasses(results, buildIds, 1).should.equal true
