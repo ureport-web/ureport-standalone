@@ -246,7 +246,7 @@ router.post '/forgot', (req, res, next) ->
                     text: 'Click the link to reset your password: ' + resetUrl
                     html: '<p>You requested a password reset. Click below to set a new password (link expires in 1 hour):</p><p><a href="' + resetUrl + '">Reset Password</a></p><p>If you did not request this, ignore this email.</p>'
                 transporter.sendMail mailOptions, (err, info) ->
-                    if err then logger.error err
+                    if err then logger.error err.message
                     done(null)
         ], (err) ->
             if err

@@ -4,11 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>UReport — From test reports to test intelligence</title>
+    <title>UReport — Test Automation Reporting & Analytics Platform</title>
     <meta
       name="description"
-      content="Centralize test executions. Visualize pass rates and failure trends for engineers and leadership to act on — with flaky test quarantine and AI root cause analysis built in."
+      content="UReport is a test automation reporting tool for QA teams. Centralize test executions, visualize pass rates and failure trends, detect flaky tests, and get AI root cause analysis. Works with Playwright, pytest, Jest, Cypress, and more."
     />
+    <meta
+      name="keywords"
+      content="test automation reporting, automation reporting tool, test results dashboard, QA analytics, playwright reporting, pytest reporting, jest reporting, cypress reporting, flaky test detection, test automation analytics, CI/CD test reporting, software testing dashboard, automated testing tool, QA reporting platform, test failure analysis, test run history, test intelligence"
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://ureportlab.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ureportlab.com/" />
+    <meta property="og:title" content="UReport — Test Automation Reporting & Analytics Platform" />
+    <meta property="og:description" content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis, dashboards and CI/CD integration. Works with Playwright, pytest, Jest and more." />
+    <meta property="og:image" content="https://ureportlab.com/assets/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="UReport — Test Automation Reporting & Analytics Platform" />
+    <meta name="twitter:description" content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis, dashboards and CI/CD integration." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -3518,10 +3532,8 @@ reporter: [
               </div>
               <div class="pricing-card">
                 <div class="pricing-tier">Team</div>
-                <div class="pricing-price" data-price="sh-team-mo">$49</div>
-                <div class="pricing-cadence" data-price="sh-team-cadence">
-                  per month · billed $490 / yr (2 months free)
-                </div>
+                <div class="pricing-price" data-price="sh-team-mo">$490</div>
+                <div class="pricing-cadence" data-price="sh-team-cadence">per year · annual license</div>
                 <div class="pricing-desc">
                   Higher limits and the full feature set — dashboard sharing and
                   data export.
@@ -3544,10 +3556,8 @@ reporter: [
               </div>
               <div class="pricing-card">
                 <div class="pricing-tier">Business</div>
-                <div class="pricing-price" data-price="sh-business-mo">$99</div>
-                <div class="pricing-cadence" data-price="sh-business-cadence">
-                  per month · billed $990 / yr (2 months free)
-                </div>
+                <div class="pricing-price" data-price="sh-business-mo">$990</div>
+                <div class="pricing-cadence" data-price="sh-business-cadence">per year · annual license</div>
                 <div class="pricing-desc">
                   For growing teams that need more seats, audit log, and email
                   priority support.
@@ -4014,24 +4024,10 @@ reporter: [
           "cloud-business-cadence",
           "per company / month · flat rate · no per-seat fees",
         );
-        set("sh-team-mo", "$" + st);
-        set(
-          "sh-team-cadence",
-          "per month · billed $" +
-            annualPrice(st).toLocaleString() +
-            " / yr (" +
-            PRICING.annualMonthsFree +
-            " months free)",
-        );
-        set("sh-business-mo", "$" + sb);
-        set(
-          "sh-business-cadence",
-          "per month · billed $" +
-            annualPrice(sb).toLocaleString() +
-            " / yr (" +
-            PRICING.annualMonthsFree +
-            " months free)",
-        );
+        set("sh-team-mo", "$" + annualPrice(st).toLocaleString());
+        set("sh-team-cadence", "per year · annual license");
+        set("sh-business-mo", "$" + annualPrice(sb).toLocaleString());
+        set("sh-business-cadence", "per year · annual license");
       })();
       // ─────────────────────────────────────────────────────────────────────────
 

@@ -55,7 +55,7 @@ prepareSendEmail = (req, res, user,assignment) ->
           },
           (error, info) ->
             if error
-              logger.error error
+              logger.error error.message
             else
               logger.info 'Message sent: ' + info.response
             return

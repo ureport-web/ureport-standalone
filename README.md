@@ -304,12 +304,7 @@ Most endpoints require either a session cookie (browser login) or an `Authorizat
 | `npm run seed`       | Generate sample data                                                 |
 | `npm test`           | Run the test suite                                                   |
 
-## License
-
-The core platform is [MIT licensed](./LICENSE).
-Premium plugins are distributed under a [separate proprietary license](./PLUGINS_LICENSE).
-
 ## 💼 Need help?
 
 Need custom integration, enterprise deployment, or dedicated support?
-→ [Get in touch](mailto:[ureport@outlook.com])
+→ [Get in touch](mailto:[ureportlab@gmail.com])

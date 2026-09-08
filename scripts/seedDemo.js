@@ -13,6 +13,7 @@ const Test = require("../src/models/test");
 const TestRelation = require("../src/models/test_relation");
 const Dashboard = require("../src/models/dashboard");
 const Setting = require("../src/models/setting");
+const SystemSetting = require("../src/models/system_setting");
 const InvestigatedTest = require("../src/models/investigated_test");
 const QuarantinedTest = require("../src/models/quarantined_test");
 const Preset = require("../src/models/preset");
@@ -1455,7 +1456,10 @@ async function seedProductLine(product, type, uids, stabilityKey, metaMap, { bro
       };
 
       if (st === "FAIL") {
-        const msg = pick(errors);
+        // Deterministic per uid — same test always fails with the same message across builds,
+        // so auto-analysis fingerprints match and old investigations apply to new failures.
+        const errIdx = [...uid].reduce((acc, c) => acc + c.charCodeAt(0), 0) % errors.length;
+        const msg = errors[errIdx];
         doc.failure = {
           error_message: msg,
           stack_trace: `Error: ${msg}\n    at runTest (${uid}.spec.js:42:15)\n    at TestRunner.run (runner.js:120:8)`,
@@ -1524,11 +1528,13 @@ async function seedInvestigatedTests() {
         stack_trace: t.failure.stack_trace,
       };
 
-      // create_at in the past — simulates engineer investigating an earlier occurrence,
-      // which now auto-matches the latest run because the same failure recurred
-      const create_at = new Date(
-        Date.now() - randInt(3, 25) * 24 * 60 * 60 * 1000,
-      );
+      // First 3 per type triaged TODAY — demonstrates "investigated today, but same test
+      // failed in old builds too" because error messages are now deterministic per uid.
+      // The rest are backdated to simulate pre-existing investigations that auto-match
+      // new failures in the latest run.
+      const create_at = i < 3
+        ? new Date(Date.now() - randInt(0, 4) * 60 * 60 * 1000)   // 0–4 hours ago (today)
+        : new Date(Date.now() - randInt(3, 25) * 24 * 60 * 60 * 1000); // 3–25 days ago
 
       // Only the first failure per type gets a custom state (uncertain classification).
       // All others are plain investigated tests.
@@ -1769,6 +1775,43 @@ function plq(type) {
   return { product: PRODUCT, type, query_type: "FILTER" };
 }
 
+function plqBackend() {
+  return {
+    product: PRODUCT,
+    type: "backend",
+    platform: ["linux"],
+    platform_version: ["22.04"],
+    stage: ["CI"],
+    query_type: "FILTER",
+  };
+}
+
+function plqE2E() {
+  return {
+    product: PRODUCT,
+    type: "e2e",
+    browser: ["Chrome", "Edge", "Firefox", "Safari"],
+    platform: ["linux"],
+    platform_version: ["22.04"],
+    stage: ["CI"],
+    range: 20,
+    query_type: "PATTERN",
+  };
+}
+
+function plqFrontend() {
+  return {
+    product: PRODUCT,
+    type: "frontend",
+    browser: ["Chrome", "Firefox"],
+    platform: ["linux"],
+    platform_version: ["22.04"],
+    stage: ["CI"],
+    range: 20,
+    query_type: "PATTERN",
+  };
+}
+
 const STATUS_PATTERN = {
   status: {
     all: true,
@@ -1785,6 +1828,10 @@ const RELATION_PATTERN_COMPONENTS = {
   ...STATUS_PATTERN,
   groupByRelation: "components",
 };
+const RELATION_PATTERN_TEAMS = {
+  ...STATUS_PATTERN,
+  groupByRelation: "teams",
+};
 
 async function seedDashboards() {
   await Dashboard.deleteMany({ user: ADMIN_USER_ID, name: /^Acme/ });
@@ -1797,126 +1844,172 @@ async function seedDashboards() {
       user: ADMIN_USER_ID,
       is_public: true,
       widgets: [
+        // y=0: three status pies
+        {
+          name: "E2E Status",
+          type: "STATUS_PIE_ADVANCE",
+          cols: 4,
+          rows: 2,
+          x: 0,
+          y: 0,
+          minItemCols: 3,
+          product_line_query: plqE2E(),
+          pattern: STATUS_PATTERN,
+        },
+        {
+          name: "All Frontend Functional Tests",
+          type: "STATUS_PIE_ADVANCE",
+          cols: 3,
+          rows: 2,
+          x: 4,
+          y: 0,
+          minItemCols: 3,
+          minItemRows: 1,
+          product_line_query: plqFrontend(),
+          pattern: RELATION_PATTERN_COMPONENTS,
+        },
+        {
+          name: "All API Tests",
+          type: "STATUS_PIE_ADVANCE",
+          cols: 3,
+          rows: 2,
+          x: 7,
+          y: 0,
+          minItemCols: 3,
+          minItemRows: 1,
+          product_line_query: plqBackend(),
+          pattern: RELATION_PATTERN_COMPONENTS,
+        },
+        // y=2: multi-query run history
         {
           name: "All Product Lines — Run History",
           type: "BUILD_HISTORY_BAR",
           cols: 10,
-          rows: 2,
+          rows: 3,
           x: 0,
-          y: 0,
+          y: 2,
           minItemCols: 4,
           minItemRows: 2,
-          product_line_query: plq("backend"),
-          multi_query: [plq("frontend"), plq("e2e")],
+          product_line_query: plqBackend(),
+          multi_query: [
+            { product: PRODUCT, type: "frontend", browser: "Chrome", platform: "linux", platform_version: "22.04", stage: "CI", range: 20, query_type: "FILTER" },
+            { product: PRODUCT, type: "frontend", browser: "Firefox", platform: "linux", platform_version: "22.04", stage: "CI", range: 20, query_type: "FILTER" },
+            { product: PRODUCT, type: "e2e", browser: "Chrome", platform: "linux", platform_version: "22.04", stage: "CI", range: 20, query_type: "FILTER" },
+            { product: PRODUCT, type: "e2e", browser: "Firefox", platform: "linux", platform_version: "22.04", stage: "CI", range: 20, query_type: "FILTER" },
+            { product: PRODUCT, type: "e2e", browser: "Safari", platform: "linux", platform_version: "22.04", stage: "CI", range: 20, query_type: "FILTER" },
+          ],
           pattern: STATUS_PATTERN,
+          chartConfig: { gridViewEnabled: true },
         },
+        // y=5: trend insights
         {
-          name: "Backend Pass Rate",
-          type: "PASSRATE_LINE",
+          name: "E2E Trends",
+          type: "TREND_INSIGHTS",
           cols: 5,
-          rows: 2,
-          x: 0,
-          y: 2,
-          minItemCols: 3,
-          minItemRows: 2,
-          product_line_query: plq("backend"),
-          pattern: STATUS_PATTERN,
-        },
-        {
-          name: "E2E Status",
-          type: "STATUS_PIE_ADVANCE",
-          cols: 5,
-          rows: 2,
-          x: 5,
-          y: 2,
-          minItemCols: 3,
-          product_line_query: plq("e2e"),
-          pattern: STATUS_PATTERN,
-        },
-        {
-          name: "Backend Investigated",
-          type: "INVESTIGATED_TEST_STATUS_PIE",
-          cols: 10,
-          rows: 1,
-          x: 0,
-          y: 4,
-          minItemCols: 3,
-          product_line_query: plq("backend"),
-          pattern: STATUS_PATTERN,
-        },
-        {
-          name: "─────────────────",
-          type: "SECTION_DIVIDER",
-          cols: 10,
-          rows: 1,
+          rows: 3,
           x: 0,
           y: 5,
+          minItemCols: 3,
+          minItemRows: 2,
+          product_line_query: plqE2E(),
+          chartConfig: { limit: 20 },
+          pattern: {},
         },
+        {
+          name: "Frontend Trends",
+          type: "TREND_INSIGHTS",
+          cols: 5,
+          rows: 3,
+          x: 5,
+          y: 5,
+          minItemCols: 3,
+          minItemRows: 2,
+          product_line_query: plqFrontend(),
+          chartConfig: { limit: 20 },
+          pattern: {},
+        },
+        // y=8: backend treemap + frontend treemap
         {
           name: "Backend Components Treemap",
           type: "TREEMAP_TEST_RELATION",
-          cols: 10,
-          rows: 4,
+          cols: 4,
+          rows: 3,
           x: 0,
-          y: 6,
+          y: 8,
           minItemCols: 4,
           minItemRows: 3,
-          product_line_query: plq("backend"),
+          product_line_query: plqBackend(),
+          pattern: RELATION_PATTERN_COMPONENTS,
+        },
+        {
+          name: "All Frontend tests",
+          type: "TREEMAP_TEST_RELATION",
+          cols: 6,
+          rows: 4,
+          x: 4,
+          y: 8,
+          minItemCols: 4,
+          minItemRows: 2,
+          product_line_query: plqFrontend(),
+          pattern: RELATION_PATTERN_COMPONENTS,
+        },
+        // y=11: e2e treemap
+        {
+          name: "E2E tests",
+          type: "TREEMAP_TEST_RELATION",
+          cols: 4,
+          rows: 3,
+          x: 0,
+          y: 11,
+          minItemCols: 4,
+          minItemRows: 2,
+          product_line_query: plqE2E(),
           pattern: RELATION_PATTERN_COMPONENTS,
         },
       ],
     },
 
-    // 2 – Backend Deep Dive
+    // 2 – Backend Deep Dive (merged with Quality Summary)
     {
       name: "Acme – Backend Deep Dive",
-      description: "Backend API test analysis with component breakdown",
+      description: "Backend API analysis — status, trends, investigations, stability, and component breakdown",
       user: ADMIN_USER_ID,
       is_public: true,
       widgets: [
+        // ── Row 0: Summary cards ──
         {
-          name: "API Status",
-          type: "STATUS_PIE_ADVANCE",
+          name: "Build Summary",
+          type: "BUILD_SUMMARY_CARD",
           cols: 5,
-          rows: 1,
+          rows: 2,
           x: 0,
           y: 0,
-          minItemCols: 3,
-          product_line_query: plq("backend"),
+          minItemCols: 4,
+          product_line_query: plqBackend(),
           pattern: STATUS_PATTERN,
         },
         {
-          name: "Investigated",
-          type: "INVESTIGATED_TEST_STATUS_PIE",
+          name: "Test Summary",
+          type: "STATUS_SUMMARY_CARD",
           cols: 5,
-          rows: 1,
+          rows: 2,
           x: 5,
           y: 0,
           minItemCols: 3,
-          product_line_query: plq("backend"),
+          product_line_query: plqBackend(),
           pattern: STATUS_PATTERN,
         },
-        {
-          name: "Investigated Summary",
-          type: "INVESTIGATED_SUMMARY_CARD",
-          cols: 10,
-          rows: 2,
-          x: 0,
-          y: 1,
-          minItemCols: 2,
-          product_line_query: plq("backend"),
-          pattern: STATUS_PATTERN,
-        },
+        // ── Row 2: Trend charts ──
         {
           name: "Run History",
           type: "BUILD_HISTORY_BAR",
           cols: 5,
           rows: 2,
           x: 0,
-          y: 3,
+          y: 2,
           minItemCols: 3,
           minItemRows: 2,
-          product_line_query: plq("backend"),
+          product_line_query: plqBackend(),
           pattern: STATUS_PATTERN,
         },
         {
@@ -1925,22 +2018,46 @@ async function seedDashboards() {
           cols: 5,
           rows: 2,
           x: 5,
-          y: 3,
+          y: 2,
           minItemCols: 3,
           minItemRows: 2,
-          product_line_query: plq("backend"),
+          product_line_query: plqBackend(),
           pattern: STATUS_PATTERN,
         },
+        // ── Row 4: Status pies ──
+        {
+          name: "API Status",
+          type: "STATUS_PIE_ADVANCE",
+          cols: 5,
+          rows: 2,
+          x: 0,
+          y: 4,
+          minItemCols: 3,
+          product_line_query: plqBackend(),
+          pattern: STATUS_PATTERN,
+        },
+        {
+          name: "Investigated",
+          type: "INVESTIGATED_TEST_STATUS_PIE",
+          cols: 5,
+          rows: 2,
+          x: 5,
+          y: 4,
+          minItemCols: 3,
+          product_line_query: plqBackend(),
+          pattern: STATUS_PATTERN,
+        },
+        // ── Row 6: Component failures ──
         {
           name: "Tests by Component",
           type: "RELATIONS_GROUP_BY_BAR",
           cols: 6,
           rows: 2,
           x: 0,
-          y: 5,
+          y: 6,
           minItemCols: 3,
           minItemRows: 2,
-          product_line_query: plq("backend"),
+          product_line_query: plqBackend(),
           pattern: RELATION_PATTERN_COMPONENTS,
         },
         {
@@ -1949,85 +2066,23 @@ async function seedDashboards() {
           cols: 4,
           rows: 2,
           x: 6,
-          y: 5,
+          y: 6,
           minItemCols: 3,
           minItemRows: 2,
-          product_line_query: plq("backend"),
+          product_line_query: plqBackend(),
           pattern: STATUS_PATTERN,
         },
-        {
-          name: "Component Heatmap",
-          type: "HEATMAP_TEST_RELATION",
-          cols: 10,
-          rows: 5,
-          x: 0,
-          y: 7,
-          minItemCols: 4,
-          minItemRows: 4,
-          product_line_query: plq("backend"),
-          pattern: RELATION_PATTERN_COMPONENTS,
-        },
-      ],
-    },
-
-    // 3 – Quality Summary
-    {
-      name: "Acme – Quality Summary",
-      description: "High-level summary cards and test stability overview",
-      user: ADMIN_USER_ID,
-      is_public: true,
-      widgets: [
-        {
-          name: "Build Summary",
-          type: "BUILD_SUMMARY_CARD",
-          cols: 4,
-          rows: 3,
-          x: 0,
-          y: 0,
-          minItemCols: 4,
-          product_line_query: plq("backend"),
-          pattern: STATUS_PATTERN,
-        },
-        {
-          name: "Test Summary",
-          type: "STATUS_SUMMARY_CARD",
-          cols: 3,
-          rows: 3,
-          x: 4,
-          y: 0,
-          minItemCols: 3,
-          product_line_query: plq("backend"),
-          pattern: STATUS_PATTERN,
-        },
-        {
-          name: "Investigation Summary",
-          type: "INVESTIGATED_SUMMARY_CARD",
-          cols: 3,
-          rows: 3,
-          x: 7,
-          y: 0,
-          minItemCols: 3,
-          product_line_query: plq("backend"),
-          pattern: STATUS_PATTERN,
-        },
-        {
-          name: "─────────────────",
-          type: "SECTION_DIVIDER",
-          cols: 10,
-          rows: 1,
-          x: 0,
-          y: 3,
-        },
+        // ── Row 8: Stability ──
         {
           name: "Unstable Tests",
           type: "UNSTABLE_TESTS_TABLE",
           cols: 5,
           rows: 3,
           x: 0,
-          y: 4,
+          y: 8,
           minItemCols: 3,
           minItemRows: 2,
-          product_line_query: plq("backend"),
+          product_line_query: plqBackend(),
           pattern: STATUS_PATTERN,
         },
         {
@@ -2036,103 +2091,191 @@ async function seedDashboards() {
           cols: 5,
           rows: 3,
           x: 5,
-          y: 4,
+          y: 8,
           minItemCols: 3,
           minItemRows: 2,
-          product_line_query: plq("backend"),
+          product_line_query: plqBackend(),
           pattern: STATUS_PATTERN,
+        },
+        // ── Row 11: Heatmap ──
+        {
+          name: "Component Heatmap",
+          type: "HEATMAP_TEST_RELATION",
+          cols: 10,
+          rows: 5,
+          x: 0,
+          y: 11,
+          minItemCols: 4,
+          minItemRows: 4,
+          product_line_query: plqBackend(),
+          pattern: RELATION_PATTERN_COMPONENTS,
         },
       ],
     },
 
-    // 4 – E2E & Frontend Relations
+    // 4 – E2E & Frontend Builds
     {
-      name: "Acme – E2E & Frontend Relations",
+      name: "Acme – E2E & Frontend Builds",
       description: "End-to-end test flows and frontend component coverage",
       user: ADMIN_USER_ID,
       is_public: true,
       widgets: [
+        // y=0: Section divider
+        {
+          name: "E2E all builds",
+          type: "SECTION_DIVIDER",
+          cols: 10,
+          rows: 1,
+          x: 0,
+          y: 0,
+          minItemCols: 1,
+          decorConfig: {
+            decorTitle: "E2E Automation",
+            decorDescription: "This section shows all runs from E2E tests",
+            decorColor: "#c0048bff",
+            decorStyle: "dashed",
+            decorAlignment: "center",
+            decorFontSize: "large",
+          },
+          product_line_query: null,
+        },
+        // y=1: Status pies
         {
           name: "E2E Flow Status",
           type: "STATUS_PIE_ADVANCE",
           cols: 5,
           rows: 1,
           x: 0,
-          y: 0,
+          y: 1,
           minItemCols: 3,
-          product_line_query: plq("e2e"),
+          product_line_query: plqE2E(),
           pattern: STATUS_PATTERN,
         },
         {
-          name: "Frontend Status",
-          type: "STATUS_PIE_ADVANCE",
+          name: "Triaged tests",
+          type: "INVESTIGATED_TEST_STATUS_PIE",
           cols: 5,
           rows: 1,
           x: 5,
-          y: 0,
+          y: 1,
           minItemCols: 3,
-          product_line_query: plq("frontend"),
+          minItemRows: 1,
+          product_line_query: plqE2E(),
           pattern: STATUS_PATTERN,
         },
+        // y=2: Build history
         {
           name: "E2E Build History",
           type: "BUILD_HISTORY_BAR",
           cols: 10,
           rows: 2,
           x: 0,
-          y: 1,
+          y: 2,
           minItemCols: 3,
           minItemRows: 2,
-          product_line_query: plq("e2e"),
+          product_line_query: plqE2E(),
           pattern: STATUS_PATTERN,
         },
+        // y=4: By Team + E2E Heatmap
         {
-          name: "E2E by Flow Type",
+          name: "By Team",
           type: "RELATIONS_GROUP_BY_BAR",
-          cols: 6,
+          cols: 5,
           rows: 2,
           x: 0,
-          y: 3,
+          y: 4,
           minItemCols: 3,
           minItemRows: 2,
-          product_line_query: plq("e2e"),
-          pattern: RELATION_PATTERN_COMPONENTS,
-        },
-        {
-          name: "Frontend by Component",
-          type: "RELATIONS_GROUP_BY_BAR",
-          cols: 4,
-          rows: 2,
-          x: 6,
-          y: 3,
-          minItemCols: 3,
-          minItemRows: 2,
-          product_line_query: plq("frontend"),
-          pattern: RELATION_PATTERN_COMPONENTS,
+          chartConfig: { direction: "Vertical" },
+          product_line_query: plqE2E(),
+          pattern: RELATION_PATTERN_TEAMS,
         },
         {
           name: "E2E Heatmap",
           type: "HEATMAP_TEST_RELATION",
           cols: 5,
-          rows: 5,
-          x: 0,
-          y: 5,
+          rows: 4,
+          x: 5,
+          y: 4,
           minItemCols: 4,
           minItemRows: 4,
-          product_line_query: plq("e2e"),
+          product_line_query: plqE2E(),
           pattern: RELATION_PATTERN_COMPONENTS,
         },
+        // y=6: By Component
         {
-          name: "Frontend Components Treemap",
-          type: "TREEMAP_TEST_RELATION",
+          name: "By Component",
+          type: "RELATIONS_GROUP_BY_BAR",
           cols: 5,
-          rows: 5,
-          x: 5,
-          y: 5,
+          rows: 2,
+          x: 0,
+          y: 6,
           minItemCols: 3,
-          minItemRows: 3,
-          product_line_query: plq("frontend"),
+          minItemRows: 2,
+          product_line_query: plqE2E(),
           pattern: RELATION_PATTERN_COMPONENTS,
+        },
+        // y=9: Frontend section divider
+        {
+          name: "Frontend Automation",
+          type: "SECTION_DIVIDER",
+          cols: 10,
+          rows: 1,
+          x: 0,
+          y: 9,
+          minItemCols: 1,
+          decorConfig: {
+            decorTitle: "Frontend Automation",
+            decorDescription: "All Widgets shown from CI runs frontend automation tests",
+            decorColor: "#c0048bff",
+            decorStyle: "dashed",
+            decorAlignment: "center",
+            decorFontSize: "large",
+          },
+        },
+        // y=10: Frontend widgets
+        {
+          name: "Frontend Status",
+          type: "STATUS_PIE_ADVANCE",
+          cols: 4,
+          rows: 2,
+          x: 0,
+          y: 10,
+          minItemCols: 3,
+          product_line_query: plqFrontend(),
+          pattern: STATUS_PATTERN,
+        },
+        {
+          name: "Frontend Runs",
+          type: "BUILD_HISTORY_BAR",
+          cols: 6,
+          rows: 2,
+          x: 4,
+          y: 10,
+          minItemCols: 3,
+          minItemRows: 2,
+          chartConfig: { gridViewEnabled: true },
+          product_line_query: {
+            product: PRODUCT,
+            type: "frontend",
+            browser: ["Firefox"],
+            platform: ["linux"],
+            platform_version: ["22.04"],
+            stage: ["CI"],
+            query_type: "FILTER",
+          },
+          multi_query: [
+            {
+              product: PRODUCT,
+              type: "frontend",
+              browser: "Chrome",
+              platform: "linux",
+              platform_version: "22.04",
+              stage: "CI",
+              query_type: "FILTER",
+            },
+          ],
+          pattern: STATUS_PATTERN,
         },
       ],
     },
@@ -2400,6 +2543,8 @@ async function main() {
   mongoose.set("useCreateIndex", true);
 
   console.log("\nClearing existing Acme demo data...");
+  // Reset license to community so demo always starts unlicensed
+  await SystemSetting.updateOne({ name: "SYSTEM_SETTING" }, { $unset: { license_key: "" } });
   await Build.deleteMany({ product: PRODUCT });
   await Test.deleteMany({});
   console.log("  ✓ Cleared builds and tests");
@@ -2441,7 +2586,7 @@ async function main() {
     `\n✅ Done! ${buildCount} builds, ${testCount} tests seeded for "${PRODUCT}".`,
   );
   console.log(
-    "   Dashboards: Executive Overview, Backend Deep Dive, Quality Summary, E2E & Frontend Relations\n",
+    "   Dashboards: Executive Overview, Backend Deep Dive, E2E & Frontend Builds\n",
   );
 
   mongoose.disconnect();

@@ -262,6 +262,7 @@ if (config !== undefined) {
 
   const setting = require("./src/routes/setting");
   const systemSetting = require("./src/routes/system_setting");
+  const dbStats = require("./src/routes/db_stats");
 
   const build = require("./src/routes/build");
   const test = require("./src/routes/test");
@@ -300,6 +301,8 @@ if (config !== undefined) {
   app.use("/api", authenticate);
   app.use("/api/setting", setting);
   app.use("/api/system/setting", systemSetting);
+  app.use("/api/admin/db", isAuthenticatedMid);
+  app.use("/api/admin/db", dbStats);
   app.use("/api/build", build);
   app.use("/api/test", test);
   app.use("/api/audit", audit);

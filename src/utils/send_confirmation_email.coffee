@@ -42,7 +42,7 @@ module.exports = (req, user, token) ->
     },
     (error, info) ->
       if error
-        logger.error error
+        logger.error error.message
       else
         logger.info 'Confirmation email sent: ' + info.response
       return
