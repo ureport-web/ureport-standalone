@@ -15,6 +15,7 @@ primary_region = 'iad'
   min_machines_running = 0
   processes = ['app']
 
+# 512MB — beta traffic, single Node process. Bump to 1gb if fly logs show OOM.
 [[vm]]
   memory = '512mb'
   cpu_kind = 'shared'
