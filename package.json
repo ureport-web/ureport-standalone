@@ -6,7 +6,6 @@
   "scripts": {
     "test": "mocha",
     "start": "node server",
-    "seed": "node seedGenerator",
     "initialize": "node initialize.js",
     "seed:demo": "node scripts/seedDemo.js",
     "swagger": "node scripts/swagger-autogen.js",

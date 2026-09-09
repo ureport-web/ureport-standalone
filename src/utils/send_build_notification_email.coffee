@@ -100,8 +100,8 @@ module.exports = (req, res, recipientUsers, build, statusSummary, ruleNames) ->
         },
         (error, info) ->
           if error
-            logger.error error
+            logger.error error.message
           else
-            logger.info 'Build notification sent to ' + user.email + ': ' + info.response
+            logger.info 'Build notification sent: ' + info.response
           return
   )

@@ -3,10 +3,16 @@ path = require('path')
 fs   = require('fs')
 rfs  = require('rotating-file-stream')
 
+try
+  _config = require('config')
+catch
+  _config = {}
+
 LEVELS = { debug: 0, info: 1, warn: 2, error: 3 }
 
 defaultLevel = if process.env.NODE_ENV is 'production' then 'info' else 'debug'
-currentLevel = LEVELS[process.env.LOG_LEVEL or defaultLevel] ? 1
+configLevel  = process.env.LOG_LEVEL or _config.LOG_LEVEL or defaultLevel
+currentLevel = LEVELS[configLevel] ? 1
 
 logDirectory = path.join(__dirname, '../../log')
 fs.existsSync(logDirectory) or fs.mkdirSync(logDirectory)

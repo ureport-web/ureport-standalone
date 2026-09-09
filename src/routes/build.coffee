@@ -277,6 +277,7 @@ router.post '/status/latest',  (req, res, next) ->
 
   Build.aggregate()
   .match(matchQuery)
+  .sort({ start_time: 1 })
   .group(
     {
       _id:  {
@@ -711,44 +712,43 @@ router.post '/purge/calculate',  (req, res, next) ->
       if err
         return next err
       if not builds or builds.length is 0
-        return res.json []
+        return res.json { builds: [], test_count: 0 }
       buildIds = builds.map((b) -> b._id)
-      testCountPromise = Test.countDocuments({ build: { '$in': buildIds } })
-      testCountPromise.then(
-        (testCount) ->
-          res.json { builds: buildIds, test_count: testCount }
-      ).catch(
-        (err2) ->
-          next err2
-      )
+      # Count tests in batches to avoid huge $in on large lanes
+      BATCH = 100
+      total = 0
+      batches = []
+      i = 0
+      while i < buildIds.length
+        batches.push(buildIds.slice(i, i + BATCH))
+        i += BATCH
+      countNext = (idx) ->
+        if idx >= batches.length
+          return res.json { builds: buildIds, test_count: total }
+        Test.countDocuments({ build: { '$in': batches[idx] } }).exec (err2, count) ->
+          if err2 then return next err2
+          total += count
+          countNext(idx + 1)
+      countNext(0)
     )
 
 
 cleanupOrphanedQuarantineRecords = (purgedBuilds) ->
+  # Only clean up quarantine records when the entire product+type lane is wiped out.
+  # Checking partial orphans requires loading all remaining build IDs into a $in query
+  # which causes OOM/timeout on large lanes. Stale quarantine records are harmless —
+  # the evaluator cleans them naturally when the next build runs.
   ptMap = {}
   (purgedBuilds or []).forEach (b) ->
     key = "#{b.product}::#{b.type}"
     ptMap[key] = { product: b.product, type: b.type }
   Object.keys(ptMap).forEach (key) ->
     { product, type } = ptMap[key]
-    Build.find({ product: product, type: type }).select('_id').exec (err, remaining) ->
+    Build.countDocuments({ product: product, type: type }).exec (err, count) ->
       return if err
-      remainingIds = (remaining or []).map (b) -> b._id
-      if remainingIds.length == 0
+      if count == 0
         QuarantinedTest.deleteMany({ product: product, type: type }).exec (err) ->
           if err then logger.error '[quarantine] cleanup error', err
-      else
-        Test.distinct('uid', { build: { $in: remainingIds } }).exec (err, existingUids) ->
-          return if err
-          existingUidSet = {}
-          (existingUids or []).forEach (uid) -> existingUidSet[uid] = true
-          QuarantinedTest.find({ product: product, type: type }).select('uid _id').exec (err, qDocs) ->
-            return if err
-            toDelete = (qDocs or []).filter (q) -> not existingUidSet[q.uid]
-            return unless toDelete.length
-            ids = toDelete.map (q) -> q._id
-            QuarantinedTest.deleteMany({ _id: { $in: ids } }).exec (err) ->
-              if err then logger.error '[quarantine] cleanup error', err
 
 router.post '/purge',  (req, res, next) ->
   if (!AccessControl.canAccessDeleteAny(req.user.role,component))

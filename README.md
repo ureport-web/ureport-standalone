@@ -312,4 +312,4 @@ Premium plugins are distributed under a [separate proprietary license](./PLUGINS
 ## 💼 Need help?
 
 Need custom integration, enterprise deployment, or dedicated support?
-→ [Get in touch](mailto:[ureport@outlook.com])
+→ [Get in touch](mailto:[ureportlab@gmail.com])
