@@ -17,12 +17,27 @@
     <link rel="canonical" href="https://ureportlab.com/" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://ureportlab.com/" />
-    <meta property="og:title" content="UReport — Test Automation Reporting & Analytics Platform" />
-    <meta property="og:description" content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis, dashboards and CI/CD integration. Works with Playwright, pytest, Jest and more." />
-    <meta property="og:image" content="https://ureportlab.com/assets/og-image.png" />
+    <meta
+      property="og:title"
+      content="UReport — Test Automation Reporting & Analytics Platform"
+    />
+    <meta
+      property="og:description"
+      content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis, dashboards and CI/CD integration. Works with Playwright, pytest, Jest and more."
+    />
+    <meta
+      property="og:image"
+      content="https://ureportlab.com/assets/og-image.png"
+    />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="UReport — Test Automation Reporting & Analytics Platform" />
-    <meta name="twitter:description" content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis, dashboards and CI/CD integration." />
+    <meta
+      name="twitter:title"
+      content="UReport — Test Automation Reporting & Analytics Platform"
+    />
+    <meta
+      name="twitter:description"
+      content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis, dashboards and CI/CD integration."
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -1867,6 +1882,8 @@
       }
       .pricing-grid--4 {
         grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: auto auto auto 1fr auto auto;
+        row-gap: 0;
       }
       .pricing-card {
         border: 1px solid var(--border);
@@ -1874,8 +1891,10 @@
         padding: 1.75rem;
         background: #fff;
         position: relative;
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-row: span 6;
+        grid-template-rows: subgrid;
+        align-items: start;
       }
       .pricing-tier {
         font-size: 12px;
@@ -3533,15 +3552,17 @@ reporter: [
               <div class="pricing-card">
                 <div class="pricing-tier">Team</div>
                 <div class="pricing-price" data-price="sh-team-mo">$490</div>
-                <div class="pricing-cadence" data-price="sh-team-cadence">per year · annual license</div>
+                <div class="pricing-cadence" data-price="sh-team-cadence">
+                  per year · annual license
+                </div>
                 <div class="pricing-desc">
                   Higher limits and the full feature set — dashboard sharing and
                   data export.
                 </div>
                 <ul class="pricing-features">
                   <li><span class="check">✓</span>15 seats</li>
-                  <li><span class="check">✓</span>15 product lanes</li>
-                  <li><span class="check">✓</span>15 dashboards</li>
+                  <li><span class="check">✓</span>10 product lanes</li>
+                  <li><span class="check">✓</span>10 dashboards</li>
                   <li class="feature-inherits">
                     <span class="check">✓</span
                     ><strong>Everything in Community</strong>
@@ -3556,16 +3577,20 @@ reporter: [
               </div>
               <div class="pricing-card">
                 <div class="pricing-tier">Business</div>
-                <div class="pricing-price" data-price="sh-business-mo">$990</div>
-                <div class="pricing-cadence" data-price="sh-business-cadence">per year · annual license</div>
+                <div class="pricing-price" data-price="sh-business-mo">
+                  $990
+                </div>
+                <div class="pricing-cadence" data-price="sh-business-cadence">
+                  per year · annual license
+                </div>
                 <div class="pricing-desc">
                   For growing teams that need more seats, audit log, and email
                   priority support.
                 </div>
                 <ul class="pricing-features">
                   <li><span class="check">✓</span>40 seats</li>
-                  <li><span class="check">✓</span>40 product lanes</li>
-                  <li><span class="check">✓</span>40 dashboards</li>
+                  <li><span class="check">✓</span>30 product lanes</li>
+                  <li><span class="check">✓</span>30 dashboards</li>
                   <li class="feature-inherits">
                     <span class="check">✓</span
                     ><strong>Everything in Team</strong>
@@ -3579,6 +3604,8 @@ reporter: [
               </div>
               <div class="pricing-card">
                 <div class="pricing-tier">Enterprise</div>
+                <div class="pricing-price">Custom</div>
+                <div class="pricing-cadence">tailored pricing &middot; contact us</div>
                 <div class="pricing-desc">
                   Unlimited everything. Custom contracts, SSO, and dedicated
                   support for large organizations.
@@ -3625,16 +3652,21 @@ reporter: [
                 </div>
                 <ul class="pricing-features">
                   <li><span class="check">✓</span>5 seats</li>
-                  <li><span class="check">✓</span>~1M test records storage</li>
+                  <li><span class="check">✓</span>3 product lanes</li>
+                  <li><span class="check">✓</span>3 dashboards</li>
+                  <li><span class="check">✓</span>1 month data retention</li>
+                  <li>
+                    <span class="check">✓</span>~3 GB · sized for ~3,000
+                    tests/day
+                  </li>
                   <li><span class="check">✓</span>200 AI credits / mo</li>
-                  <li><span class="check">✓</span>Dashboard share links</li>
+                  <li class="feature-inherits">
+                    <span class="check">✓</span>MCP server included
+                  </li>
                   <li>
                     <span class="check">✓</span>Managed backups &amp; updates
                   </li>
                   <li><span class="check">✓</span>Community support</li>
-                  <li class="feature-overage">
-                    <span class="check-no">+</span>$20 / seat over 5 — TBD
-                  </li>
                 </ul>
                 <a class="btn-plan" href="mailto:ureport@outlook.com"
                   >Join waitlist →</a
@@ -3652,18 +3684,21 @@ reporter: [
                 </div>
                 <ul class="pricing-features">
                   <li><span class="check">✓</span>15 seats</li>
-                  <li><span class="check">✓</span>~5M test records storage</li>
+                  <li><span class="check">✓</span>10 product lanes</li>
+                  <li><span class="check">✓</span>10 dashboards</li>
+                  <li><span class="check">✓</span>3 months data retention</li>
+                  <li>
+                    <span class="check">✓</span>~26 GB · sized for ~10,000
+                    tests/day
+                  </li>
                   <li><span class="check">✓</span>1,000 AI credits / mo</li>
                   <li class="feature-inherits">
                     <span class="check">✓</span
                     ><strong>Everything in Starter</strong>
                   </li>
+                  <li><span class="check">✓</span>Dashboard share links</li>
                   <li><span class="check">✓</span>Data export</li>
-                  <li><span class="check">✓</span>Audit log</li>
                   <li><span class="check">✓</span>Priority support (email)</li>
-                  <li class="feature-overage">
-                    <span class="check-no">+</span>$15 / seat over 15 — TBD
-                  </li>
                 </ul>
                 <a class="btn-plan" href="mailto:ureport@outlook.com"
                   >Join waitlist →</a
@@ -3686,20 +3721,20 @@ reporter: [
                 </div>
                 <ul class="pricing-features">
                   <li><span class="check">✓</span>40 seats</li>
-                  <li><span class="check">✓</span>~20M test records storage</li>
+                  <li><span class="check">✓</span>30 product lanes</li>
+                  <li><span class="check">✓</span>30 dashboards</li>
+                  <li><span class="check">✓</span>6 months data retention</li>
+                  <li>
+                    <span class="check">✓</span>~102 GB · sized for ~20,000
+                    tests/day
+                  </li>
                   <li><span class="check">✓</span>3,000 AI credits / mo</li>
                   <li class="feature-inherits">
                     <span class="check">✓</span
                     ><strong>Everything in Team</strong>
                   </li>
-                  <li><span class="check">✓</span>SSO / SAML</li>
-                  <li>
-                    <span class="check">✓</span>Custom SLA &amp; contracts
-                  </li>
+                  <li><span class="check">✓</span>Audit log</li>
                   <li><span class="check">✓</span>Dedicated support</li>
-                  <li class="feature-overage">
-                    <span class="check-no">+</span>$12 / seat over 40 — TBD
-                  </li>
                 </ul>
                 <a class="btn-plan" href="mailto:ureport@outlook.com"
                   >Join waitlist →</a
@@ -3707,18 +3742,27 @@ reporter: [
               </div>
               <div class="pricing-card">
                 <div class="pricing-tier">Cloud · Enterprise</div>
+                <div class="pricing-price">Custom</div>
+                <div class="pricing-cadence">tailored pricing &middot; contact us</div>
                 <div class="pricing-desc">
                   Custom volume, dedicated infrastructure, and contracts for
                   large organizations.
                 </div>
                 <ul class="pricing-features">
                   <li><span class="check">✓</span>Unlimited seats</li>
-                  <li><span class="check">✓</span>Custom storage quota</li>
+                  <li>
+                    <span class="check">✓</span>Custom retention &amp; storage
+                  </li>
+                  <li>
+                    <span class="check">✓</span>Custom sizing · 20,000+
+                    tests/day
+                  </li>
                   <li><span class="check">✓</span>Unlimited AI credits</li>
                   <li class="feature-inherits">
                     <span class="check">✓</span
                     ><strong>Everything in Business</strong>
                   </li>
+                  <li><span class="check">✓</span>SSO / SAML</li>
                   <li><span class="check">✓</span>Dedicated infrastructure</li>
                   <li><span class="check">✓</span>Custom data residency</li>
                   <li>
