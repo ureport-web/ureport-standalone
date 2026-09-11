@@ -119,4 +119,110 @@ module.exports = {
       else
         res.should.have.status expectStatus
         cb(res)
+
+  search : (server, cookies, payload, expectStatus, cb) ->
+    req = chai.request(server).post(endpoint + "/search")
+    req.cookies = cookies;
+    req.send(payload)
+    .end (err, res) ->
+      if err
+        err.should.have.status expectStatus
+        cb(err.response)
+      else
+        res.should.have.status expectStatus
+        cb(res)
+
+  statusLatest : (server, cookies, payload, expectStatus, cb) ->
+    req = chai.request(server).post(endpoint + "/status/latest")
+    req.cookies = cookies;
+    req.send(payload)
+    .end (err, res) ->
+      if err
+        err.should.have.status expectStatus
+        cb(err.response)
+      else
+        res.should.have.status expectStatus
+        cb(res)
+
+  entityRead : (server, cookies, expectStatus, cb) ->
+    req = chai.request(server).get(endpoint + "/entity/read")
+    req.cookies = cookies;
+    req.end (err, res) ->
+      if err
+        err.should.have.status expectStatus
+        cb(err.response)
+      else
+        res.should.have.status expectStatus
+        cb(res)
+
+  entityRecommend : (server, cookies, payload, expectStatus, cb) ->
+    req = chai.request(server).post(endpoint + "/entity/recommend")
+    req.cookies = cookies;
+    req.send(payload)
+    .end (err, res) ->
+      if err
+        err.should.have.status expectStatus
+        cb(err.response)
+      else
+        res.should.have.status expectStatus
+        cb(res)
+
+  entityOthers : (server, cookies, payload, expectStatus, cb) ->
+    req = chai.request(server).post(endpoint + "/entity/others")
+    req.cookies = cookies;
+    req.send(payload)
+    .end (err, res) ->
+      if err
+        err.should.have.status expectStatus
+        cb(err.response)
+      else
+        res.should.have.status expectStatus
+        cb(res)
+
+  total : (server, cookies, payload, expectStatus, cb) ->
+    req = chai.request(server).post(endpoint + "/total")
+    req.cookies = cookies;
+    req.send(payload)
+    .end (err, res) ->
+      if err
+        err.should.have.status expectStatus
+        cb(err.response)
+      else
+        res.should.have.status expectStatus
+        cb(res)
+
+  purgeCalculate : (server, cookies, payload, expectStatus, cb) ->
+    req = chai.request(server).post(endpoint + "/purge/calculate")
+    req.cookies = cookies;
+    req.send(payload)
+    .end (err, res) ->
+      if err
+        err.should.have.status expectStatus
+        cb(err.response)
+      else
+        res.should.have.status expectStatus
+        cb(res)
+
+  paginate : (server, cookies, page, perPage, payload, expectStatus, cb) ->
+    req = chai.request(server).post(endpoint + "/" + page + "/" + perPage)
+    req.cookies = cookies;
+    req.send(payload)
+    .end (err, res) ->
+      if err
+        err.should.have.status expectStatus
+        cb(err.response)
+      else
+        res.should.have.status expectStatus
+        cb(res)
+
+  activeLanes : (server, cookies, days, expectStatus, cb) ->
+    req = chai.request(server).get(endpoint + "/active-lanes?days=" + (days or 7))
+    req.cookies = cookies;
+    req.end (err, res) ->
+      if err
+        err.should.have.status expectStatus
+        cb(err.response)
+      else
+        res.should.have.status expectStatus
+        cb(res)
 }

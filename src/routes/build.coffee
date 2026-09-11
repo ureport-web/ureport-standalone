@@ -666,11 +666,11 @@ router.post '/total',  (req, res, next) ->
 router.post '/purge/calculate',  (req, res, next) ->
     if (!AccessControl.canAccessUpdateAny(req.user.role, component))
       return res.status(403).json({"error": "You don't have permission to perform this action"})
-    if(!req.body.product)
+    if(!req.body.product and !req.body.untilDate)
       res.status(400)
       return res.json {error: "Product is mandatory"}
 
-    if(!req.body.type)
+    if(!req.body.type and !req.body.untilDate)
       res.status(400)
       return res.json {error: "Type is mandatory"}
     
@@ -704,9 +704,11 @@ router.post '/purge/calculate',  (req, res, next) ->
       
     if(req.body.untilDate)
       untilDate = moment(req.body.untilDate).format()
-      query.start_time = {
-        '$lt': new Date(untilDate)
-      }
+      query.start_time = { '$lt': new Date(untilDate) }
+
+    if(req.body.fromDate)
+      fromDate = moment(req.body.fromDate).format()
+      query.start_time = Object.assign({}, query.start_time or {}, { '$gte': new Date(fromDate) })
 
     Build.find(query).select('_id').lean().exec((err, builds) ->
       if err
