@@ -38,7 +38,18 @@ if (config !== undefined) {
   app = express();
 
   // Static marketing & docs pages
-  app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public/index.html")));
+  //
+  // FEATURE_SERVER_URL: where the pricing section's "buy" / "cloud" CTAs point.
+  // Defaults to production so nothing has to be set for the real deploy —
+  // override on preview/staging apps so those links stay inside that
+  // environment (e.g. FEATURE_SERVER_URL=https://ureport-feature-server-preview.fly.dev).
+  const FEATURE_SERVER_URL = process.env.FEATURE_SERVER_URL || "https://ureport-feature-server.fly.dev";
+  app.get("/", (req, res) => {
+    const html = fs
+      .readFileSync(path.join(__dirname, "public/index.html"), "utf8")
+      .replace(/\{\{FEATURE_SERVER_URL\}\}/g, FEATURE_SERVER_URL);
+    res.send(html);
+  });
   app.get("/contact", (req, res) => res.sendFile(path.join(__dirname, "public/contact/index.html")));
   app.get("/docs", (req, res) => res.sendFile(path.join(__dirname, "public/docs/index.html")));
   app.get("/docs/:section", (req, res) => {
