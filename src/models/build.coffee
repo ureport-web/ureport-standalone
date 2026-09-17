@@ -62,6 +62,10 @@ buildSchema = new Schema(
 		type: Schema.Types.Mixed, 
 		default: { 'default': "default"}
 	},
+	extras: {
+		type: Map,
+		of: String
+	},
 	# if client exists, we map the settings and environments to the clients
 	outages: [],
 	comments: [Schema({
@@ -107,6 +111,12 @@ buildSchema.statics.initBuild = (payload) ->
 	
 	if(payload.stage)
 		newBuildPayload.stage = payload.stage
+
+	if(payload.extras)
+		sorted = {}
+		for k in Object.keys(payload.extras).sort()
+			sorted[k] = payload.extras[k]
+		newBuildPayload.extras = sorted
 
 	if(payload.is_archive)
 		newBuildPayload.is_archive = payload.is_archive
@@ -154,6 +164,12 @@ buildSchema.statics.updateAttributes = (build, payload) ->
 			build.comments = payload.comments
 		if(payload.outages)
 			build.outages = payload.outages
+		if(payload.extras)
+			sorted = {}
+			for k in Object.keys(payload.extras).sort()
+				sorted[k] = payload.extras[k]
+			build.extras = sorted
+			build.markModified('extras')
 		if(payload.client)
 			if(payload.settings)
 				build.settings[payload.client] = payload.settings

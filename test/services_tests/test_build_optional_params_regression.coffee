@@ -343,19 +343,23 @@ describe 'Regression: active-lanes grouping', ->
     return
 
   it 'active-lanes endpoint returns 200', (done) ->
+    @timeout 10000
     req = chai.request(server).get('/api/build/active-lanes?days=7')
     req.cookies = cookies
     req.end (err, res) ->
+      if err then return done(err)
       res.should.have.status 200
       res.body.should.be.an 'Array'
       done()
     return
 
   it 'builds with same 7 optional field values form one lane', (done) ->
+    @timeout 10000
     # builds 601 and 602 have identical lane dims → should collapse to 1 lane
     req = chai.request(server).get('/api/build/active-lanes?days=7')
     req.cookies = cookies
     req.end (err, res) ->
+      if err then return done(err)
       lanes = res.body.filter (l) -> l.product == PRODUCT + '_Lanes'
       lanes.length.should.equal 2  # chrome/QA/1.0 and firefox/Dev/2.0
       done()

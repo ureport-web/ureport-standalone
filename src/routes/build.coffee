@@ -35,14 +35,14 @@ router.get '/active-lanes', (req, res, next) ->
       _id: {
         product: '$product', type: '$type', team: '$team',
         browser: '$browser', device: '$device', platform: '$platform',
-        platform_version: '$platform_version', stage: '$stage'
+        platform_version: '$platform_version', stage: '$stage', extras: '$extras'
       }
     }},
     { $project: {
       _id: 0,
       product: '$_id.product', type: '$_id.type', team: '$_id.team',
       browser: '$_id.browser', device: '$_id.device', platform: '$_id.platform',
-      platform_version: '$_id.platform_version', stage: '$_id.stage'
+      platform_version: '$_id.platform_version', stage: '$_id.stage', extras: '$_id.extras'
     }}
   ]).exec (err, lanes) ->
     if err then return next(err)
@@ -133,6 +133,7 @@ router.post '/',  (req, res, next) ->
         if(err)
           return next err
         cache.del "test:v2:#{foundBuild._id}"
+        cache.del "entity:others:#{foundBuild.product}:#{foundBuild.type}"
         res.json rs
       )
     else
@@ -142,6 +143,7 @@ router.post '/',  (req, res, next) ->
       foundBuild.save((err, rs) ->
         if err
           return next err
+        cache.del "entity:others:#{req.body.product}:#{req.body.type}"
         res.json rs
       )
   );
@@ -229,7 +231,7 @@ router.post '/status/calculate/:id',  (req, res, next) ->
 
       uidCols.forEach (item) ->
         if item.status
-          statusKey = item.status.toLowerCase()
+          statusKey = item.status.toLowerCase().replace('rerun_', '')
           rs[statusKey] = (rs[statusKey] or 0) + 1
           rs.total += 1
         if item.status == 'FAIL' or item.status == 'SKIP'
@@ -246,6 +248,7 @@ router.post '/status/calculate/:id',  (req, res, next) ->
             foundBuild.save (err, sbuild) ->
               if err
                 return next err
+              cache.del "test:v2:#{foundBuild._id}"
               res.json {
                 status: rs,
                 end_time: foundBuild.end_time
@@ -289,7 +292,8 @@ router.post '/status/latest',  (req, res, next) ->
         device: "$device",
         platform: "$platform",
         platform_version: "$platform_version",
-        stage: "$stage"
+        stage: "$stage",
+        extras: "$extras"
       },
       product: { $last: "$product"},
       type: { $last: "$type"},
@@ -457,6 +461,12 @@ router.post '/filter',  (req, res, next) ->
   if(req.body.stage)
     conditions.push({ $or : req.body.stage })
 
+  if(req.body.extras)
+    for k, v of req.body.extras
+      cond = {}
+      cond["extras.#{k}"] = v
+      conditions.push(cond)
+
   query = {
     $and : conditions
   }
@@ -547,23 +557,28 @@ router.post '/entity/recommend',  (req, res, next) ->
   if(req.body.stage)
     query.stage = { $regex: req.body.stage, $options: 'i'}
 
-  Build.aggregate() 
+  if(req.body.extras)
+    for k, v of req.body.extras
+      query["extras.#{k}"] = v
+
+  Build.aggregate()
   .match(query)
   .group({
     _id: {
       $concat: ['$product', '_', '$type']
-    }, 
+    },
     recommends: {
       $addToSet: {
         product: '$product',
         type: '$type',
         team: '$team',
-        version: '$version', 
-        browser: '$browser', 
-        device: '$device', 
-        platform: '$platform', 
+        version: '$version',
+        browser: '$browser',
+        device: '$device',
+        platform: '$platform',
         platform_version: '$platform_version',
-        stage: '$stage'
+        stage: '$stage',
+        extras: '$extras'
       }
     }
   })
@@ -586,9 +601,11 @@ router.post '/entity/others',  (req, res, next) ->
     res.status(400)
     return res.json {error: "Type is mandatory"}
 
-  key = 'entity'
+  filterFields = ['team','version','device','browser','platform','platform_version','stage']
+  isFiltered = filterFields.some (f) -> !!req.body[f]
+  cacheKey = "entity:others:#{req.body.product}:#{req.body.type}"
   condition = { product : req.body.product, type: req.body.type}
-  
+
   if(req.body.team)
     condition['team'] = req.body.team
   if(req.body.version)
@@ -604,20 +621,41 @@ router.post '/entity/others',  (req, res, next) ->
   if(req.body.stage)
     condition['stage'] = req.body.stage
 
-  entities = ['version','device','team', 'browser', 'platform', 'platform_version', 'stage']
-  async.map(entities,
-    (item, callback) ->
-      Build.distinct(item, condition).
-      exec((err, entity) ->
-        _t = {}
-        _t[item] = entity
-        callback(err,_t)
-      )
-    (err,rs) ->
-      if err
-        return next(err)
-      res.json rs
-  )
+  cache.get cacheKey, (cacheErr, cached) ->
+    if cached and not isFiltered
+      return res.json cached
+
+    entities = ['version','device','team', 'browser', 'platform', 'platform_version', 'stage']
+    async.map(entities,
+      (item, callback) ->
+        Build.distinct(item, condition).
+        exec((err, entity) ->
+          _t = {}
+          _t[item] = entity
+          callback(err,_t)
+        )
+      (err, rs) ->
+        if err
+          return next(err)
+
+        Build.aggregate([
+          { $match: condition },
+          { $project: { extras: { $objectToArray: { $ifNull: ['$extras', {}] } } } },
+          { $unwind: '$extras' },
+          { $group: { _id: '$extras.k', values: { $addToSet: '$extras.v' } } }
+        ]).exec (extrasErr, extrasResult) ->
+          if extrasErr
+            return next(extrasErr)
+
+          extrasMap = {}
+          if extrasResult
+            extrasResult.forEach (item) -> extrasMap[item._id] = item.values
+
+          rs.push({ extras: extrasMap })
+          if not isFiltered
+            cache.set cacheKey, rs, 600
+          res.json rs
+    )
 
 router.post '/total',  (req, res, next) ->
     query = {}
@@ -647,6 +685,10 @@ router.post '/total',  (req, res, next) ->
 
     if(req.body.stage)
       query.stage = req.body.stage
+
+    if(req.body.extras)
+      for k, v of req.body.extras
+        query["extras.#{k}"] = v
 
     if(req.body.untilDate)
       untilDate = moment(req.body.untilDate).format()
@@ -701,7 +743,11 @@ router.post '/purge/calculate',  (req, res, next) ->
 
     if(req.body.stage)
       query.stage = req.body.stage
-      
+
+    if(req.body.extras)
+      for k, v of req.body.extras
+        query["extras.#{k}"] = v
+
     if(req.body.untilDate)
       untilDate = moment(req.body.untilDate).format()
       query.start_time = { '$lt': new Date(untilDate) }
@@ -813,6 +859,10 @@ router.post '/:page/:perPage',  (req, res, next) ->
     if(req.body.stage)
       query.stage = req.body.stage
 
+    if(req.body.extras)
+      for k, v of req.body.extras
+        query["extras.#{k}"] = v
+
     if(req.body.untilDate)
       untilDate = moment(req.body.untilDate).format()
       query.start_time = {
@@ -846,9 +896,11 @@ router.post '/:page/:perPage',  (req, res, next) ->
         prevQuery.platform = build.platform if build.platform
         prevQuery.platform_version = build.platform_version if build.platform_version
         prevQuery.stage = build.stage if build.stage
+        if build.extras
+          build.extras.forEach (v, k) -> prevQuery["extras.#{k}"] = v
         Build.findOne(prevQuery).sort({start_time: -1}).select('_id build start_time status').exec (prevErr, prev) ->
           return cb(prevErr) if prevErr
-          obj = build.toObject()
+          obj = build.toObject({ flattenMaps: true })
           obj.aggregate_previous_runs = if prev then [prev] else []
           cb null, obj
       , (mapErr, results) ->
@@ -926,13 +978,19 @@ router.post '/search', (req, res, next) ->
       else
         conditions.push({ stage: { $regex: '^'+req.body.stage+'$', $options: 'i'} })
 
+    if(req.body.extras)
+      for k, v of req.body.extras
+        cond = {}
+        cond["extras.#{k}"] = v
+        conditions.push(cond)
+
     query = { $and : conditions }
 
   Build.aggregate()
   .sort({start_time:1})
   .match(query)
   .group(
-    { 
+    {
       # _id:  "$_id",
       _id:  {
         product:  "$product",
@@ -943,7 +1001,8 @@ router.post '/search', (req, res, next) ->
         device: "$device",
         platform: "$platform",
         platform_version: "$platform_version",
-        stage: "$stage"
+        stage: "$stage",
+        extras: "$extras"
       },
       product: { $last: "$product"},
       type: { $last: "$type"},
@@ -954,6 +1013,7 @@ router.post '/search', (req, res, next) ->
       platform: { $last: "$platform"},
       platform_version: { $last: "$platform_version"},
       stage: { $last: "$stage"},
+      extras: { $last: "$extras"},
       build: { $last: "$build"},
       start_time: { $last: "$start_time"},
       end_time: { $last: "$end_time"},
@@ -965,11 +1025,11 @@ router.post '/search', (req, res, next) ->
       aggregate_last_start_time: {
         $last: "$start_time"
       },
-      status: { 
+      status: {
         $last: "$status"
       },
-      aggregate_previous_runs: { 
-        $push: { 
+      aggregate_previous_runs: {
+        $push: {
           _id: "$_id",
           build: "$build",
           start_time: "$start_time",
@@ -978,7 +1038,7 @@ router.post '/search', (req, res, next) ->
       }
   })
   .project(
-    { 
+    {
       _id: "$_id",
       product: "$product",
       type: "$type",
@@ -989,13 +1049,14 @@ router.post '/search', (req, res, next) ->
       platform: "$platform",
       platform_version: "$platform_version",
       stage: "$stage",
+      extras: "$extras",
       build: "$build",
       start_time: "$start_time",
       end_time: "$end_time",
       aggregate_last_id: "$aggregate_last_id",
       aggregate_last_start_time: "$aggregate_last_start_time",
       status: "$status",
-      aggregate_previous_runs: { 
+      aggregate_previous_runs: {
         $slice : ["$aggregate_previous_runs", range]
       },
       environments: "$environments",

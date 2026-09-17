@@ -265,10 +265,10 @@ describe 'Regression: POST /entity/others — distinct values per field', ->
     Build.deleteMany({ product: PROD }).exec (err) -> done()
     return
 
-  it 'returns 200 and array of 7 entity objects', (done) ->
+  it 'returns 200 and array of 8 entity objects', (done) ->
     build.entityOthers server, cookies, { product: PROD, type: TYPE }, 200, (res) ->
       res.body.should.be.an 'Array'
-      res.body.length.should.equal 7
+      res.body.length.should.equal 8
       done()
     return
 
