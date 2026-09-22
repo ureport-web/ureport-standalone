@@ -18,6 +18,7 @@ TEST_CACHE_TTL = 20 * 24 * 60 * 60
 CACHE_PROJECTION = {setup: 0, body: 0, teardown: 0}
 
 SCOPE_FIELDS = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage']
+{ extrasToKey } = require('../../utils/quarantine_evaluator')
 
 applyScopeQuery = (query, buildScope) ->
     SCOPE_FIELDS.forEach (f) ->
@@ -27,6 +28,18 @@ applyScopeQuery = (query, buildScope) ->
             query['scope.' + f] = { $in: [''].concat(vals) }
         else
             query['scope.' + f] = ''
+    rawKey = buildScope.extras_key
+    if Array.isArray(rawKey)
+        extraKeys = rawKey.filter((k) -> k)
+    else if rawKey
+        extraKeys = [rawKey]
+    else
+        k = extrasToKey(buildScope.extras or {})
+        extraKeys = if k then [k] else []
+    if extraKeys.length > 0
+        query['scope.extras_key'] = { $in: [''].concat(extraKeys) }
+    else
+        query['scope.extras_key'] = ''
 
 applyStatusFilter = (tests, statusParam) ->
     return tests unless statusParam
