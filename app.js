@@ -38,13 +38,9 @@ if (config !== undefined) {
   app = express();
 
   // Static marketing & docs pages
-  app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public/index.html")));
-  app.get("/contact", (req, res) => res.sendFile(path.join(__dirname, "public/contact/index.html")));
-  app.get("/docs", (req, res) => res.sendFile(path.join(__dirname, "public/docs/index.html")));
-  app.get("/docs/:section", (req, res) => {
-    const file = path.join(__dirname, `public/docs/${req.params.section}/index.html`);
-    res.sendFile(file, (err) => { if (err) res.redirect("/docs"); });
-  });
+  app.get("/", (req, res) =>
+    res.sendFile(path.join(__dirname, "public/index.html")),
+  );
 
   // set static file to dist folder.
   app.use("", express.static(path.join(__dirname, "public")));
@@ -179,7 +175,10 @@ if (config !== undefined) {
     // Detect kicked session
     if (req.session && req.session.terminated) {
       req.session.destroy(() => {});
-      return res.status(401).json({ code: 'SESSION_TERMINATED', message: 'Signed out — another login was detected.' });
+      return res.status(401).json({
+        code: "SESSION_TERMINATED",
+        message: "Signed out — another login was detected.",
+      });
     }
     const authHeader = req.headers["authorization"];
     if (authHeader && authHeader.startsWith("Bearer ")) {
@@ -229,7 +228,8 @@ if (config !== undefined) {
       /\/(filter|search|aggregate|total|history|find|recommend|others|latest|stable|unstable|trend|analyze-test|top-failures|slowest|pass-rate|duration)(\/|$)|\/global-|\d+\/\d+\/?$/;
 
     app.use("/api", (req, res, next) => {
-      if (!req.isAuthenticated() || req.user?.username !== "demo") return next();
+      if (!req.isAuthenticated() || req.user?.username !== "demo")
+        return next();
       if (DEMO_PATH_WHITELIST.includes(req.path)) return next();
 
       const isBlocked =
@@ -237,7 +237,9 @@ if (config !== undefined) {
         (req.method === "POST" && !DEMO_POST_READ_PATTERN.test(req.path));
 
       if (isBlocked) {
-        return res.status(403).json({ message: "Demo mode: write operations are disabled." });
+        return res
+          .status(403)
+          .json({ message: "Demo mode: write operations are disabled." });
       }
       next();
     });
@@ -339,13 +341,13 @@ if (config !== undefined) {
   });
 
   // Init license state from DB after mongoose connects
-  const { initLicense } = require('./src/utils/license');
-  const applyAuditTTL = require('./src/utils/apply_audit_ttl');
-  const SystemSetting = require('./src/models/system_setting');
-  const mongoose = require('mongoose');
+  const { initLicense } = require("./src/utils/license");
+  const applyAuditTTL = require("./src/utils/apply_audit_ttl");
+  const SystemSetting = require("./src/models/system_setting");
+  const mongoose = require("mongoose");
 
   const initAuditTTL = () => {
-    SystemSetting.findOne({ name: 'SYSTEM_SETTING' }).exec((err, setting) => {
+    SystemSetting.findOne({ name: "SYSTEM_SETTING" }).exec((err, setting) => {
       if (!err && setting && setting.audit_retention_days) {
         applyAuditTTL(setting.audit_retention_days);
       }
@@ -353,28 +355,28 @@ if (config !== undefined) {
   };
 
   if (mongoose.connection.readyState === 1) {
-    initLicense(() => console.log('License initialized'));
+    initLicense(() => console.log("License initialized"));
     initAuditTTL();
   } else {
-    mongoose.connection.once('open', () => {
-      initLicense(() => console.log('License initialized'));
+    mongoose.connection.once("open", () => {
+      initLicense(() => console.log("License initialized"));
       initAuditTTL();
     });
   }
 
   // Plugin system — load any installed enterprise plugins
-  const pluginLoader = require('./src/lib/plugin_loader');
-  const pluginRoutes = require('./src/routes/plugins');
+  const pluginLoader = require("./src/lib/plugin_loader");
+  const pluginRoutes = require("./src/routes/plugins");
   pluginLoader.init(app, mongoose);
   pluginLoader.loadAll();
-  app.use('/api/plugins', isAuthenticatedMid, pluginRoutes);
+  app.use("/api/plugins", isAuthenticatedMid, pluginRoutes);
 
   app.use(function (err, req, res, next) {
     if (res.headersSent) {
       return next(err);
     }
     // Client cancelled the request — stream destroyed before body-parser could read it
-    if (err && err.type === 'stream.not.readable') {
+    if (err && err.type === "stream.not.readable") {
       if (!res.headersSent) res.end();
       return;
     }

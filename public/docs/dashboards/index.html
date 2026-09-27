@@ -1,288 +1,136 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboards & Widgets | UReport Docs</title>
-  <meta name="description" content="Build custom dashboards with 10+ widget types to visualize test data in UReport.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <style>
-    :root {
-      --p-primary-color: #1d9e75; --p-primary-50: #e6f7f1; --p-primary-100: #cceee3; --p-primary-200: #99ddc7;
-      --p-surface-0: #ffffff; --p-surface-50: #f9fafb; --p-surface-100: #f3f4f6; --p-surface-border: #e5e7eb;
-      --p-text-color: #111827; --p-text-muted-color: #6b7280;
-      --p-green-50: #f0fdf4; --p-green-100: #dcfce7; --p-green-200: #bbf7d0; --p-green-500: #22c55e; --p-green-700: #15803d;
-      --p-blue-50: #eff6ff; --p-blue-100: #dbeafe; --p-blue-200: #bfdbfe; --p-blue-500: #3b82f6; --p-blue-700: #1d4ed8;
-      --p-orange-50: #fff7ed; --p-orange-200: #fed7aa; --p-orange-500: #f97316; --p-orange-700: #c2410c;
-    }
-    *, *::before, *::after { box-sizing: border-box; }
-    body { margin: 0; font-family: 'DM Sans', sans-serif; color: var(--p-text-color); }
-    .docs-nav { position: sticky; top: 0; z-index: 100; background: rgba(10,10,15,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .docs-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 2rem; height: 60px; display: flex; align-items: center; gap: 2rem; }
-    .docs-nav-brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.05rem; color: rgba(255,255,255,0.9); text-decoration: none; margin-right: auto; }
-    .docs-nav-brand i { color: #1d9e75; }
-    .docs-nav-links { display: flex; align-items: center; gap: 0.25rem; }
-    .docs-nav-link { padding: 0.4rem 0.9rem; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.9rem; font-weight: 500; border-radius: 6px; transition: color 0.15s, background 0.15s; }
-    .docs-nav-link:hover { color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.06); }
-    .docs-nav-btn { padding: 0.4rem 1.1rem; background: #1d9e75; color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600; border-radius: 6px; }
-    .docs-nav-btn:hover { opacity: 0.85; }
-    @media (max-width: 600px) { .docs-nav-inner { padding: 0 1rem; gap: 0.5rem; } .docs-nav-link { padding: 0.4rem 0.5rem; font-size: 0.8rem; } }
-    .docs-page-content { min-height: calc(100vh - 60px); }
-    .help-page { min-height: 100%; background: var(--p-surface-0); padding: 2rem; }
-    .help-content { max-width: 900px; margin: 0 auto; }
-    .docs-top-nav { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); font-size: 0.875rem; flex-wrap: wrap; }
-    .docs-home-link { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--p-primary-color); text-decoration: none; }
-    .docs-home-link:hover { text-decoration: underline; }
-    .docs-divider { color: var(--p-text-muted-color); }
-    .docs-top-nav-link { color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
-    .docs-top-nav-link:hover { text-decoration: underline; }
-    .docs-nav-current { color: var(--p-text-muted-color); }
-    .back-link { margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem; color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
-    .back-link:hover { text-decoration: underline; }
-    .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); }
-    .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.75rem; }
-    .page-header h1 i { color: var(--p-primary-color); }
-    .page-header p { font-size: 1.1rem; color: var(--p-text-muted-color); margin: 0; }
-    .help-section { margin-bottom: 2.5rem; }
-    .help-section > h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 1.5rem 0; padding-bottom: 0.75rem; border-bottom: 2px solid var(--p-primary-color); display: flex; align-items: center; gap: 0.6rem; }
-    .help-section > h2 i { color: var(--p-primary-color); }
-    .qa-item { margin-bottom: 1.5rem; border: 1px solid var(--p-surface-border); border-radius: 12px; overflow: hidden; }
-    .question { padding: 1rem 1.25rem; background: var(--p-surface-50); font-weight: 600; font-size: 1rem; border-bottom: 1px solid var(--p-surface-border); }
-    .answer { padding: 1.25rem; line-height: 1.6; }
-    .answer p { margin: 0 0 1rem 0; } .answer p:last-child { margin-bottom: 0; }
-    .answer ul { margin: 0.5rem 0 1rem 1.5rem; } .answer li { margin-bottom: 0.3rem; }
-    .answer strong { font-weight: 600; }
-    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1rem 0; }
-    .feature-card { padding: 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; }
-    .feature-card h4 { margin: 0 0 0.5rem 0; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
-    .feature-card h4 i { color: var(--p-primary-color); }
-    .feature-card p { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--p-text-muted-color); }
-    .feature-card ul { margin: 0.25rem 0 0 1.25rem; font-size: 0.875rem; color: var(--p-text-muted-color); }
-    .feature-card li { margin-bottom: 0.2rem; }
-    .steps { display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0; }
-    .step { display: flex; gap: 1rem; }
-    .step-number { flex-shrink: 0; width: 32px; height: 32px; background: var(--p-primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
-    .step-content { flex: 1; }
-    .step-content h4 { margin: 0 0 0.4rem 0; font-size: 0.95rem; font-weight: 600; }
-    .step-content p { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
-    .step-content ul { margin: 0.25rem 0 0.5rem 1.25rem; font-size: 0.875rem; } .step-content li { margin-bottom: 0.2rem; }
-    .info-box { display: flex; gap: 0.75rem; padding: 0.875rem 1rem; border-radius: 8px; margin: 0.75rem 0; border: 1px solid; font-size: 0.875rem; background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
-    .info-box > i { flex-shrink: 0; font-size: 1rem; margin-top: 0.1rem; color: var(--p-blue-500); }
-    .info-box-content { flex: 1; line-height: 1.5; }
-    .info-box-content p { margin: 0.25rem 0 0 0; }
-    .info-box.tip { background: var(--p-green-50); border-color: var(--p-green-200); color: var(--p-green-700); }
-    .info-box.tip > i { color: var(--p-green-500); }
-    .info-box.note { background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
-    .info-box.note > i { color: var(--p-blue-500); }
-    .example-box { padding: 1rem 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; margin: 0.75rem 0; }
-    .example-box h5 { margin: 0 0 0.75rem 0; font-size: 0.9rem; font-weight: 700; }
-    .field-list { display: flex; flex-direction: column; }
-    .field-item { display: flex; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--p-surface-border); }
-    .field-item:last-child { border-bottom: none; }
-    .field-name { min-width: 140px; font-weight: 600; font-size: 0.875rem; font-family: monospace; color: var(--p-primary-color); flex-shrink: 0; }
-    .field-desc { font-size: 0.875rem; color: var(--p-text-muted-color); flex: 1; }
-    @media (max-width: 768px) { .help-page { padding: 1rem; } .feature-grid { grid-template-columns: 1fr; } .field-item { flex-direction: column; } }
-  </style>
-</head>
-<body>
-  <nav class="docs-nav">
-    <div class="docs-nav-inner">
-      <a class="docs-nav-brand" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
-      <div class="docs-nav-links">
-        <a class="docs-nav-link" href="/docs">Docs</a>
-        <a class="docs-nav-link" href="https://github.com/ureport-web/ureport-standalone" target="_blank">GitHub</a>
-        <a class="docs-nav-link" href="/contact">Contact</a>
-        <a class="docs-nav-btn" href="/nextgen/login">Log In</a>
-      </div>
-    </div>
-  </nav>
-  <div class="docs-page-content">
-    <div class="help-page">
-      <div class="help-content">
-        <div class="docs-top-nav">
-          <a class="docs-home-link" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
-          <span class="docs-divider">/</span>
-          <a class="docs-top-nav-link" href="/docs">Docs</a>
-          <span class="docs-divider">/</span>
-          <span class="docs-nav-current">Dashboards</span>
-          <a class="back-link" href="/docs"><i class="fas fa-arrow-left"></i> Back to Docs</a>
-        </div>
-        <div class="page-header">
-          <h1><i class="fas fa-chart-pie"></i>Dashboards &amp; Widgets</h1>
-          <p>Create interactive dashboards with various widget types to visualize your test data.</p>
-        </div>
-        <div class="help-section">
-          <h2><i class="fas fa-tachometer-alt"></i>Creating Dashboards</h2>
-          <div class="qa-item">
-            <div class="question">How do I create a dashboard?</div>
-            <div class="answer">
-              <p>UReport provides two dashboard creation modes to suit different use cases:</p>
-              <div class="steps">
-                <div class="step"><div class="step-number">1</div><div class="step-content"><h4>Click "Create Dashboard"</h4><p>Navigate to Dashboards and click the Create button.</p></div></div>
-                <div class="step"><div class="step-number">2</div><div class="step-content"><h4>Enter Basic Information</h4><p>Provide a name and description for your dashboard.</p></div></div>
-                <div class="step"><div class="step-number">3</div><div class="step-content"><h4>Choose Visibility</h4><p>Select public (visible to all) or private (only you).</p></div></div>
-                <div class="step">
-                  <div class="step-number">4</div>
-                  <div class="step-content">
-                    <h4>Select Product Lane Strategy</h4>
-                    <p>Choose how widgets will be filtered:</p>
-                    <ul>
-                      <li>Single Product Focus — All widgets use one product lane (faster setup, consistent filtering)</li>
-                      <li>Multi-Product Flexibility — Choose product lane per widget (cross-product analysis)</li>
-                    </ul>
-                  </div>
-                </div>
-                <div class="step"><div class="step-number">5</div><div class="step-content"><h4>Add Widgets</h4><p>Click the "Add Widget" button to create widgets. Choose a widget type, configure its settings, and it will be added to your dashboard.</p></div></div>
-              </div>
-              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
-                <div class="info-box-content"><p>Use inline editing to rename dashboards by clicking on titles. Dashboard layouts auto-save as you make changes.</p></div>
-              </div>
-            </div>
-          </div>
-          <div class="qa-item">
-            <div class="question">How do I filter data in a Single Product Focus dashboard?</div>
-            <div class="answer">
-              <p>Single Product Focus dashboards bind all widgets to one product lane. Use the filter panel at the top of the dashboard to dynamically filter data across all widgets.</p>
-              <div class="feature-grid">
-                <div class="feature-card">
-                  <h4><i class="fas fa-cube"></i>Core Filters</h4>
-                  <ul>
-                    <li>Product &amp; Type (required)</li>
-                    <li>Team</li><li>Browser</li><li>Device</li><li>Platform</li><li>Stage</li><li>Version</li>
-                  </ul>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-sliders-h"></i>Advanced Filters</h4>
-                  <ul>
-                    <li>Date Range</li><li>Build Range</li><li>Status Filters</li><li>Relation Filters</li>
-                  </ul>
-                </div>
-              </div>
-              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
-                <div class="info-box-content"><p>When you apply filters, all widgets on the dashboard update simultaneously to reflect the filtered data. The current filter state is preserved in the URL, making it easy to bookmark or share specific views.</p></div>
-              </div>
-            </div>
-          </div>
-          <div class="qa-item">
-            <div class="question">How do I share and collaborate on dashboards?</div>
-            <div class="answer">
-              <div class="feature-grid">
-                <div class="feature-card"><h4><i class="fas fa-share-alt"></i>Dashboard Sharing</h4><ul><li>Public Dashboards — Visible to all users</li><li>Private Dashboards — Only accessible to creator</li><li>Clone Dashboards — Create personal copies</li></ul></div>
-                <div class="feature-card"><h4><i class="fas fa-link"></i>URL Sharing</h4><ul><li>Direct links with embedded filters</li><li>Shareable URLs preserve view state</li><li>Copy-to-clipboard functionality</li></ul></div>
-                <div class="feature-card"><h4><i class="fas fa-file-export"></i>Export Options</h4><ul><li>PDF Export for printable reports</li><li>Individual Widget Export</li><li>CSV Export for raw data</li></ul></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="help-section">
-          <h2><i class="fas fa-chart-bar"></i>Widget Types</h2>
-          <div class="qa-item">
-            <div class="question">What widget types are available?</div>
-            <div class="answer">
-              <p>UReport offers 10+ widget types to visualize your test data:</p>
-              <div class="feature-grid">
-                <div class="feature-card">
-                  <h4><i class="fas fa-chart-pie"></i>Status Pie Chart</h4>
-                  <p>Interactive pie chart showing test execution results with dual view modes (Status/Triaged).</p>
-                  <ul><li>Toggle between Status and Triaged views</li><li>Interactive legend with click-to-filter</li><li>Export to PDF and CSV</li></ul>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-chart-bar"></i>Build History Bar Chart</h4>
-                  <p>Bar/line chart displaying build execution trends over time.</p>
-                  <ul><li>Switch between bar and line modes</li><li>Multi-query comparison</li><li>Configurable X/Y axis</li></ul>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-id-card"></i>Summary Card</h4>
-                  <p>Compact card showing key metrics: Build Summary, Status Summary, or Triaged Summary.</p>
-                  <ul><li>Key performance indicators</li><li>Trend indicators (up/down)</li><li>Color-coded severity</li></ul>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-sitemap"></i>Treemap</h4>
-                  <p>Hierarchical visualization of test distribution across relations.</p>
-                  <ul><li>Group by teams, components, or tags</li><li>Proportional sizing by test counts</li><li>Interactive drill-down</li></ul>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-th"></i>Heatmap</h4>
-                  <p>Color-coded matrix showing pass rate trends across builds and relations.</p>
-                  <ul><li>Matrix view of builds vs. relations</li><li>Color intensity based on pass rates</li><li>Historical trend analysis</li></ul>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-table"></i>Test Analysis Table</h4>
-                  <p>Tabular analysis of test behavior patterns (Consistent vs Flaky tests).</p>
-                  <ul><li>Stable vs. Unstable analysis</li><li>Flakiness percentage calculations</li><li>Export to CSV</li></ul>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-list-ol"></i>Top Tests Table</h4>
-                  <p>Ranked table of most-failing or slowest tests over a configurable time range (7, 30, or 90 days).</p>
-                  <ul><li>Toggle between Top Failures and Slowest Tests</li><li>Surface the most impactful tests in your suite</li></ul>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-lightbulb"></i>Trend Insights</h4>
-                  <p>Detects anomalous pass-rate drops across recent builds using Z-score analysis.</p>
-                  <ul><li>Highlights builds where pass rate deviated significantly</li><li>Shows build duration trend line</li></ul>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-chart-bar"></i>Relations Group By Bar</h4>
-                  <p>Stacked bar chart showing test counts and pass rates grouped by a relation attribute.</p>
-                  <ul><li>Group by components, teams, tags, or custom dimensions</li><li>Supports horizontal/vertical layout and table view</li></ul>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="qa-item">
-            <div class="question">How do I configure widget settings?</div>
-            <div class="answer">
-              <p>Each widget type has specific configuration options:</p>
-              <div class="feature-grid">
-                <div class="feature-card"><h4><i class="fas fa-cog"></i>General Settings</h4><ul><li>Widget Title</li><li>Product Lane Selection</li><li>Date Range</li><li>Refresh Rate</li></ul></div>
-                <div class="feature-card"><h4><i class="fas fa-filter"></i>Data Filtering</h4><ul><li>Status Filters</li><li>Relation Filters</li><li>Multi-Product Lane Support</li><li>Aggregation</li></ul></div>
-                <div class="feature-card"><h4><i class="fas fa-palette"></i>Visual Customization</h4><ul><li>Chart Types</li><li>Color Schemes</li><li>Axis Configuration</li><li>Legend Settings</li></ul></div>
-              </div>
-            </div>
-          </div>
-          <div class="qa-item">
-            <div class="question">How do I compare data across multiple product lanes?</div>
-            <div class="answer">
-              <p>Some widgets support comparing data from different product lanes side by side. This is useful for cross-browser, cross-team, or cross-environment comparisons.</p>
-              <div class="steps">
-                <div class="step"><div class="step-number">1</div><div class="step-content"><h4>Open Widget Editor</h4><p>Create a new widget or edit an existing one that supports multiple product lanes.</p></div></div>
-                <div class="step"><div class="step-number">2</div><div class="step-content"><h4>Expand "Multiple Product Lanes" Section</h4><p>In the widget editor accordion, expand the "Multiple Product Lanes" panel.</p></div></div>
-                <div class="step"><div class="step-number">3</div><div class="step-content"><h4>Add Product Lanes</h4><p>Click "Add Product Lane" to add additional data sources. Configure each product lane with different filter combinations.</p></div></div>
-                <div class="step"><div class="step-number">4</div><div class="step-content"><h4>Reorder and Manage</h4><p>Use the arrow buttons to reorder product lanes. Edit or remove lanes as needed.</p></div></div>
-              </div>
-              <div class="example-box">
-                <h5>Comparison Examples</h5>
-                <div class="field-list">
-                  <div class="field-item"><div class="field-name">Cross-Browser</div><div class="field-desc">Add lanes for Chrome, Firefox, and Safari to compare test results across browsers</div></div>
-                  <div class="field-item"><div class="field-name">Team Performance</div><div class="field-desc">Add lanes for Frontend, Backend, and QA teams to compare team metrics</div></div>
-                  <div class="field-item"><div class="field-name">Environment</div><div class="field-desc">Add lanes for Dev, Staging, and Production to compare across environments</div></div>
-                </div>
-              </div>
-              <div class="info-box note"><i class="fas fa-info-circle"></i>
-                <div class="info-box-content"><p>Not all widget types support multiple product lanes. The "Multiple Product Lanes" section only appears for widgets that support this feature (e.g., Build History).</p></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="help-section">
-          <h2><i class="fas fa-th"></i>Layout Management</h2>
-          <div class="qa-item">
-            <div class="question">How do I manage dashboard layouts?</div>
-            <div class="answer">
-              <div class="feature-grid">
-                <div class="feature-card"><h4><i class="fas fa-th"></i>Grid System</h4><ul><li>Drag-and-drop positioning</li><li>Automatic grid snapping</li><li>Responsive layout</li><li>Auto-save changes</li></ul></div>
-                <div class="feature-card"><h4><i class="fas fa-expand-arrows-alt"></i>Widget Sizing</h4><ul><li>Resize by dragging corners</li><li>Predefined size templates</li><li>Min/max size constraints</li></ul></div>
-                <div class="feature-card"><h4><i class="fas fa-layer-group"></i>Organization</h4><ul><li>Add Section Divider widgets to group related widgets</li><li>Section Dividers enable jump-to-section navigation</li><li>Widget locking to prevent accidental changes</li></ul></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
+<!doctype html><html lang=en dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-dashboards" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Dashboards | UReport Docs</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://ureportlab.com/docs/dashboards /><meta data-rh=true property=og:locale content=en /><meta data-rh=true name=docusaurus_locale content=en /><meta data-rh=true name=docsearch:language content=en /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Dashboards | UReport Docs"/><meta data-rh=true name=description content="Build custom test reporting dashboards in UReport. 13 widget types including pass rate trends, heatmaps, flakiness charts, and top failures. Supports sharing and PDF export."/><meta data-rh=true property=og:description content="Build custom test reporting dashboards in UReport. 13 widget types including pass rate trends, heatmaps, flakiness charts, and top failures. Supports sharing and PDF export."/><link data-rh=true rel=icon href=/docs/img/favicon.ico /><link data-rh=true rel=canonical href=https://ureportlab.com/docs/dashboards /><link data-rh=true rel=alternate href=https://ureportlab.com/docs/dashboards hreflang=en /><link data-rh=true rel=alternate href=https://ureportlab.com/docs/dashboards hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://ureportlab.com/docs/dashboards","name":"Dashboards","position":1}]}</script><link rel=stylesheet href=/docs/assets/css/styles.4ee6065b.css /><script src=/docs/assets/js/runtime~main.d537d092.js defer></script><script src=/docs/assets/js/main.25574d87.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-ccc")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/docs/img/logo.svg /><div role=region aria-label="Skip to main content"><a class=skipToContent_fXgn href=#__docusaurus_skipToContent_fallback>Skip to main content</a></div><nav aria-label=Main class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label="Toggle navigation bar" aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/docs/><div class=navbar__logo><img src=/docs/img/logo.svg alt="UReport Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"/><img src=/docs/img/logo.svg alt="UReport Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"/></div><b class="navbar__title text--truncate">UReport</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/docs/>Documentation</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/ureport-web/ureport-standalone target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type=button disabled title="system mode" aria-label="Switch between dark and light mode (currently system mode)"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_Bca1><div class="navbar__search searchBarContainer_NW3z" dir=ltr><svg aria-hidden=true class=searchIcon_T3tP focusable=false viewBox="0 0 16 16"><path fill=currentColor d="M6.02945 10.20327a4.17382 4.17382 0 1 1 4.17382-4.17382 4.15609 4.15609 0 0 1-4.17382 4.17382Zm9.69195 4.2199-4.8225-4.82338A5.88021 5.88021 0 0 0 12.058 6.02856 6.00467 6.00467 0 1 0 9.59979 10.8989l4.82338 4.82338a.89729.89729 0 0 0 1.29912 0 .89749.89749 0 0 0-.00087-1.29909Z"/></svg><input placeholder=Search aria-label=Search class="navbar__search-input searchInput_YFbd" value="" /><div class="loadingRing_RJI3 searchBarLoadingRing_YnHq"><div></div><div></div><div></div><div></div></div></div></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_z2l0"><div class=docsWrapper_hBAB><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type=button></button><div class=docRoot_UBD9><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class=sidebarViewport_aRkj><div class=sidebar_njMd><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/docs/><span class=linkLabel_WmDU>Overview</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--active"><span class=categoryLinkLabel_W154>Core</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/installation><span class=linkLabel_WmDU>Installation</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/getting-started><span class=linkLabel_WmDU>Getting Started</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/test-analysis><span class=linkLabel_WmDU>Test Analysis</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/docs/dashboards><span class=linkLabel_WmDU>Dashboards</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/quarantine><span class=linkLabel_WmDU>Quarantine</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/ai-analysis><span class=linkLabel_WmDU>AI Analysis</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/administration><span class=linkLabel_WmDU>Administration</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/troubleshooting><span class=linkLabel_WmDU>Troubleshooting</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link"><span class=categoryLinkLabel_W154>Plugins</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/auto-triage><span class=linkLabel_WmDU>Auto-Triage</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/notifications><span class=linkLabel_WmDU>Notifications</span></a></ul></ul></nav></div></div></aside><main class=docMainContainer_TBSr><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_VOVn"><div class=docItemContainer_Djhp><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_Z_bl" aria-label=Breadcrumbs><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label="Home page" class=breadcrumbs__link href=/docs/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_YNFT><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><span class=breadcrumbs__link>Core</span><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>Dashboards</span></ul></nav><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type=button class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>Dashboards</h1></header>
+<p>Dashboards provide customisable views of test data using a grid of 13 configurable widget types. Create personal or shared dashboards for single-project monitoring or cross-project comparison.</p>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=creating-a-dashboard>Creating a Dashboard<a href=#creating-a-dashboard class=hash-link aria-label="Direct link to Creating a Dashboard" title="Direct link to Creating a Dashboard" translate=no>​</a></h2>
+<ol>
+<li class="">Navigate to Dashboards and click <strong>Create Dashboard</strong></li>
+<li class="">Enter a <strong>name</strong> and optional description</li>
+<li class="">Choose <strong>visibility</strong>: Public (visible to all users) or Private (only you)</li>
+<li class="">Choose a <strong>Product Lane Strategy</strong>:<!-- -->
+<ul>
+<li class=""><strong>Single Product Focus</strong> — all widgets use one product lane (consistent filtering, faster setup)</li>
+<li class=""><strong>Multi-Product Flexibility</strong> — each widget independently chooses its product lane (cross-product analysis)</li>
+</ul>
+</li>
+<li class="">Click <strong>Add Widget</strong> to start building — choose a widget type, configure it, and add it to the grid</li>
+</ol>
+<p>Dashboard layouts auto-save as you make changes. Rename a dashboard by clicking its title inline.</p>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=dashboard-filters>Dashboard Filters<a href=#dashboard-filters class=hash-link aria-label="Direct link to Dashboard Filters" title="Direct link to Dashboard Filters" translate=no>​</a></h2>
+<p>In a <strong>Single Product Focus</strong> dashboard, a global filter panel at the top applies across all widgets simultaneously. The filter state is preserved in the URL — bookmark or share specific views.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=core-filters>Core Filters<a href=#core-filters class=hash-link aria-label="Direct link to Core Filters" title="Direct link to Core Filters" translate=no>​</a></h3>
+<p>Product & Type (required), Team, Browser, Device, Platform, Stage, Version</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=advanced-filters>Advanced Filters<a href=#advanced-filters class=hash-link aria-label="Direct link to Advanced Filters" title="Direct link to Advanced Filters" translate=no>​</a></h3>
+<p>Date Range, Build Range, Status Filters, Relation Filters</p>
+<p>Each widget can also have local filter overrides. Click the widget's gear icon to configure per-widget settings.</p>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=sharing-and-collaboration>Sharing and Collaboration<a href=#sharing-and-collaboration class=hash-link aria-label="Direct link to Sharing and Collaboration" title="Direct link to Sharing and Collaboration" translate=no>​</a></h2>
+<table><thead><tr><th>Feature<th>Description<tbody><tr><td><strong>Public dashboards</strong><td>Visible to all logged-in users<tr><td><strong>Private dashboards</strong><td>Only accessible to the creator<tr><td><strong>Clone dashboards</strong><td>Create a personal copy of any dashboard<tr><td><strong>URL sharing</strong><td>Direct links with embedded filter state — shareable and bookmarkable<tr><td><strong>PDF Export</strong><td>Full-page PDF snapshot of the current dashboard view<tr><td><strong>CSV Export</strong><td>Raw data export from the Test Analysis Table widget</table>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=widget-types>Widget Types<a href=#widget-types class=hash-link aria-label="Direct link to Widget Types" title="Direct link to Widget Types" translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=status-pie-chart>Status Pie Chart<a href=#status-pie-chart class=hash-link aria-label="Direct link to Status Pie Chart" title="Direct link to Status Pie Chart" translate=no>​</a></h3>
+<p>Pie chart of test execution results broken down by status (PASS / FAIL / SKIP / WARNING).</p>
+<ul>
+<li class="">Interactive legend with click-to-filter</li>
+<li class="">Configurable status inclusion (rerun, skip, etc.)</li>
+<li class="">Export to PDF and CSV</li>
+</ul>
+<hr/>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=triaged-pie-chart>Triaged Pie Chart<a href=#triaged-pie-chart class=hash-link aria-label="Direct link to Triaged Pie Chart" title="Direct link to Triaged Pie Chart" translate=no>​</a></h3>
+<p>Pie chart showing investigation coverage — how many failures have been triaged and by what issue type. Distinct from Status Pie: shows triaged vs. untriaged breakdown and issue type distribution.</p>
+<hr/>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=build-history-bar>Build History Bar<a href=#build-history-bar class=hash-link aria-label="Direct link to Build History Bar" title="Direct link to Build History Bar" translate=no>​</a></h3>
+<p>Bar or line chart displaying pass/fail/skip counts and pass rate across builds over time.</p>
+<ul>
+<li class="">Switch between <strong>bar</strong> and <strong>line</strong> modes</li>
+<li class="">Multi-product-lane comparison support</li>
+<li class="">Configurable X axis: Build Number or Start Date</li>
+</ul>
+<hr/>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=summary-card--status>Summary Card — Status<a href=#summary-card--status class=hash-link aria-label="Direct link to Summary Card — Status" title="Direct link to Summary Card — Status" translate=no>​</a></h3>
+<p>Compact card grid showing pass/fail/skip counts and pass rate for the latest build. Colour-coded by result.</p>
+<hr/>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=summary-card--build>Summary Card — Build<a href=#summary-card--build class=hash-link aria-label="Direct link to Summary Card — Build" title="Direct link to Summary Card — Build" translate=no>​</a></h3>
+<p>Compact card grid showing build-level metrics: total builds, pass rate distribution bucketed by threshold (100%, 90%+, 80%+, etc.).</p>
+<hr/>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=summary-card--triaged>Summary Card — Triaged<a href=#summary-card--triaged class=hash-link aria-label="Direct link to Summary Card — Triaged" title="Direct link to Summary Card — Triaged" translate=no>​</a></h3>
+<p>Compact card grid showing triage coverage: triaged vs. untriaged failure counts, with per-issue-type breakdown.</p>
+<hr/>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=treemap>Treemap<a href=#treemap class=hash-link aria-label="Direct link to Treemap" title="Direct link to Treemap" translate=no>​</a></h3>
+<p>Hierarchical visualisation of test distribution across a relation dimension.</p>
+<ul>
+<li class="">Group by components, teams, tags, or any custom relation</li>
+<li class="">Proportional sizing by test count</li>
+<li class="">Interactive drill-down</li>
+</ul>
+<hr/>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=heatmap>Heatmap<a href=#heatmap class=hash-link aria-label="Direct link to Heatmap" title="Direct link to Heatmap" translate=no>​</a></h3>
+<p>Colour-coded matrix: rows are builds, columns are relation dimension values. Cell colour represents pass rate.</p>
+<ul>
+<li class="">Historical trend across multiple builds</li>
+<li class="">Group by any configured relation dimension</li>
+</ul>
+<hr/>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=test-analysis-table>Test Analysis Table<a href=#test-analysis-table class=hash-link aria-label="Direct link to Test Analysis Table" title="Direct link to Test Analysis Table" translate=no>​</a></h3>
+<p>Tabular analysis of test behaviour patterns — identifies stable vs. unstable tests.</p>
+<ul>
+<li class="">Flakiness percentage per test</li>
+<li class="">Stable / Unstable / Consistent classification</li>
+<li class="">Export to CSV</li>
+</ul>
+<hr/>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=top-tests-table>Top Tests Table<a href=#top-tests-table class=hash-link aria-label="Direct link to Top Tests Table" title="Direct link to Top Tests Table" translate=no>​</a></h3>
+<p>Ranked table surfacing the most impactful tests over a configurable time window (7, 30, or 90 days). Toggle between two modes at runtime:</p>
+<table><thead><tr><th>Mode<th>Columns<tbody><tr><td><strong>Top Failures</strong><td>Fail count, last failed date<tr><td><strong>Slowest Tests</strong><td>Avg / max duration, run count</table>
+<hr/>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=trend-insights>Trend Insights<a href=#trend-insights class=hash-link aria-label="Direct link to Trend Insights" title="Direct link to Trend Insights" translate=no>​</a></h3>
+<p>Detects anomalous pass-rate drops across recent builds using Z-score analysis.</p>
+<ul>
+<li class="">Highlights builds where pass rate deviated significantly from the historical baseline</li>
+<li class="">Overlays build duration trend to reveal if the suite is getting slower</li>
+<li class="">Configurable window (default: last 20 builds)</li>
+</ul>
+<hr/>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=relations-group-by>Relations Group By<a href=#relations-group-by class=hash-link aria-label="Direct link to Relations Group By" title="Direct link to Relations Group By" translate=no>​</a></h3>
+<p>Stacked bar chart showing test counts and pass rates grouped by a relation attribute.</p>
+<ul>
+<li class="">Group by components, teams, tags, or any custom relation dimension</li>
+<li class="">Horizontal, vertical, or table view</li>
+<li class="">Category grouping for high-cardinality dimensions</li>
+</ul>
+<hr/>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=section-divider>Section Divider<a href=#section-divider class=hash-link aria-label="Direct link to Section Divider" title="Direct link to Section Divider" translate=no>​</a></h3>
+<p>Visual separator that organises dashboard content into logical sections.</p>
+<ul>
+<li class="">Customisable title, colour, font size, and line style</li>
+<li class="">Enables jump-to-section navigation when multiple dividers are present</li>
+<li class="">Spans full dashboard width</li>
+</ul>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=widget-configuration>Widget Configuration<a href=#widget-configuration class=hash-link aria-label="Direct link to Widget Configuration" title="Direct link to Widget Configuration" translate=no>​</a></h2>
+<p>Each widget has specific configuration options accessible via the gear icon:</p>
+<table><thead><tr><th>Setting<th>Description<tbody><tr><td><strong>Widget Title</strong><td>Custom label for the widget header<tr><td><strong>Product Lane Selection</strong><td>Which product lane(s) the widget queries<tr><td><strong>Date Range</strong><td>Overrides dashboard-level date range for this widget<tr><td><strong>Refresh Rate</strong><td>Auto-refresh interval (minutes)<tr><td><strong>Status Filters</strong><td>Which statuses to include/exclude<tr><td><strong>Relation Filters</strong><td>Filter by relation dimension values<tr><td><strong>Chart Type / Visual options</strong><td>Widget-specific display settings (axes, colours, layout)</table>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=multi-lane-comparison>Multi-Lane Comparison<a href=#multi-lane-comparison class=hash-link aria-label="Direct link to Multi-Lane Comparison" title="Direct link to Multi-Lane Comparison" translate=no>​</a></h2>
+<p>Some widgets (e.g. Build History Bar) support comparing data from multiple product lanes side-by-side:</p>
+<ol>
+<li class="">Open the widget editor</li>
+<li class="">Expand <strong>Multiple Product Lanes</strong></li>
+<li class="">Click <strong>Add Product Lane</strong> to add additional data sources — configure each with a different filter combination</li>
+<li class="">Use arrow buttons to reorder lanes; edit or remove as needed</li>
+</ol>
+<p>Use cases:</p>
+<ul>
+<li class=""><strong>Cross-Browser</strong> — Chrome, Firefox, Safari lanes side-by-side</li>
+<li class=""><strong>Team Performance</strong> — Frontend, Backend, QA team lanes</li>
+<li class=""><strong>Environment</strong> — Dev, Staging, Production comparison</li>
+</ul>
+<p>The "Multiple Product Lanes" section only appears for widgets that support it.</p>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=layout-management>Layout Management<a href=#layout-management class=hash-link aria-label="Direct link to Layout Management" title="Direct link to Layout Management" translate=no>​</a></h2>
+<table><thead><tr><th>Feature<th>Description<tbody><tr><td><strong>Drag-and-drop</strong><td>Move widgets by dragging their header<tr><td><strong>Resize</strong><td>Drag the bottom-right corner<tr><td><strong>Grid snapping</strong><td>Automatic alignment to grid<tr><td><strong>Auto-save</strong><td>Layout changes save immediately<tr><td><strong>Section Dividers</strong><td>Add Section Divider widgets to group related widgets and enable jump-to-section navigation<tr><td><strong>Widget lock</strong><td>Widgets auto-lock (drag/resize disabled) while dashboard filters are active — clear filters to re-enable layout editing</table>
+<hr/>
+<p>Next: <a class="" href=/docs/notifications>Notifications →</a></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href=/docs/test-analysis><div class=pagination-nav__sublabel>Previous</div><div class=pagination-nav__label>Test Analysis</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/docs/quarantine><div class=pagination-nav__sublabel>Next</div><div class=pagination-nav__label>Quarantine</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#creating-a-dashboard class="table-of-contents__link toc-highlight">Creating a Dashboard</a><li><a href=#dashboard-filters class="table-of-contents__link toc-highlight">Dashboard Filters</a><ul><li><a href=#core-filters class="table-of-contents__link toc-highlight">Core Filters</a><li><a href=#advanced-filters class="table-of-contents__link toc-highlight">Advanced Filters</a></ul><li><a href=#sharing-and-collaboration class="table-of-contents__link toc-highlight">Sharing and Collaboration</a><li><a href=#widget-types class="table-of-contents__link toc-highlight">Widget Types</a><ul><li><a href=#status-pie-chart class="table-of-contents__link toc-highlight">Status Pie Chart</a><li><a href=#triaged-pie-chart class="table-of-contents__link toc-highlight">Triaged Pie Chart</a><li><a href=#build-history-bar class="table-of-contents__link toc-highlight">Build History Bar</a><li><a href=#summary-card--status class="table-of-contents__link toc-highlight">Summary Card — Status</a><li><a href=#summary-card--build class="table-of-contents__link toc-highlight">Summary Card — Build</a><li><a href=#summary-card--triaged class="table-of-contents__link toc-highlight">Summary Card — Triaged</a><li><a href=#treemap class="table-of-contents__link toc-highlight">Treemap</a><li><a href=#heatmap class="table-of-contents__link toc-highlight">Heatmap</a><li><a href=#test-analysis-table class="table-of-contents__link toc-highlight">Test Analysis Table</a><li><a href=#top-tests-table class="table-of-contents__link toc-highlight">Top Tests Table</a><li><a href=#trend-insights class="table-of-contents__link toc-highlight">Trend Insights</a><li><a href=#relations-group-by class="table-of-contents__link toc-highlight">Relations Group By</a><li><a href=#section-divider class="table-of-contents__link toc-highlight">Section Divider</a></ul><li><a href=#widget-configuration class="table-of-contents__link toc-highlight">Widget Configuration</a><li><a href=#multi-lane-comparison class="table-of-contents__link toc-highlight">Multi-Lane Comparison</a><li><a href=#layout-management class="table-of-contents__link toc-highlight">Layout Management</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class=footer__copyright>Copyright © 2026 UReport. Built with Docusaurus.</div></div></div></footer></div></body>

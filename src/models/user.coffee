@@ -28,6 +28,8 @@ userSchema = new Schema(
   email : {
     type: String,
     required: true,
+    unique: true,
+    sparse: true,
     validate: {
         validator: (v) ->
           re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -38,7 +40,17 @@ userSchema = new Schema(
   },
   password: {
     type: String,
-    required: true,
+    required: false,
+  },
+  has_password: {
+    type: Boolean,
+    default: true,
+  },
+  sso_provider: {
+    type: String,
+  },
+  sso_sub: {
+    type: String,
   },
   status: {
     type: String,
