@@ -11,7 +11,18 @@ ObjectId = require('mongoose').Types.ObjectId
 matcher = require('./notification_rule_matcher')
 logger = require('./logger')
 
+extrasToKey = (extras) ->
+  return '' unless extras and typeof extras is 'object'
+  obj = if extras instanceof Map then Object.fromEntries(extras) else extras
+  sorted = Object.keys(obj).sort().filter (k) -> obj[k]
+  sorted.map((k) -> "#{k}=#{obj[k]}").join('|')
+
+extractExtras = (arg) ->
+  return {} unless arg?.extras
+  if arg.extras instanceof Map then Object.fromEntries(arg.extras) else arg.extras
+
 toScope = (obj) ->
+  extrasObj = extractExtras(obj)
   version:          obj?.version          or ''
   team:             obj?.team             or ''
   browser:          obj?.browser          or ''
@@ -19,6 +30,7 @@ toScope = (obj) ->
   platform:         obj?.platform         or ''
   platform_version: obj?.platform_version or ''
   stage:            obj?.stage            or ''
+  extras_key:       extrasToKey(extrasObj)
 
 normalizeConditions = (threshold) ->
   if Array.isArray(threshold.conditions) and threshold.conditions.length > 0
@@ -28,9 +40,17 @@ normalizeConditions = (threshold) ->
 
 matchesScope = (rule, build) ->
   scope = rule.scope or {}
-  ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage'].every (f) ->
+  predefinedMatch = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage'].every (f) ->
     return true unless scope[f]
     build[f] == scope[f]
+  return false unless predefinedMatch
+
+  ruleExtras = scope.extras or {}
+  return true unless Object.keys(ruleExtras).length > 0
+  buildExtras = extractExtras(build)
+  Object.keys(ruleExtras).every (k) ->
+    return true unless ruleExtras[k]
+    buildExtras[k] == ruleExtras[k]
 
 # Determine which UIDs should be quarantined given per-build failure results.
 # condition: { mode, failures, fail_rate }
@@ -201,6 +221,10 @@ evaluateQuarantineRules = (build) ->
       scopeFields.forEach (f) ->
         if build[f]
           buildScopeFilter[f] = build[f]
+      if build.extras?.size > 0
+        build.extras.forEach (value, key) ->
+          if value
+            buildScopeFilter["extras.#{key}"] = value
       prevBuildsQuery = Object.assign({
         product: build.product,
         type: build.type,
@@ -361,11 +385,12 @@ evaluateQuarantineRules = (build) ->
 
                   logger.info "#{prefix} rule \"#{ruleName}\" threshold hits=#{toQuarantine.length} (#{Object.keys(uidBestMap).length} before exempt filter)"
 
-                  ruleHasScope = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage'].some (f) -> rule.scope?[f]
+                  ruleHasExtras = rule.scope?.extras and Object.keys(rule.scope.extras).length > 0
+                  ruleHasScope = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage'].some((f) -> rule.scope?[f]) or ruleHasExtras
                   ruleScope = if ruleHasScope then toScope(rule.scope) else toScope(build)
                   toQuarantine.forEach (item) ->
                     QuarantinedTest.findOneAndUpdate(
-                      { uid: item.uid, product: build.product, type: build.type, scope: ruleScope },
+                      { uid: item.uid, product: build.product, type: build.type },
                       {
                         $set: {
                           uid: item.uid,
@@ -435,6 +460,10 @@ evaluateQuarantineRules = (build) ->
                   rule = enabledRules.find (r) -> (r._id or '').toString() == q.rule_id
                   rule = rule or enabledRules[0]
 
+                  # Skip if current build scope doesn't match the rule scope —
+                  # passes from a different scope should not resolve this quarantine.
+                  return unless matchesScope(rule, build)
+
                   threshold = rule.threshold or {}
                   results = arUidMap[q.uid] or []
                   requiredPasses = threshold.resolve_passes or 3
@@ -456,4 +485,4 @@ evaluateQuarantineRules = (build) ->
 
                 release()
 
-module.exports = { evaluateQuarantineRules, matchesScope, evaluateThreshold, hasConsecutivePasses, filterByNamePattern, toScope }
+module.exports = { evaluateQuarantineRules, matchesScope, evaluateThreshold, hasConsecutivePasses, filterByNamePattern, toScope, extrasToKey, extractExtras }

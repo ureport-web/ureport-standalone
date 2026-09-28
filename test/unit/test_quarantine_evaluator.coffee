@@ -1,7 +1,7 @@
 chai   = require('chai')
 should = chai.should()
 
-{ matchesScope, evaluateThreshold, filterByNamePattern, hasConsecutivePasses } = require('../../src/utils/quarantine_evaluator')
+{ matchesScope, evaluateThreshold, filterByNamePattern, hasConsecutivePasses, extrasToKey } = require('../../src/utils/quarantine_evaluator')
 
 # ---------------------------------------------------------------------------
 # matchesScope
@@ -288,3 +288,75 @@ describe 'hasConsecutivePasses', ->
     # only b5 has a result (pass) — required 1
     results = mkPassResults('uid-A', ['b5'])
     hasConsecutivePasses(results, buildIds, 1).should.equal true
+
+# ---------------------------------------------------------------------------
+# extrasToKey
+# ---------------------------------------------------------------------------
+describe 'extrasToKey', ->
+
+  it 'returns empty string for empty object', ->
+    extrasToKey({}).should.equal ''
+
+  it 'returns empty string for null/undefined', ->
+    extrasToKey(null).should.equal ''
+    extrasToKey(undefined).should.equal ''
+
+  it 'single entry', ->
+    extrasToKey({ region: 'us-east' }).should.equal 'region=us-east'
+
+  it 'sorts keys alphabetically', ->
+    extrasToKey({ z: '2', a: '1' }).should.equal 'a=1|z=2'
+
+  it 'skips falsy values', ->
+    extrasToKey({ region: 'us-east', empty: '' }).should.equal 'region=us-east'
+
+  it 'handles Mongoose Map input', ->
+    extrasToKey(new Map([['region', 'us-east']])).should.equal 'region=us-east'
+
+  it 'Map with multiple entries sorted', ->
+    extrasToKey(new Map([['z', '2'], ['a', '1']])).should.equal 'a=1|z=2'
+
+# ---------------------------------------------------------------------------
+# matchesScope — extras
+# ---------------------------------------------------------------------------
+describe 'matchesScope — extras', ->
+
+  it 'matches when rule has extras and build has matching extras (Mongoose Map)', ->
+    rule  = { scope: { extras: { region: 'us-east' } } }
+    build = { extras: new Map([['region', 'us-east']]) }
+    matchesScope(rule, build).should.equal true
+
+  it 'does not match when rule has extras and build extras value differs', ->
+    rule  = { scope: { extras: { region: 'us-east' } } }
+    build = { extras: new Map([['region', 'eu-west']]) }
+    matchesScope(rule, build).should.equal false
+
+  it 'does not match when rule has extras and build has no extras field', ->
+    rule  = { scope: { extras: { region: 'us-east' } } }
+    build = {}
+    matchesScope(rule, build).should.equal false
+
+  it 'matches when rule has no extras and build has extras (no filter = match all)', ->
+    rule  = { scope: {} }
+    build = { extras: new Map([['region', 'us-east']]) }
+    matchesScope(rule, build).should.equal true
+
+  it 'matches when rule has extras as plain object (rule.scope case)', ->
+    rule  = { scope: { extras: { region: 'us-east' } } }
+    build = { extras: { region: 'us-east' } }
+    matchesScope(rule, build).should.equal true
+
+  it 'does not match when rule has extras but build has empty Map', ->
+    rule  = { scope: { extras: { region: 'us-east' } } }
+    build = { extras: new Map() }
+    matchesScope(rule, build).should.equal false
+
+  it 'matches when rule extras has empty string value (treated as no filter)', ->
+    rule  = { scope: { extras: { region: '' } } }
+    build = { extras: new Map([['region', 'eu-west']]) }
+    matchesScope(rule, build).should.equal true
+
+  it 'checks predefined AND extras — fails predefined even if extras match', ->
+    rule  = { scope: { stage: 'prod', extras: { region: 'us-east' } } }
+    build = { stage: 'staging', extras: new Map([['region', 'us-east']]) }
+    matchesScope(rule, build).should.equal false

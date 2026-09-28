@@ -10,7 +10,7 @@ ANALYTICS_CACHE_TTL = 2 * 60 * 60  # 2 hours in seconds
 toMatch = (val) -> if Array.isArray(val) then { $in: val } else val
 
 buildMatchFromBody = (body, sinceDate) ->
-  { product, type, team, version, browser, device, platform, platform_version, stage } = body
+  { product, type, team, version, browser, device, platform, platform_version, stage, extras } = body
   match = { product, type, is_archive: false, start_time: { $gte: sinceDate } }
   if team then match.team = toMatch(team)
   if version then match.version = toMatch(version)
@@ -19,6 +19,9 @@ buildMatchFromBody = (body, sinceDate) ->
   if platform then match.platform = toMatch(platform)
   if platform_version then match.platform_version = toMatch(platform_version)
   if stage then match.stage = toMatch(stage)
+  if extras
+    for k, v of extras
+      match["extras.#{k}"] = v
   match
 
 router.post '/top-failures', (req, res, next) ->
@@ -94,7 +97,7 @@ router.post '/pass-rate-history', (req, res, next) ->
     { $match: buildMatch },
     { $sort: { start_time: -1 } },
     { $group: {
-      _id: { product: '$product', type: '$type', team: '$team', version: '$version', browser: '$browser', device: '$device', platform: '$platform', platform_version: '$platform_version', stage: '$stage' },
+      _id: { product: '$product', type: '$type', team: '$team', version: '$version', browser: '$browser', device: '$device', platform: '$platform', platform_version: '$platform_version', stage: '$stage', extras: '$extras' },
       entries: { $push: { build: '$build', start_time: '$start_time', pass: '$status.pass', total: '$status.total' } }
     }},
     { $project: { entries: { $slice: ['$entries', lim] } } },
@@ -142,7 +145,7 @@ router.post '/build-duration-history', (req, res, next) ->
     { $match: buildMatch },
     { $sort: { start_time: -1 } },
     { $group: {
-      _id: { product: '$product', type: '$type', team: '$team', version: '$version', browser: '$browser', device: '$device', platform: '$platform', platform_version: '$platform_version', stage: '$stage' },
+      _id: { product: '$product', type: '$type', team: '$team', version: '$version', browser: '$browser', device: '$device', platform: '$platform', platform_version: '$platform_version', stage: '$stage', extras: '$extras' },
       entries: { $push: { build: '$build', start_time: '$start_time', end_time: '$end_time' } }
     }},
     { $project: { entries: { $slice: ['$entries', lim] } } },
@@ -196,13 +199,17 @@ router.post '/global-top-failures', (req, res, next) ->
 
     Build.find({ start_time: { $gte: sinceDate }, is_archive: false })
     .sort({ start_time: -1 }).limit(1000)
-    .select('_id product type').lean().exec (err, builds) ->
+    .select('_id product type stage platform platform_version team browser device extras').lean().exec (err, builds) ->
       if err then return next(err)
       if builds.length is 0 then return res.json []
 
       buildMap = {}
       buildIds = builds.map (b) ->
-        buildMap[b._id.toString()] = { product: b.product, type: b.type }
+        buildMap[b._id.toString()] = {
+          product: b.product, type: b.type,
+          stage: b.stage, platform: b.platform, platform_version: b.platform_version,
+          team: b.team, browser: b.browser, device: b.device, extras: b.extras
+        }
         b._id
 
       Test.aggregate([
@@ -226,6 +233,13 @@ router.post '/global-top-failures', (req, res, next) ->
             test_name: r.name
             product: lane.product or ''
             type: lane.type or ''
+            stage: lane.stage or undefined
+            platform: lane.platform or undefined
+            platform_version: lane.platform_version or undefined
+            team: lane.team or undefined
+            browser: lane.browser or undefined
+            device: lane.device or undefined
+            extras: lane.extras or undefined
             fail_count: r.failCount
             last_failed: r.lastFailedAt
           }

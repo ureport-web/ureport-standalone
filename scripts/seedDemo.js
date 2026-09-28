@@ -450,6 +450,50 @@ const CUSTOM_META_FRONTEND = {
   "performance/": { Feature: "Performance", Priority: "P3" },
 };
 
+const ORION_PRODUCT = "Orion";
+
+const ORION_UIDS = [
+  "payment/stripe-charge",
+  "payment/stripe-refund",
+  "payment/paypal-authorize",
+  "payment/paypal-capture",
+  "payment/fraud-check",
+  "email/send-transactional",
+  "email/send-marketing",
+  "email/bounce-webhook",
+  "email/unsubscribe-webhook",
+  "sms/send-otp",
+  "sms/delivery-status",
+  "webhook/order-created",
+  "webhook/order-shipped",
+  "webhook/payment-failed",
+  "webhook/refund-processed",
+  "storage/upload-file",
+  "storage/download-file",
+  "storage/delete-file",
+  "cdn/purge-cache",
+  "cdn/invalidate-path",
+];
+
+const ORION_META = {
+  "payment/": { component: "payment-gateway", team: "payments-team", tag: "critical" },
+  "email/":   { component: "email-service",   team: "comms-team",    tag: "async"    },
+  "sms/":     { component: "sms-service",     team: "comms-team",    tag: "async"    },
+  "webhook/": { component: "webhook-service", team: "platform-team", tag: "events"   },
+  "storage/": { component: "storage-service", team: "infra-team",    tag: "io"       },
+  "cdn/":     { component: "cdn-service",     team: "infra-team",    tag: "network"  },
+};
+
+const ORION_ERRORS = [
+  "Expected HTTP 200 but got 502 from upstream payment provider",
+  "Stripe webhook signature verification failed",
+  "Email delivery timed out after 30s — SMTP connection refused",
+  "SMS OTP not delivered: carrier gateway returned error code 30008",
+  "Webhook retry exhausted after 3 attempts — endpoint returned 503",
+  "S3 upload failed: AccessDenied on bucket orion-assets-prod",
+  "CDN purge returned 422: invalid path glob pattern",
+];
+
 const E2E_BROWSERS = ["Chrome", "Firefox", "Safari", "Edge"];
 const E2E_DEVICES = ["Desktop", "Mobile", "Tablet"];
 const FE_BROWSERS = ["Chrome", "Firefox"];
@@ -524,6 +568,7 @@ const STABILITY = {
   backend: buildStabilityMap(BACKEND_UIDS, 111),
   frontend: buildStabilityMap(FRONTEND_UIDS, 222),
   e2e: buildStabilityMap(E2E_UIDS, 333),
+  integration: buildStabilityMap(ORION_UIDS, 444),
 };
 
 // ─── Quarantine rules ─────────────────────────────────────────────────────────
@@ -577,6 +622,7 @@ const E2E_ERRORS = [
 function getErrors(type) {
   if (type === "backend") return BACKEND_ERRORS;
   if (type === "frontend") return FRONTEND_ERRORS;
+  if (type === "integration") return ORION_ERRORS;
   return E2E_ERRORS;
 }
 
@@ -1363,9 +1409,11 @@ function generateTestData(uid, type, status, durationMs, buildNum) {
 
 // ─── Main seed ────────────────────────────────────────────────────────────────
 
-async function seedProductLine(product, type, uids, stabilityKey, metaMap, { browser = null, skipRelations = false } = {}) {
+async function seedProductLine(product, type, uids, stabilityKey, metaMap, { browser = null, stage = null, platform = null, platform_version = null, skipRelations = false, extras = null } = {}) {
+  const extrasLabel = extras ? ` [${Object.entries(extras).map(([k, v]) => `${k}=${v}`).join(", ")}]` : "";
+  const stageLabel = stage ? ` stage=${stage}` : "";
   console.log(
-    `\n  Seeding ${product}/${type}${browser ? `/${browser}` : ""} (${uids.length} tests × ${NUM_BUILDS} builds)...`,
+    `\n  Seeding ${product}/${type}${browser ? `/${browser}` : ""}${stageLabel}${extrasLabel} (${uids.length} tests × ${NUM_BUILDS} builds)...`,
   );
 
   const now = Date.now();
@@ -1413,9 +1461,10 @@ async function seedProductLine(product, type, uids, stabilityKey, metaMap, { bro
       type,
       build: buildNum,
       ...(browser ? { browser } : {}),
-      stage: "CI",
-      platform: "linux",
-      platform_version: "22.04",
+      ...(stage ? { stage } : {}),
+      ...(platform ? { platform } : {}),
+      ...(platform_version ? { platform_version } : {}),
+      ...(extras ? { extras } : {}),
       start_time: buildStart,
       end_time: buildEnd,
       status: { total: 0, pass: 0, fail: 0, skip: 0, warning: 0 },
@@ -2393,6 +2442,23 @@ async function seedPresets() {
       description: "Frontend tests on Chrome and Firefox",
       lanes: FE_BROWSERS.map((b) => ({ product: PRODUCT, type: "frontend", browser: b })),
     },
+    {
+      name: "Orion Integration — Regions",
+      description: "Orion integration suite by cloud region (extras-only lanes)",
+      lanes: [
+        { product: ORION_PRODUCT, type: "integration", extras: { region: "us-east-1" } },
+        { product: ORION_PRODUCT, type: "integration", extras: { region: "eu-west-1",      datacenter: "aws"  } },
+        { product: ORION_PRODUCT, type: "integration", extras: { region: "ap-southeast-1", datacenter: "gcp", tier: "premium" } },
+      ],
+    },
+    {
+      name: "Orion Integration — Staging vs Prod",
+      description: "Orion integration suite comparing staging and prod in us-east-1 (predefined stage + extras)",
+      lanes: [
+        { product: ORION_PRODUCT, type: "integration", stage: "staging", extras: { region: "us-east-1" } },
+        { product: ORION_PRODUCT, type: "integration", stage: "prod",    extras: { region: "us-east-1" } },
+      ],
+    },
   ];
   await Preset.insertMany(presets);
   console.log(`\n  ✓ ${presets.length} presets seeded`);
@@ -2518,7 +2584,7 @@ async function main() {
   console.log("\n⚠️  Demo seed script");
   console.log("─────────────────────────────────────────");
   console.log(`  DB:      ${dbHost}`);
-  console.log(`  Product: ${PRODUCT}`);
+  console.log(`  Products: ${PRODUCT}, ${ORION_PRODUCT}`);
   console.log("\n  Collections that will be modified:");
   console.log("    • builds         — cleared for product, then re-seeded");
   console.log("    • tests          — fully cleared, then re-seeded");
@@ -2542,16 +2608,16 @@ async function main() {
   mongoose.set("useFindAndModify", false);
   mongoose.set("useCreateIndex", true);
 
-  console.log("\nClearing existing Acme demo data...");
+  console.log("\nClearing existing demo data...");
   // Reset license to community so demo always starts unlicensed
   await SystemSetting.updateOne({ name: "SYSTEM_SETTING" }, { $unset: { license_key: "" } });
-  await Build.deleteMany({ product: PRODUCT });
+  await Build.deleteMany({ product: { $in: [PRODUCT, ORION_PRODUCT] } });
   await Test.deleteMany({});
   console.log("  ✓ Cleared builds and tests");
-  await QuarantinedTest.deleteMany({ product: PRODUCT });
+  await QuarantinedTest.deleteMany({ product: { $in: [PRODUCT, ORION_PRODUCT] } });
   console.log("  ✓ Cleared quarantined tests");
   await Preset.deleteMany({});
-  await AiAnalysis.deleteMany({ product: PRODUCT });
+  await AiAnalysis.deleteMany({ product: { $in: [PRODUCT, ORION_PRODUCT] } });
   console.log("  ✓ Cleared presets and AI analysis");
 
   await seedProductLine(
@@ -2560,19 +2626,52 @@ async function main() {
     BACKEND_UIDS,
     "backend",
     BACKEND_META,
+    { stage: "CI", platform: "linux", platform_version: "22.04" },
   );
   for (let i = 0; i < FE_BROWSERS.length; i++) {
     await seedProductLine(PRODUCT, "frontend", FRONTEND_UIDS, "frontend", FRONTEND_META, {
       browser: FE_BROWSERS[i],
+      stage: "CI",
+      platform: "linux",
+      platform_version: "22.04",
       skipRelations: i > 0,
     });
   }
   for (let i = 0; i < E2E_BROWSERS.length; i++) {
     await seedProductLine(PRODUCT, "e2e", E2E_UIDS, "e2e", E2E_META, {
       browser: E2E_BROWSERS[i],
+      stage: "CI",
+      platform: "linux",
+      platform_version: "22.04",
       skipRelations: i > 0,
     });
   }
+
+  // ── Orion/integration — extras-only lanes (region dimension, no predefined fields) ──
+  const ORION_EXTRAS_ONLY = [
+    { region: "us-east-1" },
+    { region: "eu-west-1",      datacenter: "aws"  },
+    { region: "ap-southeast-1", datacenter: "gcp", tier: "premium" },
+  ];
+  for (let i = 0; i < ORION_EXTRAS_ONLY.length; i++) {
+    await seedProductLine(ORION_PRODUCT, "integration", ORION_UIDS, "integration", ORION_META, {
+      extras: ORION_EXTRAS_ONLY[i],
+      skipRelations: i > 0,
+    });
+  }
+
+  // ── Orion/integration — predefined (stage) + extras lanes ──
+  const ORION_MIXED = [
+    { stage: "staging", platform: "linux", platform_version: "22.04", extras: { region: "us-east-1" } },
+    { stage: "prod",    platform: "linux", platform_version: "22.04", extras: { region: "us-east-1" } },
+  ];
+  for (const opts of ORION_MIXED) {
+    await seedProductLine(ORION_PRODUCT, "integration", ORION_UIDS, "integration", ORION_META, {
+      ...opts,
+      skipRelations: true,
+    });
+  }
+
   await seedInvestigatedTests();
   await seedQuarantinedTests();
   await seedSetting();
@@ -2580,10 +2679,11 @@ async function main() {
   await seedPresets();
   await seedAiAnalysis();
 
-  const buildCount = await Build.countDocuments({ product: PRODUCT });
+  const acmeBuildCount = await Build.countDocuments({ product: PRODUCT });
+  const orionBuildCount = await Build.countDocuments({ product: ORION_PRODUCT });
   const testCount = await Test.countDocuments();
   console.log(
-    `\n✅ Done! ${buildCount} builds, ${testCount} tests seeded for "${PRODUCT}".`,
+    `\n✅ Done! ${acmeBuildCount + orionBuildCount} builds (${acmeBuildCount} Acme + ${orionBuildCount} Orion), ${testCount} tests seeded.`,
   );
   console.log(
     "   Dashboards: Executive Overview, Backend Deep Dive, E2E & Frontend Builds\n",

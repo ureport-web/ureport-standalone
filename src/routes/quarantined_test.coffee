@@ -3,6 +3,7 @@ router = express.Router()
 QuarantinedTest = require('../models/quarantined_test')
 ObjectId = require('mongoose').Types.ObjectId
 registerAudit = require('../utils/register_audit')
+{ extrasToKey } = require('../utils/quarantine_evaluator')
 
 SCOPE_FIELDS = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage']
 
@@ -18,6 +19,18 @@ applyScopeQuery = (query, buildScope) ->
       query['scope.' + f] = { $in: [''].concat(vals) }
     else
       query['scope.' + f] = ''
+  rawKey = buildScope.extras_key
+  if Array.isArray(rawKey)
+    extraKeys = rawKey.filter((k) -> k)
+  else if rawKey
+    extraKeys = [rawKey]
+  else
+    k = extrasToKey(buildScope.extras or {})
+    extraKeys = if k then [k] else []
+  if extraKeys.length > 0
+    query['scope.extras_key'] = { $in: [''].concat(extraKeys) }
+  else
+    query['scope.extras_key'] = ''
 
 # GET / — return uid array, filter by product/type/is_active/scope query params
 router.get '/', (req, res, next) ->

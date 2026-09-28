@@ -570,6 +570,7 @@ describe 'evaluateQuarantineRules — integration', ->
           doc.is_active.should.equal true
           doc.scope.stage.should.equal 'regression'
           doc.scope.version.should.equal ''
+          doc.scope.extras_key.should.equal ''
           done()
       , 1500
       return
@@ -578,7 +579,9 @@ describe 'evaluateQuarantineRules — integration', ->
       @timeout(3000)
       QuarantinedTest.findOne({
         uid: 'uid-scoped', product: PRODUCT, type: TYPE_SCOPED,
-        scope: { version: '', team: '', browser: '', device: '', platform: '', platform_version: '', stage: 'smoke' }
+        'scope.version': '', 'scope.team': '', 'scope.browser': '', 'scope.device': '',
+        'scope.platform': '', 'scope.platform_version': '', 'scope.stage': 'smoke',
+        'scope.extras_key': ''
       }).exec (err, doc) ->
         return done(err) if err
         should.not.exist doc
@@ -609,7 +612,9 @@ describe 'evaluateQuarantineRules — integration', ->
             # No QuarantinedTest with scope.stage='smoke' should exist
             QuarantinedTest.findOne({
               uid: 'uid-scoped', product: PRODUCT, type: TYPE_SCOPED,
-              scope: { version: '', team: '', browser: '', device: '', platform: '', platform_version: '', stage: 'smoke' }
+              'scope.version': '', 'scope.team': '', 'scope.browser': '', 'scope.device': '',
+              'scope.platform': '', 'scope.platform_version': '', 'scope.stage': 'smoke',
+              'scope.extras_key': ''
             }).exec (qErr, doc) ->
               return done(qErr) if qErr
               should.not.exist doc

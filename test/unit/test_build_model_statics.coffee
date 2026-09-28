@@ -102,9 +102,9 @@ describe 'Build.initBuild — 7 optional lane fields', ->
     b = Build.initBuild { product: 'P', type: 'T', build: 1 }
     (b.stage == undefined || b.stage == null).should.be.true
 
-  it 'does NOT copy unknown field extras (field does not exist in schema yet)', ->
+  it 'copies extras field and sorts keys', ->
     b = Build.initBuild { product: 'P', type: 'T', build: 1, extras: { region: 'us-east' } }
-    (b.extras == undefined || b.extras == null).should.be.true
+    b.extras.get('region').should.equal 'us-east'
 
 describe 'Build.initBuild — other fields', ->
 

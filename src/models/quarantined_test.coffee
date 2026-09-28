@@ -33,12 +33,13 @@ quarantinedTestSchema = new Schema(
     device:           { type: String, default: '' },
     platform:         { type: String, default: '' },
     platform_version: { type: String, default: '' },
-    stage:            { type: String, default: '' }
+    stage:            { type: String, default: '' },
+    extras_key:       { type: String, default: '' }
   }
 )
 
 quarantinedTestSchema.index(
-  { uid: 1, product: 1, type: 1, 'scope.version': 1, 'scope.team': 1, 'scope.browser': 1, 'scope.device': 1, 'scope.platform': 1, 'scope.platform_version': 1, 'scope.stage': 1 },
+  { uid: 1, product: 1, type: 1, 'scope.version': 1, 'scope.team': 1, 'scope.browser': 1, 'scope.device': 1, 'scope.platform': 1, 'scope.platform_version': 1, 'scope.stage': 1, 'scope.extras_key': 1 },
   { unique: true }
 )
 quarantinedTestSchema.index({ resolved_at: 1 }, { expireAfterSeconds: 7776000 })

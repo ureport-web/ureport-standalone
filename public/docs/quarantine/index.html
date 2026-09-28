@@ -1,380 +1,108 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Quarantine | UReport Docs</title>
-  <meta name="description" content="Automatically isolate consistently failing tests with UReport's quarantine system.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <style>
-    :root {
-      --p-primary-color: #1d9e75; --p-primary-50: #e6f7f1; --p-primary-100: #cceee3; --p-primary-200: #99ddc7;
-      --p-surface-0: #ffffff; --p-surface-50: #f9fafb; --p-surface-100: #f3f4f6; --p-surface-border: #e5e7eb;
-      --p-text-color: #111827; --p-text-muted-color: #6b7280;
-      --p-green-50: #f0fdf4; --p-green-100: #dcfce7; --p-green-200: #bbf7d0; --p-green-500: #22c55e; --p-green-700: #15803d;
-      --p-blue-50: #eff6ff; --p-blue-100: #dbeafe; --p-blue-200: #bfdbfe; --p-blue-500: #3b82f6; --p-blue-700: #1d4ed8;
-      --p-orange-50: #fff7ed; --p-orange-200: #fed7aa; --p-orange-500: #f97316; --p-orange-700: #c2410c;
-      --p-yellow-100: #fef9c3; --p-yellow-200: #fef08a; --p-yellow-600: #ca8a04; --p-yellow-700: #a16207;
-      --p-gray-100: #f3f4f6; --p-gray-500: #6b7280; --p-gray-700: #374151;
-    }
-    *, *::before, *::after { box-sizing: border-box; }
-    body { margin: 0; font-family: 'DM Sans', sans-serif; color: var(--p-text-color); }
-    .docs-nav { position: sticky; top: 0; z-index: 100; background: rgba(10,10,15,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .docs-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 2rem; height: 60px; display: flex; align-items: center; gap: 2rem; }
-    .docs-nav-brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 1.05rem; color: rgba(255,255,255,0.9); text-decoration: none; margin-right: auto; }
-    .docs-nav-brand i { color: #1d9e75; }
-    .docs-nav-links { display: flex; align-items: center; gap: 0.25rem; }
-    .docs-nav-link { padding: 0.4rem 0.9rem; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.9rem; font-weight: 500; border-radius: 6px; transition: color 0.15s, background 0.15s; }
-    .docs-nav-link:hover { color: rgba(255,255,255,0.95); background: rgba(255,255,255,0.06); }
-    .docs-nav-btn { padding: 0.4rem 1.1rem; background: #1d9e75; color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600; border-radius: 6px; }
-    .docs-nav-btn:hover { opacity: 0.85; }
-    @media (max-width: 600px) { .docs-nav-inner { padding: 0 1rem; gap: 0.5rem; } .docs-nav-link { padding: 0.4rem 0.5rem; font-size: 0.8rem; } }
-    .docs-page-content { min-height: calc(100vh - 60px); }
-    .help-page { min-height: 100%; background: var(--p-surface-0); padding: 2rem; }
-    .help-content { max-width: 900px; margin: 0 auto; }
-    .docs-top-nav { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); font-size: 0.875rem; flex-wrap: wrap; }
-    .docs-home-link { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; color: var(--p-primary-color); text-decoration: none; }
-    .docs-home-link:hover { text-decoration: underline; }
-    .docs-divider { color: var(--p-text-muted-color); }
-    .docs-top-nav-link { color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
-    .docs-top-nav-link:hover { text-decoration: underline; }
-    .docs-nav-current { color: var(--p-text-muted-color); }
-    .back-link { margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem; color: var(--p-primary-color); text-decoration: none; font-size: 0.875rem; }
-    .back-link:hover { text-decoration: underline; }
-    .page-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--p-surface-border); }
-    .page-header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.75rem; }
-    .page-header h1 i { color: var(--p-primary-color); }
-    .page-header p { font-size: 1.1rem; color: var(--p-text-muted-color); margin: 0; }
-    .help-section { margin-bottom: 2.5rem; }
-    .help-section > h2 { font-size: 1.4rem; font-weight: 700; margin: 0 0 1.5rem 0; padding-bottom: 0.75rem; border-bottom: 2px solid var(--p-primary-color); display: flex; align-items: center; gap: 0.6rem; }
-    .help-section > h2 i { color: var(--p-primary-color); }
-    .qa-item { margin-bottom: 1.5rem; border: 1px solid var(--p-surface-border); border-radius: 12px; overflow: hidden; }
-    .question { padding: 1rem 1.25rem; background: var(--p-surface-50); font-weight: 600; font-size: 1rem; border-bottom: 1px solid var(--p-surface-border); }
-    .answer { padding: 1.25rem; line-height: 1.6; }
-    .answer p { margin: 0 0 1rem 0; } .answer p:last-child { margin-bottom: 0; }
-    .answer ul, .answer ol { margin: 0.5rem 0 1rem 1.5rem; } .answer li { margin-bottom: 0.3rem; }
-    .answer strong { font-weight: 600; }
-    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1rem 0; }
-    .feature-card { padding: 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; }
-    .feature-card h4 { margin: 0 0 0.5rem 0; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
-    .feature-card h4 i { color: var(--p-primary-color); }
-    .feature-card p { margin: 0; font-size: 0.9rem; color: var(--p-text-muted-color); }
-    .steps { display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0; }
-    .step { display: flex; gap: 1rem; }
-    .step-number { flex-shrink: 0; width: 32px; height: 32px; background: var(--p-primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
-    .step-content { flex: 1; }
-    .step-content h4 { margin: 0 0 0.4rem 0; font-size: 0.95rem; font-weight: 600; }
-    .step-content p { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
-    .help-table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.875rem; }
-    .help-table th { text-align: left; padding: 0.6rem 1rem; background: var(--p-surface-100); font-weight: 600; border-bottom: 2px solid var(--p-surface-border); }
-    .help-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--p-surface-border); vertical-align: top; }
-    .help-table tr:last-child td { border-bottom: none; }
-    .help-table code { background: var(--p-surface-100); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.8em; font-family: monospace; }
-    .info-box { display: flex; gap: 0.75rem; padding: 0.875rem 1rem; border-radius: 8px; margin: 0.75rem 0; border: 1px solid; font-size: 0.875rem; background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
-    .info-box > i { flex-shrink: 0; font-size: 1rem; margin-top: 0.1rem; color: var(--p-blue-500); }
-    .info-box-content { flex: 1; line-height: 1.5; }
-    .info-box-content p { margin: 0.25rem 0 0 0; }
-    .info-box.tip { background: var(--p-green-50); border-color: var(--p-green-200); color: var(--p-green-700); }
-    .info-box.tip > i { color: var(--p-green-500); }
-    .info-box.note { background: var(--p-blue-50); border-color: var(--p-blue-200); color: var(--p-blue-700); }
-    .info-box.note > i { color: var(--p-blue-500); }
-    .example-box { padding: 1rem 1.25rem; background: var(--p-surface-50); border: 1px solid var(--p-surface-border); border-radius: 8px; margin: 0.75rem 0; }
-    .example-box h5 { margin: 0 0 0.75rem 0; font-size: 0.9rem; font-weight: 700; }
-    .status-badge { display: inline-flex; align-items: center; padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
-    .status-badge.warn { background: var(--p-yellow-100); color: var(--p-yellow-700); }
-    .status-badge.pass { background: var(--p-green-100); color: var(--p-green-700); }
-    .status-badge.secondary { background: var(--p-gray-100); color: var(--p-gray-700); }
-    .next-page-link { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 2rem; padding: 0.75rem 1.5rem; background: var(--p-primary-color); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.95rem; }
-    .next-page-link:hover { opacity: 0.85; }
-    @media (max-width: 768px) { .help-page { padding: 1rem; } .feature-grid { grid-template-columns: 1fr; } }
-  </style>
-</head>
-<body>
-  <nav class="docs-nav">
-    <div class="docs-nav-inner">
-      <a class="docs-nav-brand" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
-      <div class="docs-nav-links">
-        <a class="docs-nav-link" href="/docs">Docs</a>
-        <a class="docs-nav-link" href="https://github.com/ureport-web/ureport-standalone" target="_blank">GitHub</a>
-        <a class="docs-nav-link" href="/contact">Contact</a>
-        <a class="docs-nav-btn" href="/nextgen/login">Log In</a>
-      </div>
-    </div>
-  </nav>
-  <div class="docs-page-content">
-    <div class="help-page">
-      <div class="help-content">
-        <div class="docs-top-nav">
-          <a class="docs-home-link" href="/"><i class="fas fa-chart-line"></i><span>UReport</span></a>
-          <span class="docs-divider">/</span>
-          <a class="docs-top-nav-link" href="/docs">Docs</a>
-          <span class="docs-divider">/</span>
-          <span class="docs-nav-current">Test Quarantine</span>
-          <a class="back-link" href="/docs"><i class="fas fa-arrow-left"></i> Back to Docs</a>
-        </div>
-        <div class="page-header">
-          <h1><i class="fas fa-lock"></i>Test Quarantine</h1>
-          <p>Automatically isolate consistently failing tests so they stop blocking CI and the team can focus on real failures.</p>
-        </div>
-
-        <div class="help-section">
-          <h2><i class="fas fa-question-circle"></i>What is Test Quarantine?</h2>
-          <div class="qa-item">
-            <div class="question">What does quarantine do?</div>
-            <div class="answer">
-              <p>When a test fails repeatedly across multiple builds according to a configured rule, UReport automatically marks it as quarantined. Quarantined tests are tracked in the Quarantine page and can be surfaced in dashboards and reports so teams know which tests are unreliable.</p>
-              <p>The key benefit is that quarantine is rule-driven and automatic — no one needs to manually flag flaky tests.</p>
-              <div class="feature-grid">
-                <div class="feature-card">
-                  <h4><i class="fas fa-robot"></i>Automatic Detection</h4>
-                  <p>Rules evaluate every build and quarantine tests that cross the failure threshold — no manual action needed.</p>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-history"></i>Auto-Resolve</h4>
-                  <p>Once a quarantined test passes consecutively for the configured number of builds, it is automatically resolved.</p>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-shield-alt"></i>Exempt Support</h4>
-                  <p>Exclude known-flaky or irrelevant tests from being re-quarantined. Exemptions can be reversed from the Quarantine page.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="qa-item">
-            <div class="question">What is the difference between Resolve and Exempt?</div>
-            <div class="answer">
-              <table class="help-table">
-                <thead>
-                  <tr>
-                    <th>Action</th>
-                    <th>Effect</th>
-                    <th>Re-quarantined?</th>
-                    <th>Use Case</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><strong>Resolve</strong></td>
-                    <td>Clears the active quarantine flag</td>
-                    <td>Yes — if the test keeps failing in future builds, the rule will re-quarantine it automatically</td>
-                    <td>"I think this is fixed, let's see if it holds"</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Exempt</strong></td>
-                    <td>Excludes the test from all quarantine rules</td>
-                    <td>No — the evaluator skips exempt tests</td>
-                    <td>"This test is known-flaky and we don't care about it"</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Un-exempt</strong></td>
-                    <td>Removes the exemption, restoring eligibility for quarantine</td>
-                    <td>Yes — the evaluator will re-quarantine if the test keeps failing</td>
-                    <td>"We fixed it, let the rule evaluate it again"</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div class="help-section">
-          <h2><i class="fas fa-sliders-h"></i>Quarantine Rules</h2>
-          <div class="qa-item">
-            <div class="question">How are quarantine rules configured?</div>
-            <div class="answer">
-              <p>Rules are configured per Product/Type in Product Lane Settings under the Quarantine Rules section. Each rule defines when to quarantine and when to auto-resolve.</p>
-              <div class="feature-grid">
-                <div class="feature-card">
-                  <h4><i class="fas fa-ruler"></i>Threshold</h4>
-                  <p>Defines how many failures trigger quarantine.</p>
-                  <ul>
-                    <li>Mode: Total — X failures out of the last N builds</li>
-                    <li>Mode: Consecutive — X failures in a row</li>
-                    <li>Multiple conditions can be combined (OR logic)</li>
-                  </ul>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-check-double"></i>Auto-Resolve</h4>
-                  <p>Defines how many consecutive passes clear quarantine.</p>
-                  <ul>
-                    <li>Default: 3 consecutive passes</li>
-                    <li>Configurable per rule</li>
-                    <li>Evaluated on every new build</li>
-                  </ul>
-                </div>
-                <div class="feature-card">
-                  <h4><i class="fas fa-filter"></i>Scope &amp; Filter</h4>
-                  <p>Limit which builds and tests the rule applies to.</p>
-                  <ul>
-                    <li>Scope: version, team, browser, platform, stage</li>
-                    <li>Name pattern: regex on test UID</li>
-                    <li>Relation filters: match by component, tag, etc.</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="qa-item">
-            <div class="question">What is the build window?</div>
-            <div class="answer">
-              <p>Each Product Lane setting has a global Builds window (default 10). This is how many recent builds are evaluated when checking the threshold. Only builds with a pass rate above the global Min Pass Rate are counted — this prevents mass quarantines during environment outages.</p>
-              <div class="info-box note"><i class="fas fa-info-circle"></i>
-                <div class="info-box-content">
-                  <p>Example: builds = 10, min_pass_rate = 70%, threshold = 3 total failures. A test is quarantined only if it failed in 3 or more of the last 10 builds that had &ge;70% pass rate overall.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="qa-item">
-            <div class="question">How does rule scope work — broad vs scoped rules?</div>
-            <div class="answer">
-              <p>A rule's <strong>scope</strong> controls which builds it applies to. There are two patterns:</p>
-              <table class="help-table">
-                <thead>
-                  <tr>
-                    <th>Rule type</th>
-                    <th>Scope defined</th>
-                    <th>Applies to</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><strong>Broad rule</strong></td>
-                    <td>None (all scope fields left empty)</td>
-                    <td>All builds for the product/type. Each build is evaluated against its own scope history — a team=A build compares against team=A history, a Chrome build against Chrome history, etc.</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Scoped rule</strong></td>
-                    <td>One or more fields set (e.g. <code>browser = Chrome</code>)</td>
-                    <td>Only builds where those fields match exactly</td>
-                  </tr>
-                </tbody>
-              </table>
-              <p>Both types can coexist. A test can be quarantined by a broad rule and separately by a scoped rule — each creates an independent quarantine record scoped to the build's context.</p>
-              <div class="example-box">
-                <h5>Example</h5>
-                <p>You have two rules:</p>
-                <ul>
-                  <li><strong>Rule A</strong> — no scope &rarr; fires for Chrome, Firefox, and Safari builds</li>
-                  <li><strong>Rule B</strong> — scope: <code>browser = Chrome</code> &rarr; fires for Chrome builds only</li>
-                </ul>
-                <p>Rule A still fires for all builds, but each browser's consecutive failures are counted independently. A Chrome streak is not broken by a Firefox build running different tests — only Chrome builds contribute to Chrome's failure count.</p>
-                <p>A test that crosses Rule B's threshold is quarantined only in the Chrome scope.</p>
-              </div>
-              <div class="info-box note"><i class="fas fa-info-circle"></i>
-                <div class="info-box-content">
-                  <p>The qualifying build window is always filtered to match the current build's scope (team, version, browser, etc.). This ensures that builds from different scopes don't interfere with each other's failure counts.</p>
-                </div>
-              </div>
-              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
-                <div class="info-box-content">
-                  <p>Use broad rules as the default baseline. Use scoped rules to add stricter monitoring for a specific lane (e.g. a browser or environment known to be flakier than others).</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="qa-item">
-            <div class="question">When does the evaluator run?</div>
-            <div class="answer">
-              <p>The quarantine evaluator runs automatically after every build status calculation. It is fire-and-forget — it never blocks the build result. The sequence is:</p>
-              <div class="steps">
-                <div class="step">
-                  <div class="step-number">1</div>
-                  <div class="step-content">
-                    <h4>Build completes</h4>
-                    <p>A build is submitted and its status (pass/fail counts) is calculated.</p>
-                  </div>
-                </div>
-                <div class="step">
-                  <div class="step-number">2</div>
-                  <div class="step-content">
-                    <h4>Rules evaluated</h4>
-                    <p>For each enabled quarantine rule, the evaluator checks all failing UIDs in the current build against the historical window.</p>
-                  </div>
-                </div>
-                <div class="step">
-                  <div class="step-number">3</div>
-                  <div class="step-content">
-                    <h4>Quarantine or resolve</h4>
-                    <p>Tests crossing the threshold are upserted as quarantined. Already-quarantined tests that now have enough consecutive passes are auto-resolved.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="help-section">
-          <h2><i class="fas fa-tag"></i>Status Reference</h2>
-          <div class="qa-item">
-            <div class="question">What do the status badges mean?</div>
-            <div class="answer">
-              <table class="help-table">
-                <thead>
-                  <tr>
-                    <th>Badge</th>
-                    <th>Meaning</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><span class="status-badge warn">Quarantined</span></td>
-                    <td>The test is currently quarantined and still failing. It will be skipped or flagged in reports.</td>
-                  </tr>
-                  <tr>
-                    <td><span class="status-badge secondary">Exempt</span></td>
-                    <td>The test has been excluded from quarantine rules. It can be un-exempted from the Quarantine page to restore eligibility.</td>
-                  </tr>
-                  <tr>
-                    <td><span class="status-badge pass">Resolved</span></td>
-                    <td>The test was quarantined but has since passed enough consecutive builds. It is no longer quarantined but remains in the history.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div class="help-section">
-          <h2><i class="fas fa-mouse-pointer"></i>Using the Quarantine Page</h2>
-          <div class="qa-item">
-            <div class="question">How do I find quarantined tests?</div>
-            <div class="answer">
-              <p>Navigate to Administration &rarr; Quarantined Tests. By default the page shows only active quarantined tests. Use the status toggle to also show resolved and exempt entries.</p>
-              <p>You can search by UID, product, or type using the search bar, and sort by any column header.</p>
-            </div>
-          </div>
-          <div class="qa-item">
-            <div class="question">How do I view the rule that triggered a quarantine?</div>
-            <div class="answer">
-              <p>Click on the rule name in the Rule column. A dialog will show the rule's threshold conditions, resolve-after passes, scope, and name pattern filter (if configured).</p>
-            </div>
-          </div>
-          <div class="qa-item">
-            <div class="question">How do I manually resolve or exempt a test? (Admin only)</div>
-            <div class="answer">
-              <p>Active quarantined tests show two action buttons in the Actions column:</p>
-              <ul>
-                <li><strong>Resolve (checkmark) —</strong> Marks the test as resolved. If the test continues failing in future builds, the rule will re-quarantine it automatically.</li>
-                <li><strong>Exempt (ban icon) —</strong> Excludes the test from all quarantine rules. Use this for known-flaky tests that should not block the team.</li>
-                <li><strong>Un-exempt (undo icon) —</strong> Shown on exempt tests. Removes the exemption so the test is eligible for quarantine again.</li>
-              </ul>
-              <div class="info-box tip"><i class="fas fa-lightbulb"></i>
-                <div class="info-box-content">
-                  <p>Resolved tests no longer show action buttons. Exempt tests show only the Un-exempt button.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <a class="next-page-link" href="/docs/administration">Next: Administration <i class="fas fa-arrow-right"></i></a>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
+<!doctype html><html lang=en dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-quarantine" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Quarantine | UReport Docs</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://ureportlab.com/docs/quarantine /><meta data-rh=true property=og:locale content=en /><meta data-rh=true name=docusaurus_locale content=en /><meta data-rh=true name=docsearch:language content=en /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Quarantine | UReport Docs"/><meta data-rh=true name=description content="Automatically suppress flaky tests in UReport with quarantine rules. Define failure thresholds, build windows, and auto-resolve conditions to keep your CI green."/><meta data-rh=true property=og:description content="Automatically suppress flaky tests in UReport with quarantine rules. Define failure thresholds, build windows, and auto-resolve conditions to keep your CI green."/><link data-rh=true rel=icon href=/docs/img/favicon.ico /><link data-rh=true rel=canonical href=https://ureportlab.com/docs/quarantine /><link data-rh=true rel=alternate href=https://ureportlab.com/docs/quarantine hreflang=en /><link data-rh=true rel=alternate href=https://ureportlab.com/docs/quarantine hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://ureportlab.com/docs/quarantine","name":"Quarantine","position":1}]}</script><link rel=stylesheet href=/docs/assets/css/styles.4ee6065b.css /><script src=/docs/assets/js/runtime~main.d537d092.js defer></script><script src=/docs/assets/js/main.25574d87.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-ccc")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/docs/img/logo.svg /><div role=region aria-label="Skip to main content"><a class=skipToContent_fXgn href=#__docusaurus_skipToContent_fallback>Skip to main content</a></div><nav aria-label=Main class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label="Toggle navigation bar" aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/docs/><div class=navbar__logo><img src=/docs/img/logo.svg alt="UReport Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"/><img src=/docs/img/logo.svg alt="UReport Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"/></div><b class="navbar__title text--truncate">UReport</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/docs/>Documentation</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/ureport-web/ureport-standalone target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_nPIU><use href=#theme-svg-external-link /></svg></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type=button disabled title="system mode" aria-label="Switch between dark and light mode (currently system mode)"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_Bca1><div class="navbar__search searchBarContainer_NW3z" dir=ltr><svg aria-hidden=true class=searchIcon_T3tP focusable=false viewBox="0 0 16 16"><path fill=currentColor d="M6.02945 10.20327a4.17382 4.17382 0 1 1 4.17382-4.17382 4.15609 4.15609 0 0 1-4.17382 4.17382Zm9.69195 4.2199-4.8225-4.82338A5.88021 5.88021 0 0 0 12.058 6.02856 6.00467 6.00467 0 1 0 9.59979 10.8989l4.82338 4.82338a.89729.89729 0 0 0 1.29912 0 .89749.89749 0 0 0-.00087-1.29909Z"/></svg><input placeholder=Search aria-label=Search class="navbar__search-input searchInput_YFbd" value="" /><div class="loadingRing_RJI3 searchBarLoadingRing_YnHq"><div></div><div></div><div></div><div></div></div></div></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_z2l0"><div class=docsWrapper_hBAB><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type=button></button><div class=docRoot_UBD9><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class=sidebarViewport_aRkj><div class=sidebar_njMd><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/docs/><span class=linkLabel_WmDU>Overview</span></a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link menu__link--active"><span class=categoryLinkLabel_W154>Core</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/installation><span class=linkLabel_WmDU>Installation</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/getting-started><span class=linkLabel_WmDU>Getting Started</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/test-analysis><span class=linkLabel_WmDU>Test Analysis</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/dashboards><span class=linkLabel_WmDU>Dashboards</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/docs/quarantine><span class=linkLabel_WmDU>Quarantine</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/ai-analysis><span class=linkLabel_WmDU>AI Analysis</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/administration><span class=linkLabel_WmDU>Administration</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/troubleshooting><span class=linkLabel_WmDU>Troubleshooting</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_byQd menu__link"><span class=categoryLinkLabel_W154>Plugins</span></a></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/auto-triage><span class=linkLabel_WmDU>Auto-Triage</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/docs/notifications><span class=linkLabel_WmDU>Notifications</span></a></ul></ul></nav></div></div></aside><main class=docMainContainer_TBSr><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_VOVn"><div class=docItemContainer_Djhp><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_Z_bl" aria-label=Breadcrumbs><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label="Home page" class=breadcrumbs__link href=/docs/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_YNFT><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><span class=breadcrumbs__link>Core</span><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>Quarantine</span></ul></nav><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type=button class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>Test Quarantine</h1></header>
+<p>Quarantine automatically isolates consistently failing tests so they stop blocking CI. Quarantined tests are excluded from the pass rate calculation — the team can focus on real failures.</p>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=what-quarantine-does>What Quarantine Does<a href=#what-quarantine-does class=hash-link aria-label="Direct link to What Quarantine Does" title="Direct link to What Quarantine Does" translate=no>​</a></h2>
+<p>When a test is quarantined:</p>
+<ul>
+<li class="">It <strong>still runs</strong> in your test suite</li>
+<li class="">It is <strong>excluded from the pass rate</strong> — does not drag down build health metrics</li>
+<li class="">A <strong>Quarantined</strong> badge appears on the test in the Launches view and dashboards</li>
+<li class="">You can toggle quarantined tests on/off in Launches to see both the <strong>effective pass rate</strong> (quarantined excluded) and the <strong>real pass rate</strong> (including them)</li>
+</ul>
+<p>This is the key difference between quarantine and triage:</p>
+<ul>
+<li class=""><strong>Triage</strong> — labels a test as known-failing, but it still counts against the pass rate</li>
+<li class=""><strong>Quarantine</strong> — removes the test from the pass rate calculation entirely</li>
+</ul>
+<p>Quarantine is rule-driven and automatic — no one needs to manually flag flaky tests.</p>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=resolve-vs-exempt>Resolve vs Exempt<a href=#resolve-vs-exempt class=hash-link aria-label="Direct link to Resolve vs Exempt" title="Direct link to Resolve vs Exempt" translate=no>​</a></h2>
+<table><thead><tr><th>Action<th>Effect<th>Re-quarantined?<th>Use case<tbody><tr><td><strong>Resolve</strong><td>Clears the active quarantine flag<td>Yes — rule will re-quarantine if test keeps failing<td>"I think this is fixed, let's see if it holds"<tr><td><strong>Exempt</strong><td>Excludes from all quarantine rules<td>No — evaluator skips exempt tests<td>"This test is known-flaky and we don't care about it"<tr><td><strong>Un-exempt</strong><td>Removes the exemption, restoring eligibility<td>Yes — evaluator will re-quarantine if test keeps failing<td>"We fixed it, let the rule evaluate it again"</table>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=quarantine-rules>Quarantine Rules<a href=#quarantine-rules class=hash-link aria-label="Direct link to Quarantine Rules" title="Direct link to Quarantine Rules" translate=no>​</a></h2>
+<p>Rules are configured from the <strong>Launches page</strong>. Click the <strong>lock icon</strong> (🔒) in the toolbar to open the rule editor for the current product/type.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=threshold>Threshold<a href=#threshold class=hash-link aria-label="Direct link to Threshold" title="Direct link to Threshold" translate=no>​</a></h3>
+<p>Defines how many failures trigger quarantine. Both FAIL and SKIP statuses count as failures. Multiple threshold conditions can be combined (OR logic) — any single condition hit is enough to quarantine.</p>
+<table><thead><tr><th>Mode<th>Logic<tbody><tr><td><strong>Total failures</strong><td>Test must fail in at least X builds across the window. The current build counts as +1, so threshold = 3 means 2 failures in the history window + the current build.<tr><td><strong>Consecutive failures</strong><td>Test must fail (FAIL or SKIP) in the last X builds in a row. The current build counts as the final +1. A single pass or absent result resets the streak.<tr><td><strong>Failure rate (%)</strong><td>Failure rate across the qualifying window must be ≥ configured %. The current build is <strong>not</strong> counted in the percentage — it only determines which tests are candidates (must have failed in current build to be evaluated).</table>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=auto-resolve>Auto-Resolve<a href=#auto-resolve class=hash-link aria-label="Direct link to Auto-Resolve" title="Direct link to Auto-Resolve" translate=no>​</a></h3>
+<p>Defines how many consecutive passes clear quarantine. Default: <strong>3 consecutive passes</strong>. Evaluated on every new build.</p>
+<ul>
+<li class="">FAIL and SKIP both count as failures — only PASS counts as a pass</li>
+<li class="">If a test is absent from a build (not run), that build is <strong>skipped</strong> — the streak is not broken and continues from the next build where the test ran</li>
+<li class="">If a test fails or is skipped, the pass streak resets to zero</li>
+<li class=""><strong>Min Pass Rate does not apply to auto-resolve</strong> — all recent builds are counted, including low-health builds. This ensures tests that pass consistently in a failing suite are still resolved correctly.</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id=scope--filter>Scope & Filter<a href=#scope--filter class=hash-link aria-label="Direct link to Scope & Filter" title="Direct link to Scope & Filter" translate=no>​</a></h3>
+<p>Limit which builds and tests the rule applies to:</p>
+<ul>
+<li class=""><strong>Scope fields</strong>: version, team, browser, device, platform, platform_version, stage, and custom parameters (extras)</li>
+<li class=""><strong>Name pattern</strong>: case-insensitive regex matched against the test UID</li>
+<li class=""><strong>Relation filters</strong>: match by component, tag, team relation, etc.</li>
+</ul>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=build-window-settings>Build Window Settings<a href=#build-window-settings class=hash-link aria-label="Direct link to Build Window Settings" title="Direct link to Build Window Settings" translate=no>​</a></h2>
+<p>Each product lane has four global controls for the qualifying window:</p>
+<table><thead><tr><th>Setting<th>Default<th>Effect<tbody><tr><td><strong>Rolling window (builds)</strong><td>10<td>How many recent qualifying builds to evaluate. Only builds with a pass rate above Min Pass Rate are counted.<tr><td><strong>Min pass rate (%)</strong><td>70<td>Builds below this pass rate are excluded from the qualifying window. Minimum enforced at 50%. Prevents mass quarantines during environment outages.<tr><td><strong>Min qualifying builds</strong><td>0 (disabled)<td>A rule is skipped unless at least this many qualifying builds exist. Prevents false quarantines for new suites with limited history.<tr><td><strong>Max window age (days)</strong><td>0 (disabled)<td>Builds older than this are excluded regardless of window size.</table>
+<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>info</div><div class=admonitionContent_BuS1><p><strong>Total and Consecutive modes:</strong> The current build always counts as +1. For threshold = 3 total, the test needs 2 failures in the qualifying window plus the current build. For consecutive = 5, the test needs 4 consecutive failures in the window (most recent first) plus the current build.<p><strong>Ratio mode:</strong> The current build is NOT counted in the percentage. The ratio is calculated from the qualifying window only.</div></div>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=low-pass-rate-suites>Low Pass Rate Suites<a href=#low-pass-rate-suites class=hash-link aria-label="Direct link to Low Pass Rate Suites" title="Direct link to Low Pass Rate Suites" translate=no>​</a></h2>
+<p>If your suite always has a low pass rate, each rule has an optional <strong>Min pass rate override (%)</strong> that replaces the global threshold for that specific rule.</p>
+<table><thead><tr><th>Setting<th>Effect<tbody><tr><td>No override<td>Uses the global Min Pass Rate for both the current-build guard and qualifying window filter<tr><td>Override = 40<td>Rule evaluates even when current build is at 40%; past builds below 40% excluded from window<tr><td>Override = 0<td>Guard fully disabled — rule always evaluates; all past builds count regardless of pass rate</table>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>Use override = 0 for suites where many tests are unmaintained or consistently failing — e.g. nightly regression suites on staging. The global setting still protects other rules.</div></div>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=broad-vs-scoped-rules>Broad vs Scoped Rules<a href=#broad-vs-scoped-rules class=hash-link aria-label="Direct link to Broad vs Scoped Rules" title="Direct link to Broad vs Scoped Rules" translate=no>​</a></h2>
+<table><thead><tr><th>Rule type<th>Scope defined<th>Applies to<tbody><tr><td><strong>Broad rule</strong><td>None (all scope fields empty)<td>All builds for the product/type. Each build is evaluated against its own scope history — a <code>team=A</code> build compares against <code>team=A</code> history only.<tr><td><strong>Scoped rule</strong><td>One or more fields set (e.g. <code>browser = Chrome</code>)<td>Only builds where those fields match exactly</table>
+<p>Both types can coexist. A test can be quarantined by a broad rule and separately by a scoped rule — each creates an independent quarantine record.</p>
+<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>tip</div><div class=admonitionContent_BuS1><p>Use broad rules as the default baseline. Use scoped rules to add stricter monitoring for a specific lane (e.g. a browser or environment known to be flakier).</div></div>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=stored-scope>Stored Scope<a href=#stored-scope class=hash-link aria-label="Direct link to Stored Scope" title="Direct link to Stored Scope" translate=no>​</a></h2>
+<p>When a test is quarantined, UReport stores a scope on the resulting record. This controls which builds will later see that test as quarantined in Launches.</p>
+<table><thead><tr><th>Rule scope<th>Stored scope on record<th>Visible on Launches for<tbody><tr><td>No scope (broad rule)<td>Exact build values — e.g. <code>team=payments, browser=chrome, version=1.2</code><td>Only that exact build combination<tr><td>Partial scope — e.g. <code>team=payments</code> only<td>Rule's values, unset fields stored as blank (wildcard) — e.g. <code>team=payments, browser=&lt;blank></code><td>All builds with <code>team=payments</code>, regardless of browser or version<tr><td>Full scope — e.g. <code>team=payments, browser=chrome</code><td>Exact rule values<td>Only <code>team=payments</code> + <code>browser=chrome</code> builds</table>
+<p><strong>Blank = wildcard.</strong> A blank field in the stored scope means "this quarantine applies regardless of what value this field has."</p>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=custom-parameters-extras>Custom Parameters (Extras)<a href=#custom-parameters-extras class=hash-link aria-label="Direct link to Custom Parameters (Extras)" title="Direct link to Custom Parameters (Extras)" translate=no>​</a></h2>
+<p>Scope rules to specific <code>extras</code> values (e.g. <code>tenant=acme</code>, <code>shard=1</code>, <code>datacenter=us-east</code>):</p>
+<table><thead><tr><th>Scenario<th>Rule extras scope<th>Build extras<th>Rule runs?<th>Visible on Launches?<tbody><tr><td>Exact match<td><code>tenant=acme</code><td><code>tenant=acme</code><td>Yes<td>Yes (acme builds only)<tr><td>Mismatch<td><code>tenant=acme</code><td><code>tenant=globex</code><td>No<td>No<tr><td>No extras on rule<td>(none)<td><code>tenant=acme</code><td>Yes (broad)<td>Yes (stored with build's extras)<tr><td>No extras anywhere<td>(none)<td>(none)<td>Yes<td>Yes (no extras filtering)</table>
+<p>Custom parameters must be reported by your test reporter and configured in the product lane to appear as scope options.</p>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=when-the-evaluator-runs>When the Evaluator Runs<a href=#when-the-evaluator-runs class=hash-link aria-label="Direct link to When the Evaluator Runs" title="Direct link to When the Evaluator Runs" translate=no>​</a></h2>
+<p>Automatically after every build status calculation — never blocks the build result:</p>
+<ol>
+<li class=""><strong>Build completes</strong> — status (pass/fail counts) calculated. Archived builds are skipped.</li>
+<li class=""><strong>Rules evaluated</strong> — each enabled rule checks all failing UIDs in the current build against the historical window.</li>
+<li class=""><strong>Quarantine or resolve</strong> — tests crossing the threshold are quarantined. Already-quarantined tests with enough consecutive passes are auto-resolved.</li>
+</ol>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=status-reference>Status Reference<a href=#status-reference class=hash-link aria-label="Direct link to Status Reference" title="Direct link to Status Reference" translate=no>​</a></h2>
+<table><thead><tr><th>Badge<th>Meaning<tbody><tr><td><strong>Quarantined</strong><td>Currently quarantined — excluded from pass rate, shown with badge in Launches and dashboards<tr><td><strong>Exempt</strong><td>Excluded from all quarantine rules — can be un-exempted to restore eligibility<tr><td><strong>Resolved</strong><td>Was quarantined but has since passed enough consecutive builds — no longer quarantined</table>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=using-the-quarantine-page>Using the Quarantine Page<a href=#using-the-quarantine-page class=hash-link aria-label="Direct link to Using the Quarantine Page" title="Direct link to Using the Quarantine Page" translate=no>​</a></h2>
+<p>Navigate to <strong>Administration → Quarantined Tests</strong>. By default shows only active quarantined tests. Use the status toggle to also show resolved and exempt entries. Search by UID, product, or type; sort by any column.</p>
+<p><strong>Click the rule name</strong> in the Rule column to view the rule's threshold conditions, resolve-after passes, scope, and name pattern filter.</p>
+<p><strong>Actions</strong> (Admin only):</p>
+<table><thead><tr><th>Action<th>Description<tbody><tr><td><strong>Resolve</strong> (✓)<td>Marks as resolved. Rule will re-quarantine if test continues failing in future builds.<tr><td><strong>Exempt</strong> (🚫)<td>Excludes from all quarantine rules.<tr><td><strong>Un-exempt</strong> (↩)<td>Shown on exempt tests. Removes exemption — test becomes eligible for quarantine again.</table>
+<p>Resolved tests show no action buttons. Exempt tests show only Un-exempt.</p>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id=worked-example>Worked Example<a href=#worked-example class=hash-link aria-label="Direct link to Worked Example" title="Direct link to Worked Example" translate=no>​</a></h2>
+<p><strong>Settings:</strong> Rolling window = 5 builds, Min pass rate = 70%, Resolve after = 3 consecutive passes.</p>
+<p><strong>Rules:</strong></p>
+<table><thead><tr><th>Rule<th>Scope<th>Condition<tbody><tr><td>Rule A<td>(none — broad)<td>Total failures ≥ 3<tr><td>Rule B<td>browser = chrome<td>Consecutive failures ≥ 3<tr><td>Rule C<td>(none — broad)<td>Failure rate ≥ 60%</table>
+<p><strong>Build history</strong> (B6 is current build, pass rate 78%):</p>
+<table><thead><tr><th>Build<th>Pass rate<th>Qualifies?<th>test-login<th>test-payment<th>test-search<th>test-legacy<tbody><tr><td>B5<td>85%<td>Yes<td>FAIL<td>FAIL<td>FAIL<td>FAIL<tr><td>B4<td>40%<td><strong>No</strong> (excluded)<td>FAIL<td>FAIL<td>FAIL<td>FAIL<tr><td>B3<td>80%<td>Yes<td>PASS<td>FAIL<td>FAIL<td>FAIL<tr><td>B2<td>75%<td>Yes<td>FAIL<td>FAIL<td>PASS<td>FAIL<tr><td>B1<td>90%<td>Yes<td>PASS<td>FAIL<td>PASS<td>FAIL<tr><td>B0<td>85%<td>Yes<td>PASS<td>FAIL<td>PASS<td>FAIL<tr><td><strong>B6 (current)</strong><td>78%<td>Yes<td>FAIL<td>FAIL<td>FAIL<td>EXEMPT</table>
+<p>Qualifying window = [B5, B3, B2, B1, B0] — B4 excluded (40% &lt; 70%).</p>
+<p><strong>Rule A — Total failures ≥ 3 (broad):</strong></p>
+<table><thead><tr><th>Test<th>Failures in window<th>+1 current<th>Total<th>Result<tbody><tr><td>test-login<td>B5, B2 = 2<td>+1<td><strong>3</strong><td>Quarantined<tr><td>test-payment<td>B5, B3, B2, B1, B0 = 5<td>+1<td><strong>6</strong><td>Quarantined<tr><td>test-search<td>B5, B3 = 2<td>+1<td><strong>3</strong><td>Quarantined<tr><td>test-legacy<td>—<td>—<td>—<td>Exempt — skipped</table>
+<p><strong>Rule B — Consecutive failures ≥ 3 (chrome builds only), walking window most-recent-first:</strong></p>
+<table><thead><tr><th>Test<th>Streak<th>+1 current<th>Result<tbody><tr><td>test-payment<td>B5(1) → B3(2) → B2(3)<td>+1<td><strong>4</strong> — Quarantined<tr><td>test-login<td>B5(1) → B3 <strong>PASS</strong> → streak reset<td>+1<td>2 — Not quarantined</table>
+<p>Note: B4 is not in the window, so it does not break the streak for test-payment.</p>
+<p><strong>Rule C — Failure rate ≥ 60% (broad, current build not counted in percentage):</strong></p>
+<table><thead><tr><th>Test<th>Failures in window<th>Window size<th>Rate<th>Result<tbody><tr><td>test-payment<td>5<td>5<td>100%<td>Quarantined<tr><td>test-search<td>2<td>5<td>40%<td>Not quarantined (below 60%)<tr><td>test-login<td>2<td>5<td>40%<td>Not quarantined (below 60%)</table>
+<p><strong>Scope and stored records:</strong> Rule A and C are broad — they store exact build values on each record (only that exact scope combination will see the test as quarantined). Rule B is scoped to <code>browser=chrome</code> — stored record has <code>{ browser: 'chrome', team: '', version: '', ... }</code> (blank = wildcard), so all chrome builds see it as quarantined regardless of team or version.</p>
+<p><strong>Auto-resolve — test-login after being quarantined by Rule A:</strong></p>
+<table><thead><tr><th>Build<th>test-login<th>Pass streak<th>Note<tbody><tr><td>B7<td>PASS<td>1<td>Streak starts<tr><td>B8<td>NOT RUN<td>1<td>Build skipped — streak not broken, not incremented<tr><td>B9<td>PASS<td>2<td>Streak continues<tr><td>B10<td>PASS<td><strong>3</strong><td><strong>Resolved</strong></table>
+<p>At B10, the evaluator sees 3 consecutive passes (B7, B9, B10 — B8 skipped) and auto-resolves test-login.</p>
+<hr/>
+<p>Next: <a class="" href=/docs/auto-triage>Auto-Triage →</a></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href=/docs/dashboards><div class=pagination-nav__sublabel>Previous</div><div class=pagination-nav__label>Dashboards</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/docs/ai-analysis><div class=pagination-nav__sublabel>Next</div><div class=pagination-nav__label>AI Analysis</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#what-quarantine-does class="table-of-contents__link toc-highlight">What Quarantine Does</a><li><a href=#resolve-vs-exempt class="table-of-contents__link toc-highlight">Resolve vs Exempt</a><li><a href=#quarantine-rules class="table-of-contents__link toc-highlight">Quarantine Rules</a><ul><li><a href=#threshold class="table-of-contents__link toc-highlight">Threshold</a><li><a href=#auto-resolve class="table-of-contents__link toc-highlight">Auto-Resolve</a><li><a href=#scope--filter class="table-of-contents__link toc-highlight">Scope & Filter</a></ul><li><a href=#build-window-settings class="table-of-contents__link toc-highlight">Build Window Settings</a><li><a href=#low-pass-rate-suites class="table-of-contents__link toc-highlight">Low Pass Rate Suites</a><li><a href=#broad-vs-scoped-rules class="table-of-contents__link toc-highlight">Broad vs Scoped Rules</a><li><a href=#stored-scope class="table-of-contents__link toc-highlight">Stored Scope</a><li><a href=#custom-parameters-extras class="table-of-contents__link toc-highlight">Custom Parameters (Extras)</a><li><a href=#when-the-evaluator-runs class="table-of-contents__link toc-highlight">When the Evaluator Runs</a><li><a href=#status-reference class="table-of-contents__link toc-highlight">Status Reference</a><li><a href=#using-the-quarantine-page class="table-of-contents__link toc-highlight">Using the Quarantine Page</a><li><a href=#worked-example class="table-of-contents__link toc-highlight">Worked Example</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class=footer__copyright>Copyright © 2026 UReport. Built with Docusaurus.</div></div></div></footer></div></body>

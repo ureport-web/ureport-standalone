@@ -452,7 +452,7 @@ router.post '/aggregate/single/history', (req, res, next) ->
             end_time : "$end_time" ,
             is_rerun: "$is_rerun",
             failure: "$failure",
-            build: { 
+            build: {
                 _id : "$build._id",
                 product : "$build.product",
                 type : "$build.type",
@@ -464,7 +464,8 @@ router.post '/aggregate/single/history', (req, res, next) ->
                 platform_version : "$build.platform_version",
                 stage : "$build.stage",
                 build : "$build.build",
-                status: "$build.status"
+                status: "$build.status",
+                extras: "$build.extras"
             }
         })
         .match({ build : { $exists: true, $ne: [] } })

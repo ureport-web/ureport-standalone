@@ -19,6 +19,8 @@ systemSettingSchema = new Schema(
 	license_key: { type: String },
 	framework_presets: Schema.Types.Mixed,
 	audit_retention_days: { type: Number, default: 90 },
+	# Shape defined by the SSO plugin — see plugins/sso/index.js
+	sso: Schema.Types.Mixed,
 )
 
 systemSettingSchema.statics.updateSetting = (setting, payload) ->
@@ -44,4 +46,7 @@ systemSettingSchema.statics.updateSetting = (setting, payload) ->
 			setting.markModified('framework_presets')
 		if(payload.audit_retention_days != undefined)
 			setting.audit_retention_days = payload.audit_retention_days
+		if(payload.sso != undefined)
+			setting.sso = payload.sso
+			setting.markModified('sso')
 module.exports = mongoose.model('SystemSetting', systemSettingSchema)

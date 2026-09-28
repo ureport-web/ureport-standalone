@@ -221,6 +221,8 @@ router.post '/forgot', (req, res, next) ->
             User.findOne query, (err, user) ->
                 if !user
                     return res.json { msg: 'No account with that email or username exists.' }
+                if user.has_password == false
+                    return res.status(400).json { msg: 'This account uses SSO. Reset your password through your identity provider.' }
                 user.resetPasswordToken = token
                 user.resetPasswordExpires = Date.now() + 3600000
                 user.save (err) ->
