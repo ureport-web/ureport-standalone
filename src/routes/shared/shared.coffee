@@ -601,8 +601,18 @@ router.post '/test/filter/all', (req, res, next) ->
         testsByBuild[buildId] ?= []
         testsByBuild[buildId].push(test)
 
-      for buildId, buildTests of testsByBuild
-        cache.set "test:v2:#{buildId}", buildTests, TEST_CACHE_TTL
+      # Use short TTL for in-progress builds to limit stale partial data.
+      # Completed builds (end_time set) get full TTL. In-progress or unknown get 2 min.
+      buildIdsToCheck = Object.keys(testsByBuild)
+      completedQuery = Build.find({ _id: { $in: buildIdsToCheck }, end_time: { $exists: true, $ne: null } }, { _id: 1 })
+      completedQuery.exec (buildErr, completedBuilds) ->
+        completedSet = {}
+        if not buildErr and completedBuilds
+          for b in completedBuilds
+            completedSet[b._id.toString()] = true
+        for buildId, buildTests of testsByBuild
+          ttl = if completedSet[buildId] then TEST_CACHE_TTL else 120
+          cache.set "test:v2:#{buildId}", buildTests, ttl
 
       respond(cachedResults.concat(tests))
     )

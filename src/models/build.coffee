@@ -112,7 +112,7 @@ buildSchema.statics.initBuild = (payload) ->
 	if(payload.stage)
 		newBuildPayload.stage = payload.stage
 
-	if(payload.extras)
+	if(payload.extras and Object.keys(payload.extras).length > 0)
 		sorted = {}
 		for k in Object.keys(payload.extras).sort()
 			sorted[k] = payload.extras[k]
@@ -164,7 +164,7 @@ buildSchema.statics.updateAttributes = (build, payload) ->
 			build.comments = payload.comments
 		if(payload.outages)
 			build.outages = payload.outages
-		if(payload.extras)
+		if(payload.extras and Object.keys(payload.extras).length > 0)
 			sorted = {}
 			for k in Object.keys(payload.extras).sort()
 				sorted[k] = payload.extras[k]

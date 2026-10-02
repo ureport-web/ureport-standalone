@@ -29,13 +29,14 @@ hooks = require('../lib/plugin_hooks')
 router.get '/active-lanes', (req, res, next) ->
   days = parseInt(req.query.days) || 7
   sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+  extrasNorm = { $cond: { if: { $gt: [{ $size: { $ifNull: [{ $objectToArray: '$extras' }, []] } }, 0] }, then: '$extras', else: null } }
   Build.aggregate([
     { $match: { start_time: { $gte: sinceDate }, is_archive: false } },
     { $group: {
       _id: {
         product: '$product', type: '$type', team: '$team',
         browser: '$browser', device: '$device', platform: '$platform',
-        platform_version: '$platform_version', stage: '$stage', extras: '$extras'
+        platform_version: '$platform_version', stage: '$stage', extras: extrasNorm
       }
     }},
     { $project: {
@@ -278,6 +279,14 @@ router.post '/status/latest',  (req, res, next) ->
   if since
     matchQuery.start_time = { '$gte': new Date(since) }
 
+  normalizedExtras = {
+    $cond: {
+      if: { $gt: [{ $size: { $ifNull: [{ $objectToArray: "$extras" }, []] } }, 0] },
+      then: "$extras",
+      else: null
+    }
+  }
+
   Build.aggregate()
   .match(matchQuery)
   .sort({ start_time: 1 })
@@ -293,7 +302,7 @@ router.post '/status/latest',  (req, res, next) ->
         platform: "$platform",
         platform_version: "$platform_version",
         stage: "$stage",
-        extras: "$extras"
+        extras: normalizedExtras
       },
       product: { $last: "$product"},
       type: { $last: "$type"},
@@ -561,6 +570,8 @@ router.post '/entity/recommend',  (req, res, next) ->
     for k, v of req.body.extras
       query["extras.#{k}"] = v
 
+  extrasNormRec = { $cond: { if: { $gt: [{ $size: { $ifNull: [{ $objectToArray: '$extras' }, []] } }, 0] }, then: '$extras', else: null } }
+
   Build.aggregate()
   .match(query)
   .group({
@@ -578,7 +589,7 @@ router.post '/entity/recommend',  (req, res, next) ->
         platform: '$platform',
         platform_version: '$platform_version',
         stage: '$stage',
-        extras: '$extras'
+        extras: extrasNormRec
       }
     }
   })
@@ -744,9 +755,27 @@ router.post '/purge/calculate',  (req, res, next) ->
     if(req.body.stage)
       query.stage = req.body.stage
 
-    if(req.body.extras)
+    # Extras: when the key is explicitly present in the body (even as null), treat it as
+    # an exact-lane constraint. null/absent extras means "must have no extras".
+    # When the key is absent entirely, no extras constraint (broad purge).
+    if req.body.hasOwnProperty('extras')
+      if req.body.extras
+        for k, v of req.body.extras
+          query["extras.#{k}"] = v
+      else
+        query['$or'] = [{ extras: null }, { extras: {} }]
+    else if req.body.extras
+      # fallback: extras present but hasOwnProperty not supported (shouldn't happen)
       for k, v of req.body.extras
         query["extras.#{k}"] = v
+
+    # Exact-lane matching: when the frontend sends an optional field explicitly as null
+    # (using hasOwnProperty), constrain the query to null/missing for that field.
+    # This prevents cross-lane data loss (e.g. purging team=null must not affect team=X).
+    # Fields omitted entirely (not hasOwnProperty) remain unconstrained for broad purges.
+    for field in ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage']
+      if req.body.hasOwnProperty(field) and not query[field]?
+        query[field] = null
 
     if(req.body.untilDate)
       untilDate = moment(req.body.untilDate).format()

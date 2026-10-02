@@ -1455,50 +1455,16 @@
         }
       }
     },
-    "/test/filter/nonpass": {
-      "post": {
-        "tags": [
-          "Test"
-        ],
-        "summary": "Filter non-passing tests (FAIL, SKIP, WARNING)",
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Non-passing tests",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Test"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterRequest"
-              }
-            }
-          }
-        }
-      }
-    },
     "/test/filter/all": {
       "post": {
         "tags": [
           "Test"
         ],
-        "summary": "Filter all tests without status restriction",
+        "summary": "Filter tests with optional status and field exclusion (cached)",
         "description": "",
         "responses": {
           "200": {
-            "description": "All matching tests",
+            "description": "Matching tests. Pass status array to filter by status (default: All). Pass exclude array to strip fields.",
             "content": {
               "application/json": {
                 "schema": {

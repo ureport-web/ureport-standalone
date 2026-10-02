@@ -9,6 +9,8 @@
     "initialize": "node initialize.js",
     "seed:demo": "node scripts/seedDemo.js",
     "swagger": "node scripts/swagger-autogen.js",
+    "docs": "npm run swagger && npm --prefix docs-site run build",
+    "docs:dev": "npm --prefix docs-site run start -- --port 3001",
     "version:patch": "npm version patch --no-git-tag-version",
     "version:minor": "npm version minor --no-git-tag-version",
     "version:major": "npm version major --no-git-tag-version",
