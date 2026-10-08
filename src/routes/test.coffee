@@ -13,6 +13,7 @@ storage = multer.diskStorage({
 upload = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 } })
 
 Test = require('../models/test')
+Build = require('../models/build')
 getSystemSetting = require('../utils/getSystemSetting')
 
 async = require("async")
@@ -115,6 +116,19 @@ router.post '/status/:id',  (req, res, next) ->
       test.save (err, rs) ->
         if err
           next err
+        # Patch the cached test in-place; if not found the cache is stale so evict it
+        buildKey = "test:v2:#{test.build}"
+        cached = cache.get buildKey
+        if cached
+          found = false
+          for t in cached
+            if t._id.toString() == test._id.toString()
+              t.status = test.status
+              t.old_status = test.old_status
+              found = true
+              break
+          if not found
+            cache.del buildKey
         if(req.body.status)
             req.body.uid = test.uid  # set for audit purpose
             registerAudit(req, res, "Change Status to " + req.body.status, "UPDATE")
@@ -262,8 +276,20 @@ router.post '/filter/all',  (req, res, next) ->
                 testsByBuild[buildId] ?= []
                 testsByBuild[buildId].push(test)
 
-            for buildId, buildTests of testsByBuild
-                cache.set "test:v2:#{buildId}", buildTests, TEST_CACHE_TTL
+            # Use short TTL for in-progress builds to limit stale partial data.
+            # Race condition: cache.del from /calculate can fire while this DB query is in-flight,
+            # then this cache.set writes partial tests after the del — stale for 20 days.
+            # Completed builds (end_time set) get full TTL. In-progress or unknown get 2 min.
+            buildIdsToCheck = Object.keys(testsByBuild)
+            completedQuery = Build.find({ _id: { $in: buildIdsToCheck }, end_time: { $exists: true, $ne: null } }, { _id: 1 })
+            completedQuery.exec (buildErr, completedBuilds) ->
+                completedSet = {}
+                if not buildErr and completedBuilds
+                    for b in completedBuilds
+                        completedSet[b._id.toString()] = true
+                for buildId, buildTests of testsByBuild
+                    ttl = if completedSet[buildId] then TEST_CACHE_TTL else 120
+                    cache.set "test:v2:#{buildId}", buildTests, ttl
 
             # Combine cached and new results, apply status filter + exclude in memory
             allResults = applyStatusFilter(cachedResults.concat(tests), req.body.status)

@@ -83,36 +83,42 @@ renderTemplate = (req, user, assignment) ->
   '</body>'
 
 prepareSendEmail = (req, res, user, assignment) ->
-  if user.email
+  return if !user.email
+  return if req.user and String(req.user._id) == String(user._id)
+  doSendEmail = ->
+    getSystemSetting req, "SYSTEM_SETTING", false, (setting) ->
+      emailConfig = setting?.notification?.email
+      if !emailConfig?.user
+        logger.info("Email not configured, skipping assignment email")
+        return
+      if !emailConfig.password and (emailConfig.provider or 'gmail') != 'smtp'
+        logger.info("Email password not configured, skipping assignment email")
+        return
+
+      currentKey = (emailConfig.provider or 'gmail') + ':' + emailConfig.user + ':' + (emailConfig.host or '')
+      if !emailTransporter or emailTransporterKey != currentKey
+        emailTransporterKey = currentKey
+        emailTransporter = buildTransport(emailConfig)
+
+      emailTransporter.sendMail {
+        from: emailConfig.user
+        to: user.email
+        subject: 'UReport: A new test has been assigned to you'
+        text: 'New Test Assignment'
+        html: renderTemplate(req, user, assignment)
+      },
+      (error, info) ->
+        if error
+          logger.error error.message
+        else
+          logger.info 'Message sent: ' + info.response
+          return
+  if res.headersSent
+    doSendEmail()
+  else
     sendemailOnFinish = ->
       res.removeListener('finish', sendemailOnFinish)
-      getSystemSetting req, "SYSTEM_SETTING", false, (setting) ->
-        emailConfig = setting?.notification?.email
-        if !emailConfig?.user
-          logger.info("Email not configured, skipping assignment email")
-          return
-        if !emailConfig.password and (emailConfig.provider or 'gmail') != 'smtp'
-          logger.info("Email password not configured, skipping assignment email")
-          return
-
-        currentKey = (emailConfig.provider or 'gmail') + ':' + emailConfig.user + ':' + (emailConfig.host or '')
-        if !emailTransporter or emailTransporterKey != currentKey
-          emailTransporterKey = currentKey
-          emailTransporter = buildTransport(emailConfig)
-
-        emailTransporter.sendMail {
-          from: emailConfig.user
-          to: user.email
-          subject: 'UReport: A new test has been assigned to you'
-          text: 'New Test Assignment'
-          html: renderTemplate(req, user, assignment)
-        },
-        (error, info) ->
-          if error
-            logger.error error.message
-          else
-            logger.info 'Message sent: ' + info.response
-          return
+      doSendEmail()
     res.on('finish', sendemailOnFinish)
 
 

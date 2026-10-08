@@ -11,6 +11,7 @@ async = require("async")
 registerAudit = require('../utils/register_audit')
 AccessControl = require('../utils/ac_grants')
 { getLicenseState } = require('../utils/license')
+{ escapeRegex, safeRegex } = require('../utils/regex_utils')
 cache = require('../lib/cache')
 component = 'build'
 
@@ -29,13 +30,14 @@ hooks = require('../lib/plugin_hooks')
 router.get '/active-lanes', (req, res, next) ->
   days = parseInt(req.query.days) || 7
   sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+  extrasNorm = { $cond: { if: { $gt: [{ $size: { $ifNull: [{ $objectToArray: '$extras' }, []] } }, 0] }, then: '$extras', else: null } }
   Build.aggregate([
     { $match: { start_time: { $gte: sinceDate }, is_archive: false } },
     { $group: {
       _id: {
         product: '$product', type: '$type', team: '$team',
         browser: '$browser', device: '$device', platform: '$platform',
-        platform_version: '$platform_version', stage: '$stage', extras: '$extras'
+        platform_version: '$platform_version', stage: '$stage', extras: extrasNorm
       }
     }},
     { $project: {
@@ -278,6 +280,14 @@ router.post '/status/latest',  (req, res, next) ->
   if since
     matchQuery.start_time = { '$gte': new Date(since) }
 
+  normalizedExtras = {
+    $cond: {
+      if: { $gt: [{ $size: { $ifNull: [{ $objectToArray: "$extras" }, []] } }, 0] },
+      then: "$extras",
+      else: null
+    }
+  }
+
   Build.aggregate()
   .match(matchQuery)
   .sort({ start_time: 1 })
@@ -293,7 +303,7 @@ router.post '/status/latest',  (req, res, next) ->
         platform: "$platform",
         platform_version: "$platform_version",
         stage: "$stage",
-        extras: "$extras"
+        extras: normalizedExtras
       },
       product: { $last: "$product"},
       type: { $last: "$type"},
@@ -537,29 +547,38 @@ router.post '/entity/recommend',  (req, res, next) ->
   }
 
   if(req.body.version)
+    if not safeRegex(String(req.body.version)) then return res.status(400).json {error: "Invalid regex in version"}
     query.version = { $regex: req.body.version, $options: 'i'}
 
   if(req.body.team)
+    if not safeRegex(String(req.body.team)) then return res.status(400).json {error: "Invalid regex in team"}
     query.team = { $regex: req.body.team, $options: 'i'}
 
   if(req.body.browser)
+    if not safeRegex(String(req.body.browser)) then return res.status(400).json {error: "Invalid regex in browser"}
     query.browser = { $regex: req.body.browser, $options: 'i'}
 
   if(req.body.device)
+    if not safeRegex(String(req.body.device)) then return res.status(400).json {error: "Invalid regex in device"}
     query.device = { $regex: req.body.device, $options: 'i'}
-  
+
   if(req.body.platform)
+    if not safeRegex(String(req.body.platform)) then return res.status(400).json {error: "Invalid regex in platform"}
     query.platform = { $regex: req.body.platform, $options: 'i'}
-  
+
   if(req.body.platform_version)
+    if not safeRegex(String(req.body.platform_version)) then return res.status(400).json {error: "Invalid regex in platform_version"}
     query.platform_version = { $regex: req.body.platform_version, $options: 'i'}
 
   if(req.body.stage)
+    if not safeRegex(String(req.body.stage)) then return res.status(400).json {error: "Invalid regex in stage"}
     query.stage = { $regex: req.body.stage, $options: 'i'}
 
   if(req.body.extras)
     for k, v of req.body.extras
       query["extras.#{k}"] = v
+
+  extrasNormRec = { $cond: { if: { $gt: [{ $size: { $ifNull: [{ $objectToArray: '$extras' }, []] } }, 0] }, then: '$extras', else: null } }
 
   Build.aggregate()
   .match(query)
@@ -578,7 +597,7 @@ router.post '/entity/recommend',  (req, res, next) ->
         platform: '$platform',
         platform_version: '$platform_version',
         stage: '$stage',
-        extras: '$extras'
+        extras: extrasNormRec
       }
     }
   })
@@ -744,9 +763,27 @@ router.post '/purge/calculate',  (req, res, next) ->
     if(req.body.stage)
       query.stage = req.body.stage
 
-    if(req.body.extras)
+    # Extras: when the key is explicitly present in the body (even as null), treat it as
+    # an exact-lane constraint. null/absent extras means "must have no extras".
+    # When the key is absent entirely, no extras constraint (broad purge).
+    if req.body.hasOwnProperty('extras')
+      if req.body.extras
+        for k, v of req.body.extras
+          query["extras.#{k}"] = v
+      else
+        query['$or'] = [{ extras: null }, { extras: {} }]
+    else if req.body.extras
+      # fallback: extras present but hasOwnProperty not supported (shouldn't happen)
       for k, v of req.body.extras
         query["extras.#{k}"] = v
+
+    # Exact-lane matching: when the frontend sends an optional field explicitly as null
+    # (using hasOwnProperty), constrain the query to null/missing for that field.
+    # This prevents cross-lane data loss (e.g. purging team=null must not affect team=X).
+    # Fields omitted entirely (not hasOwnProperty) remain unconstrained for broad purges.
+    for field in ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage']
+      if req.body.hasOwnProperty(field) and not query[field]?
+        query[field] = null
 
     if(req.body.untilDate)
       untilDate = moment(req.body.untilDate).format()
@@ -933,12 +970,18 @@ router.post '/search', (req, res, next) ->
   if(req.body.specificQueries)
     query = { $or : req.body.specificQueries }
   else
-    productQuery = { $regex: '^'+req.body.product+'$', $options: 'i'}
-    typeQuery = { $regex: '^'+req.body.type+'$', $options: 'i'}
-    if(regexBoth.test(req.body.product.trim()) || regexStart.test(req.body.product.trim()) || regexEnd.test(req.body.product.trim()))
-      productQuery = { $regex: req.body.product, $options: 'i'}
-    if(regexBoth.test(req.body.type.trim()) || regexStart.test(req.body.type.trim()) || regexEnd.test(req.body.type.trim()))
-      typeQuery = { $regex: req.body.type, $options: 'i'}
+    productTrim = req.body.product.trim()
+    typeTrim = req.body.type.trim()
+    if not safeRegex(productTrim) then return res.status(400).json { error: "Invalid regex in product" }
+    if not safeRegex(typeTrim) then return res.status(400).json { error: "Invalid regex in type" }
+    if(regexBoth.test(productTrim) || regexStart.test(productTrim) || regexEnd.test(productTrim) || /\|/.test(productTrim))
+      productQuery = { $regex: productTrim, $options: 'i'}
+    else
+      productQuery = { $regex: '^'+escapeRegex(productTrim)+'$', $options: 'i'}
+    if(regexBoth.test(typeTrim) || regexStart.test(typeTrim) || regexEnd.test(typeTrim) || /\|/.test(typeTrim))
+      typeQuery = { $regex: typeTrim, $options: 'i'}
+    else
+      typeQuery = { $regex: '^'+escapeRegex(typeTrim)+'$', $options: 'i'}
 
     isArchive = req.body.is_archive || false
     conditions = [
@@ -947,36 +990,46 @@ router.post '/search', (req, res, next) ->
       { type: typeQuery },
       { start_time: { $gte: new Date(moment().subtract(since,'day').format()) } },
     ]
-    
+
     if(req.body.version)
+      if not safeRegex(String(req.body.version)) then return res.status(400).json { error: "Invalid regex in version" }
       conditions.push({ version: { $regex: req.body.version, $options: 'i'} })
 
     if(req.body.team)
-      if(regexBoth.test(req.body.team.trim()) || regexStart.test(req.body.team.trim()) || regexEnd.test(req.body.team.trim()))
-        conditions.push({ team: { $regex: req.body.team, $options: 'i'} })
+      teamTrim = req.body.team.trim()
+      if not safeRegex(teamTrim) then return res.status(400).json { error: "Invalid regex in team" }
+      if(regexBoth.test(teamTrim) || regexStart.test(teamTrim) || regexEnd.test(teamTrim) || /\|/.test(teamTrim))
+        conditions.push({ team: { $regex: teamTrim, $options: 'i'} })
       else
-        conditions.push({ team: { $regex: '^'+req.body.team+'$', $options: 'i'} })
+        conditions.push({ team: { $regex: '^'+escapeRegex(teamTrim)+'$', $options: 'i'} })
 
     if(req.body.browser)
+      if not safeRegex(String(req.body.browser)) then return res.status(400).json { error: "Invalid regex in browser" }
       conditions.push({ browser: { $regex: req.body.browser, $options: 'i'} })
 
     if(req.body.device)
+      if not safeRegex(String(req.body.device)) then return res.status(400).json { error: "Invalid regex in device" }
       conditions.push({ device: { $regex: req.body.device, $options: 'i'} })
-    
+
     if(req.body.platform)
-      if(regexBoth.test(req.body.platform.trim()) || regexStart.test(req.body.platform.trim()) || regexEnd.test(req.body.platform.trim()))
-        conditions.push({ platform: { $regex: req.body.platform, $options: 'i'} })
+      platformTrim = req.body.platform.trim()
+      if not safeRegex(platformTrim) then return res.status(400).json { error: "Invalid regex in platform" }
+      if(regexBoth.test(platformTrim) || regexStart.test(platformTrim) || regexEnd.test(platformTrim) || /\|/.test(platformTrim))
+        conditions.push({ platform: { $regex: platformTrim, $options: 'i'} })
       else
-        conditions.push({ platform: { $regex: '^'+req.body.platform+'$', $options: 'i'} })
-    
+        conditions.push({ platform: { $regex: '^'+escapeRegex(platformTrim)+'$', $options: 'i'} })
+
     if(req.body.platform_version)
+      if not safeRegex(String(req.body.platform_version)) then return res.status(400).json { error: "Invalid regex in platform_version" }
       conditions.push({ platform_version: { $regex: req.body.platform_version, $options: 'i'} })
 
     if(req.body.stage)
-      if(regexBoth.test(req.body.stage.trim()) || regexStart.test(req.body.stage.trim()) || regexEnd.test(req.body.stage.trim()))
-        conditions.push({ stage: { $regex: req.body.stage, $options: 'i'} })
+      stageTrim = req.body.stage.trim()
+      if not safeRegex(stageTrim) then return res.status(400).json { error: "Invalid regex in stage" }
+      if(regexBoth.test(stageTrim) || regexStart.test(stageTrim) || regexEnd.test(stageTrim) || /\|/.test(stageTrim))
+        conditions.push({ stage: { $regex: stageTrim, $options: 'i'} })
       else
-        conditions.push({ stage: { $regex: '^'+req.body.stage+'$', $options: 'i'} })
+        conditions.push({ stage: { $regex: '^'+escapeRegex(stageTrim)+'$', $options: 'i'} })
 
     if(req.body.extras)
       for k, v of req.body.extras

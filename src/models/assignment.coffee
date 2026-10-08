@@ -79,8 +79,8 @@ assignmentSchema.statics.hasSameFailure = (new_assignment, exist_assignment, cal
 	if(new_assignment.failure && exist_assignment.failure)
 		if(new_assignment.failure.token != null  && exist_assignment.failure.token != null )
 			callback(null, new_assignment.failure.token == exist_assignment.failure.token)
-		else if(new_assignment.failure.reason != null && exist_assignment.failure.reason != null )
-			callback(null,  new_assignment.failure.reason == exist_assignment.failure.reason)
+		else if(new_assignment.failure.error_message != null && exist_assignment.failure.error_message != null )
+			callback(null,  new_assignment.failure.error_message == exist_assignment.failure.error_message)
 		else
 			callback(null, false)
 	else

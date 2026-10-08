@@ -188,14 +188,17 @@ parseSinceDuration = (since) ->
   return new Date(since)
 
 router.post '/global-top-failures', (req, res, next) ->
-  { since, limit = 10 } = req.body
+  { since, limit = 20 } = req.body
   cacheKey = "analytics:top-failures:#{since}:#{limit}"
+  MIN_RUNS  = 3   # minimum runs to be eligible
+  LANE_CAP  = 5   # max results per product:type lane
 
   cache.get cacheKey, (err, cached) ->
     if cached then return res.json cached
 
-    sinceDate = parseSinceDuration(since)
-    lim = parseInt(limit)
+    sinceDate  = parseSinceDuration(since)
+    lim        = parseInt(limit)
+    fetchLimit = Math.min(lim * 20, 500)
 
     Build.find({ start_time: { $gte: sinceDate }, is_archive: false })
     .sort({ start_time: -1 }).limit(1000)
@@ -213,35 +216,61 @@ router.post '/global-top-failures', (req, res, next) ->
         b._id
 
       Test.aggregate([
-        { $match: { build: { $in: buildIds }, status: 'FAIL', is_rerun: false } },
+        { $match: { build: { $in: buildIds } } }
+        { $sort: { is_rerun: -1, start_time: -1 } }
         { $group: {
-          _id: '$uid',
-          name: { $first: '$name' },
-          failCount: { $sum: 1 },
-          lastFailedAt: { $max: '$start_time' },
-          lastBuild: { $last: '$build' }
-        }},
-        { $sort: { failCount: -1 } },
-        { $limit: lim }
+          _id: { build: '$build', uid: '$uid' }
+          status:     { $first: '$status' }
+          name:       { $first: '$name' }
+          start_time: { $first: '$start_time' }
+        }}
+        { $group: {
+          _id: '$_id.uid'
+          name:      { $first: '$name' }
+          totalRuns: { $sum: 1 }
+          failCount: { $sum: { $cond: [{ $in: ['$status', ['FAIL', 'RERUN_FAIL']] }, 1, 0] } }
+          lastFailedAt: { $max: { $cond: [{ $in: ['$status', ['FAIL', 'RERUN_FAIL']] }, '$start_time', null] } }
+          lastBuild: { $first: '$_id.build' }
+        }}
+        { $match: { failCount: { $gte: MIN_RUNS } } }
+        { $sort: { failCount: -1 } }
+        { $limit: fetchLimit }
       ]).exec (err, results) ->
         if err then return next(err)
 
-        data = results.map (r) ->
+        # Sort by fail rate descending
+        candidates = results
+          .map((r) -> Object.assign({}, r, { failRate: r.failCount / r.totalRuns }))
+          .sort((a, b) -> b.failRate - a.failRate)
+
+        # Apply per product:type lane cap
+        laneCount = {}
+        final = []
+        for r in candidates
+          break if final.length >= lim
+          lane = buildMap[r.lastBuild?.toString()] or {}
+          key = (lane.product or '') + ':' + (lane.type or '')
+          laneCount[key] = (laneCount[key] or 0) + 1
+          final.push(r) if laneCount[key] <= LANE_CAP
+
+        data = final.map (r) ->
           lane = buildMap[r.lastBuild?.toString()] or {}
           {
-            test_uid: r._id
-            test_name: r.name
-            product: lane.product or ''
-            type: lane.type or ''
-            stage: lane.stage or undefined
-            platform: lane.platform or undefined
+            test_uid:         r._id
+            test_name:        r.name
+            product:          lane.product or ''
+            type:             lane.type or ''
+            stage:            lane.stage or undefined
+            platform:         lane.platform or undefined
             platform_version: lane.platform_version or undefined
-            team: lane.team or undefined
-            browser: lane.browser or undefined
-            device: lane.device or undefined
-            extras: lane.extras or undefined
-            fail_count: r.failCount
-            last_failed: r.lastFailedAt
+            team:             lane.team or undefined
+            browser:          lane.browser or undefined
+            device:           lane.device or undefined
+            extras:           lane.extras or undefined
+            fail_count:       r.failCount
+            total_runs:       r.totalRuns
+            fail_rate:        Math.round(r.failRate * 1000) / 10
+            last_failed:      r.lastFailedAt
           }
 
         cache.set cacheKey, data, ANALYTICS_CACHE_TTL

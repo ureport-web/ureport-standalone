@@ -83,6 +83,9 @@ router.post '/login', (req, res, next) ->
     )(req, res, next);
 
 router.post '/signup', (req, res, next) ->
+    if process.env.UREPORT_IS_DEMO is 'true'
+        return res.status(403).json({ message: 'Sign up is disabled in demo mode.' })
+
     { username, displayname, email, password } = req.body
 
     if !username || !email || !password

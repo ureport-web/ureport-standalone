@@ -62,6 +62,8 @@ if (config !== undefined) {
    * sessions
    */
 
+  // trust proxy: 1 assumes exactly ONE reverse proxy in front (nginx/ALB).
+  // If multiple proxies sit in front, increase this value to match the proxy chain depth.
   app.set("trust proxy", 1);
   app.use(cookieParser());
   // This middleware will check if user's cookie is still saved in browser and user is not set, then automatically log the user out.
@@ -93,16 +95,21 @@ if (config !== undefined) {
    * bodyParser
    */
   const bodyParser = require("body-parser");
+  // /api/test/multi submits bulk test lists — needs higher limit
+  app.use(
+    "/api/test/multi",
+    bodyParser.json({ limit: "50mb", type: "application/json" }),
+  );
   app.use(
     bodyParser.json({
-      limit: "50mb",
+      limit: "5mb",
       type: "application/json",
     }),
   );
   app.use(
     bodyParser.urlencoded({
-      parameterLimit: 100000,
-      limit: "50mb",
+      parameterLimit: 1000,
+      limit: "5mb",
       extended: true,
     }),
   );
@@ -134,19 +141,6 @@ if (config !== undefined) {
     }),
   );
 
-  /**
-   * Email setup
-   */
-  const nodemailer = require("nodemailer");
-  let transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: "robert.stamm7@ethereal.email", // generated ethereal user
-      pass: "jAZxCwTJ6wF7hsKJ4A", // generated ethereal password
-    },
-  });
   /*
    * Middle ware
    */
@@ -210,31 +204,82 @@ if (config !== undefined) {
   app.use("/api/build", isAuthenticatedMid);
   app.use("/api/investigated_test", isAuthenticatedMid);
   app.use("/api/dashboard", isAuthenticatedMid);
-  app.use("/api/dashboard/template", isAuthenticatedMid);
   app.use("/api/setting", isAuthenticatedMid);
   app.use("/api/assignment", isAuthenticatedMid);
   app.use("/api/tracking", isAuthenticatedMid);
   app.use("/api/quarantine", isAuthenticatedMid);
   app.use("/api/audit", isAuthenticatedMid);
 
-  // Fix 2: block mutating API requests for demo user
+  // Block mutating API requests for all users on demo instance.
+  // Demo is read-only — no signups allowed, only the demo account can log in.
   // PUT/PATCH/DELETE are always writes; POST needs finer control because many
   // read endpoints (filter, search, aggregate, pagination) use POST.
   if (process.env.UREPORT_IS_DEMO === "true") {
     const DEMO_ALWAYS_BLOCKED_METHODS = new Set(["PUT", "PATCH", "DELETE"]);
     const DEMO_PATH_WHITELIST = ["/login", "/logout"];
-    // POST paths that are read-only: filter, search, aggregate, pagination (:page/:perPage), etc.
-    const DEMO_POST_READ_PATTERN =
-      /\/(filter|search|aggregate|total|history|find|recommend|others|latest|stable|unstable|trend|analyze-test|top-failures|slowest|pass-rate|duration)(\/|$)|\/global-|\d+\/\d+\/?$/;
+
+    // Explicit list of read-only POST paths (req.path is relative to /api).
+    // All other POSTs are treated as writes and blocked.
+    const DEMO_POST_ALLOWED = new Set([
+      "/build/status/latest",
+      "/build/filter",
+      "/build/entity/recommend",
+      "/build/entity/others",
+      "/build/total",
+      "/build/purge/calculate",
+      "/build/search",
+      "/test/filter",
+      "/test/filter/all",
+      "/test/aggregate/stable",
+      "/test/aggregate/unstable",
+      "/test/aggregate/trend",
+      "/test/aggregate/single/history",
+      "/test/aggregate/by/failure",
+      "/investigated_test/total",
+      "/investigated_test/filter",
+      "/test_relation/total",
+      "/test_relation/filter",
+      "/user/total",
+      "/user/search",
+      "/analytics/top-failures",
+      "/analytics/slowest-tests",
+      "/analytics/pass-rate-history",
+      "/analytics/build-duration-history",
+      "/analytics/global-top-failures",
+      "/analytics/global-unstable-count",
+      "/audit/filter",
+      "/audit/admin/filter",
+      "/setting/filter",
+      "/assignment/search",
+      "/assignment/filter",
+      "/quarantine/filter",
+      "/admin/db/estimate/before-date",
+      "/admin/db/estimate/strip-steps",
+      "/admin/db/estimate/by-lane",
+    ]);
+
+    // Read-only POST paths with dynamic segments (pagination, history, AI analysis).
+    const DEMO_POST_ALLOWED_PATTERNS = [
+      /^\/build\/\d+\/\d+\/?$/,             // build pagination
+      /^\/investigated_test\/\d+\/\d+\/?$/, // investigated_test pagination
+      /^\/test_relation\/\d+\/\d+\/?$/,     // test_relation pagination
+      /^\/user\/\d+\/\d+\/?$/,              // user pagination
+      /^\/test\/history\//,                 // test history by uid
+      /^\/test\/find\/test\//,              // find test by id
+      /^\/ai\/analyze-test\//,              // AI analysis (read-only)
+    ];
 
     app.use("/api", (req, res, next) => {
-      if (!req.isAuthenticated() || req.user?.username !== "demo")
-        return next();
+      if (!req.isAuthenticated()) return next();
       if (DEMO_PATH_WHITELIST.includes(req.path)) return next();
+
+      const isPostAllowed =
+        DEMO_POST_ALLOWED.has(req.path) ||
+        DEMO_POST_ALLOWED_PATTERNS.some((p) => p.test(req.path));
 
       const isBlocked =
         DEMO_ALWAYS_BLOCKED_METHODS.has(req.method) ||
-        (req.method === "POST" && !DEMO_POST_READ_PATTERN.test(req.path));
+        (req.method === "POST" && !isPostAllowed);
 
       if (isBlocked) {
         return res
@@ -281,8 +326,6 @@ if (config !== undefined) {
   const preset = require("./src/routes/preset");
   const mcp = require("./src/routes/mcp");
 
-  // list of endpoints for readonly page
-  const noauth = require("./src/routes/noauth/noauth");
   const shared = require("./src/routes/shared/shared");
   const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -296,12 +339,29 @@ if (config !== undefined) {
     standardHeaders: true,
     legacyHeaders: false,
   });
+  // General API rate limiter — catch-all to prevent bulk scraping/spam
+  const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 1000,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  // Share token endpoints — no session auth, limit brute-force attempts
+  const sharedLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
   app.use("/api/login", loginLimiter);
   app.use("/api/forgot", forgotLimiter);
   app.use("/api/reset", forgotLimiter);
+  app.use("/api", apiLimiter);
+  app.use("/api/shared", sharedLimiter);
   app.use("/api", version);
   app.use("/api", authenticate);
   app.use("/api/setting", setting);
+  app.use("/api/system/setting", isAuthenticatedMid);
   app.use("/api/system/setting", systemSetting);
   app.use("/api/admin/db", isAuthenticatedMid);
   app.use("/api/admin/db", dbStats);
@@ -311,6 +371,7 @@ if (config !== undefined) {
   app.use("/api/investigated_test", investigatedTest);
   app.use("/api/test_relation", testRelation);
   app.use("/api/dashboard", dashboard);
+  app.use("/api/template", isAuthenticatedMid);
   app.use("/api/template", dashboardTemplate);
   app.use("/api/assignment", assignment);
   app.use("/api/user", user);
@@ -324,8 +385,6 @@ if (config !== undefined) {
   app.use("/api/ai", isAuthenticatedMid);
   app.use("/api/ai", aiAnalysis);
   app.use("/mcp", isAuthenticatedMid, mcp);
-
-  app.use("/api/noauth", noauth);
 
   app.use("/api/shared", isShareTokenMid);
   app.use("/api/shared", shared);
