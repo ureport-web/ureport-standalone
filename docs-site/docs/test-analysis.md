@@ -75,6 +75,7 @@ The Display Settings popover controls how the test list looks:
 | **Auto Triage** | Open the Auto Triage panel to bulk-apply triage entries across builds. |
 | **Bulk AI Prompt** | Copy a structured AI prompt containing all current failing tests (grouped by error) for pasting into an AI chat tool. |
 | **Export CSV** | Export the currently visible test list to CSV. Requires an upgraded licence. |
+| **Report** | Generate a PDF or text summary of the current build state. See [Launches Report](#launches-report). |
 | **Preferences** | Per-user display preferences for the Launches page. |
 
 ---
@@ -289,6 +290,47 @@ Pinning marks a test as important to you personally. Pins are stored per user an
 - **Pin:** ⋮ context menu → **Pin Test**
 - **Unpin:** ⋮ context menu → **Unpin Test**
 - **View pinned only:** Filters panel → enable **Show Pinned Only**
+
+---
+
+## Launches Report
+
+The **Report** button in the header generates a PDF or text summary of the current build state across all loaded lanes.
+
+### Report Types
+
+| Report | Format | Description |
+|---|---|---|
+| **Latest Build Report** | PDF (A4 landscape) | Snapshot of the current build — gatekeeping summary, no-action list, per-lane failing and triaged tests |
+| **Build History Report** | PDF (A4 landscape) | Trend analysis across all loaded builds — average pass rate, best/worst build, improving/declining/stable trend, top recurring failures |
+| **Slack Summary** | Text (copy to clipboard) | Markdown-formatted summary for posting in Slack — per-lane pass rate, counts, no-action list |
+| **Teams Summary** | Text (copy to clipboard) | Markdown table for Microsoft Teams — same data as Slack summary |
+
+### Latest Build Report Contents
+
+1. **Gatekeeping Summary** — Table of all lanes with pass rate (colour-coded green/amber/red), total/pass/fail/KI/assigned/no-action counts, plus a combined row
+2. **No Action Taken** — List of failing tests that are neither assigned nor triaged (highlighted red). If all failing tests are covered, shows a green confirmation instead.
+3. **Per-Lane Detail** (one page per lane) — Latest build stats, failing tests with truncated error message and assignee, triaged tests with issue type / cause / ticket link / assignee
+
+### Build History Report Contents
+
+1. **History Summary** — Per-lane: build count, average test count, average pass rate, best/worst build, trend (Improving / Stable / Declining)
+2. **Build History by Lane** — All loaded builds in chronological order with full status breakdown and colour-coded pass rate
+3. **Top Recurring Failures** — Up to 20 tests ranked by fail count across all loaded builds, with last failed build and assignee
+
+### No-Action Definition
+
+A failing test is considered **No Action** when it is not investigated (not triaged/KI/outage) AND not assigned to a user. These appear prominently in the report as they represent unowned failures.
+
+---
+
+## CSV Export
+
+Click **Export CSV** in the header to export the currently visible test list. The export respects the current filters and view — only tests shown on screen are included.
+
+CSV includes: test UID, name, status, failure message, start/end time, browser, device, lane info, investigation state, assignee, and relation metadata.
+
+Requires an upgraded licence.
 
 ---
 

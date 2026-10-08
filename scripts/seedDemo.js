@@ -2597,10 +2597,13 @@ async function main() {
   console.log("    • aianalysis       — cleared for product, then re-seeded");
   console.log("─────────────────────────────────────────");
 
-  const answer = await confirm("\nProceed? (yes/no): ");
-  if (answer !== "yes" && answer !== "y") {
-    console.log("Aborted.");
-    process.exit(0);
+  const autoConfirm = process.argv.includes("--yes") || process.env.SEED_AUTO_CONFIRM === "true";
+  if (!autoConfirm) {
+    const answer = await confirm("\nProceed? (yes/no): ");
+    if (answer !== "yes" && answer !== "y") {
+      console.log("Aborted.");
+      process.exit(0);
+    }
   }
 
   console.log(`\nConnecting to ${dbHost}...`);

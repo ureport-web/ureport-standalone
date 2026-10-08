@@ -8,6 +8,7 @@
     "start": "node server",
     "initialize": "node initialize.js",
     "seed:demo": "node scripts/seedDemo.js",
+    "seed:demo:auto": "node scripts/seedDemo.js --yes",
     "swagger": "node scripts/swagger-autogen.js",
     "docs": "npm run swagger && npm --prefix docs-site run build",
     "docs:dev": "npm --prefix docs-site run start -- --port 3001",

@@ -62,6 +62,8 @@ if (config !== undefined) {
    * sessions
    */
 
+  // trust proxy: 1 assumes exactly ONE reverse proxy in front (nginx/ALB).
+  // If multiple proxies sit in front, increase this value to match the proxy chain depth.
   app.set("trust proxy", 1);
   app.use(cookieParser());
   // This middleware will check if user's cookie is still saved in browser and user is not set, then automatically log the user out.
@@ -93,16 +95,21 @@ if (config !== undefined) {
    * bodyParser
    */
   const bodyParser = require("body-parser");
+  // /api/test/multi submits bulk test lists — needs higher limit
+  app.use(
+    "/api/test/multi",
+    bodyParser.json({ limit: "50mb", type: "application/json" }),
+  );
   app.use(
     bodyParser.json({
-      limit: "50mb",
+      limit: "5mb",
       type: "application/json",
     }),
   );
   app.use(
     bodyParser.urlencoded({
-      parameterLimit: 100000,
-      limit: "50mb",
+      parameterLimit: 1000,
+      limit: "5mb",
       extended: true,
     }),
   );
@@ -134,19 +141,6 @@ if (config !== undefined) {
     }),
   );
 
-  /**
-   * Email setup
-   */
-  const nodemailer = require("nodemailer");
-  let transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: "robert.stamm7@ethereal.email", // generated ethereal user
-      pass: "jAZxCwTJ6wF7hsKJ4A", // generated ethereal password
-    },
-  });
   /*
    * Middle ware
    */
@@ -210,7 +204,6 @@ if (config !== undefined) {
   app.use("/api/build", isAuthenticatedMid);
   app.use("/api/investigated_test", isAuthenticatedMid);
   app.use("/api/dashboard", isAuthenticatedMid);
-  app.use("/api/dashboard/template", isAuthenticatedMid);
   app.use("/api/setting", isAuthenticatedMid);
   app.use("/api/assignment", isAuthenticatedMid);
   app.use("/api/tracking", isAuthenticatedMid);
@@ -281,8 +274,6 @@ if (config !== undefined) {
   const preset = require("./src/routes/preset");
   const mcp = require("./src/routes/mcp");
 
-  // list of endpoints for readonly page
-  const noauth = require("./src/routes/noauth/noauth");
   const shared = require("./src/routes/shared/shared");
   const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -296,12 +287,29 @@ if (config !== undefined) {
     standardHeaders: true,
     legacyHeaders: false,
   });
+  // General API rate limiter — catch-all to prevent bulk scraping/spam
+  const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 1000,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  // Share token endpoints — no session auth, limit brute-force attempts
+  const sharedLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
   app.use("/api/login", loginLimiter);
   app.use("/api/forgot", forgotLimiter);
   app.use("/api/reset", forgotLimiter);
+  app.use("/api", apiLimiter);
+  app.use("/api/shared", sharedLimiter);
   app.use("/api", version);
   app.use("/api", authenticate);
   app.use("/api/setting", setting);
+  app.use("/api/system/setting", isAuthenticatedMid);
   app.use("/api/system/setting", systemSetting);
   app.use("/api/admin/db", isAuthenticatedMid);
   app.use("/api/admin/db", dbStats);
@@ -311,6 +319,7 @@ if (config !== undefined) {
   app.use("/api/investigated_test", investigatedTest);
   app.use("/api/test_relation", testRelation);
   app.use("/api/dashboard", dashboard);
+  app.use("/api/template", isAuthenticatedMid);
   app.use("/api/template", dashboardTemplate);
   app.use("/api/assignment", assignment);
   app.use("/api/user", user);
@@ -324,8 +333,6 @@ if (config !== undefined) {
   app.use("/api/ai", isAuthenticatedMid);
   app.use("/api/ai", aiAnalysis);
   app.use("/mcp", isAuthenticatedMid, mcp);
-
-  app.use("/api/noauth", noauth);
 
   app.use("/api/shared", isShareTokenMid);
   app.use("/api/shared", shared);

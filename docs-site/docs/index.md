@@ -33,3 +33,4 @@ UReport is a professional automation reporting platform. Collect test results fr
 |---|---|
 | [Auto-Triage](./auto-triage) | Automatically propagate investigation notes across builds with matching failures |
 | [Notifications](./notifications) | Email alerts triggered by build results matching configurable rules |
+| [Assignment](./assignment) | Assign failing tests to team members, track ownership, send follow-up reminders |

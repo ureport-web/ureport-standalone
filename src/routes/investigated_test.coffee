@@ -9,6 +9,7 @@ ObjectId = require('mongoose').Types.ObjectId;
 registerAudit = require('../utils/register_audit')
 AccessControl = require('../utils/ac_grants')
 getSystemSetting = require('../utils/getSystemSetting')
+{ escapeRegex, safeRegex } = require('../utils/regex_utils')
 component = 'investigate'
 
 router.get '/:id',  (req, res, next) ->
@@ -32,7 +33,11 @@ router.post '/',  (req, res, next) ->
         condition = { uid: 'ureport-does-not-exist' }
         if (!AccessControl.canAccessCreateAny(req.user.role,component))
             return res.status(403).json({"error": "You don't have permission to perform this action"})
-    InvestigatedTest.findOneAndUpdate(condition, req.body,
+    # Strip top-level MongoDB operator keys to prevent NoSQL injection
+    safeBody = {}
+    for own k, v of req.body
+      safeBody[k] = v unless k[0] == '$'
+    InvestigatedTest.findOneAndUpdate(condition, safeBody,
         {
             upsert: true,
             new: true,
@@ -75,12 +80,12 @@ router.delete '/:id/:user',  (req, res, next) ->
 router.post '/total',  (req, res, next) ->
     query = {}
     if(req.body.filter)
-    # query.uid = {'$regex': req.body.filter}
+        safeFilter = escapeRegex(String(req.body.filter))
         query = {
             $and : [
-                $or : [ 
-                    { uid: {'$regex': req.body.filter} }, 
-                    { "tracking.track_number": {'$regex': req.body.filter} }, 
+                $or : [
+                    { uid: {'$regex': safeFilter} },
+                    { "tracking.track_number": {'$regex': safeFilter} },
                 ]
             ]
         }
@@ -90,8 +95,6 @@ router.post '/total',  (req, res, next) ->
     if(req.body.type)
         query.type = req.body.type
 
-    # if(req.body.filter)
-    #     query.uid = {'$regex': req.body.filter}
     # invTest filter and condition
     InvestigatedTest.find(query)
     .count()
@@ -137,9 +140,13 @@ router.post '/filter',  (req, res, next) ->
             InvestigatedTest.buildExcludeFieldQuery(exclude,req.body.exclude)
 
         if(req.body.activeRegEx)
+            safeProduct = safeRegex(req.body.product)
+            safeType = safeRegex(req.body.type)
+            if not safeProduct or not safeType
+                return res.status(400).json {error: "Invalid regex pattern"}
             query = { $and : [
-                { product: { $regex: req.body.product, $options: 'i'} },
-                { type: { $regex: req.body.type, $options: 'i'} },
+                { product: { $regex: safeProduct, $options: 'i'} },
+                { type: { $regex: safeType, $options: 'i'} },
                 { create_at: { $gte: new Date(moment().subtract(sinceDay,'day').format()) } }
             ]}
         else
@@ -208,14 +215,13 @@ router.post '/:page/:perPage',  (req, res, next) ->
         return res.json(response)
 
     query = {}
-    # { $or : [{"uid":{'$regex': '496'}}, {"tracking.track_number":{'$regex': '496'}}] }
     if(req.body.filter)
-        # query.uid = {'$regex': req.body.filter}
+        safeFilter = escapeRegex(String(req.body.filter))
         query = {
             $and : [
-                $or : [ 
-                    { uid: {'$regex': req.body.filter} }, 
-                    { "tracking.track_number": {'$regex': req.body.filter} }, 
+                $or : [
+                    { uid: {'$regex': safeFilter} },
+                    { "tracking.track_number": {'$regex': safeFilter} },
                 ]
             ]
         }
