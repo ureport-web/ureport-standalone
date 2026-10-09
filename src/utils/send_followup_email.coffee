@@ -9,7 +9,9 @@ emailTransporterKey = undefined
 
 priorityBadge = (assignAt) ->
   days = Math.floor((Date.now() - new Date(assignAt).getTime()) / 86400000)
-  if days >= 7
+  if days >= 14
+    { label: 'Critical', color: '#7c3aed', bg: '#f5f3ff' }
+  else if days >= 7
     { label: 'Overdue', color: '#dc2626', bg: '#fef2f2' }
   else if days >= 3
     { label: 'Aging', color: '#d97706', bg: '#fffbeb' }
@@ -26,12 +28,14 @@ truncateFailure = (msg) ->
   first = msg.split('\n')[0].trim()
   if first.length > 90 then first.substring(0, 90) + '…' else first
 
-renderTemplate = (req, user, assignments) ->
+renderTemplate = (baseUrl, req, user, assignments) ->
   sentBy = req.user.username
-  origin = req.headers.origin or ''
 
   testRows = assignments.map((a) ->
-    testUrl = a.test_url or (origin + '/launches?product=' + encodeURIComponent(a.product) + '&type=' + encodeURIComponent(a.type) + '&search=' + encodeURIComponent(a.uid))
+    testUrl = if baseUrl
+      baseUrl.replace(/\/$/, '') + '/launches?product=' + encodeURIComponent(a.product) + '&type=' + encodeURIComponent(a.type) + '&search=' + encodeURIComponent(a.uid)
+    else
+      ''
     badge = priorityBadge(a.assign_at)
     failureText = truncateFailure(a.failure?.error_message)
     failureHtml = if failureText == '—'
@@ -110,12 +114,14 @@ sendToUser = (req, res, user, assignments, done) ->
       emailTransporterKey = currentKey
       emailTransporter = buildTransport(emailConfig)
 
+    baseUrl = setting?.notification?.url or (req.protocol + '://' + req.get('host'))
+
     emailTransporter.sendMail {
       from: emailConfig.user
       to: user.email
       subject: 'UReport: Follow-up on your assigned tests (' + assignments.length + ' open)'
       text: 'Assignment Follow-up'
-      html: renderTemplate(req, user, assignments)
+      html: renderTemplate(baseUrl, req, user, assignments)
     },
     (error, info) ->
       if error

@@ -16,7 +16,7 @@ Built for teams adopting AI-driven QA workflows, uReport helps organizations red
 
 Free and open-source.
 
-**Live demo:** https://ureport-standalone.onrender.com/nextgen/
+**Live demo:** https://ureportlab.com/ | **Docs:** https://ureportlab.com/docs/
 
 ## 🚀 How it solves it
 
@@ -69,7 +69,7 @@ docker-compose up --build
 5. Run `npm start`.
 6. Open `http://localhost:4100` in your browser.
 
-Default credentials: **admin / 1234**
+Default credentials: **admin / changeme** (override with `ADMIN_PASSWORD` env var)
 
 ---
 
@@ -79,7 +79,7 @@ Send your first results with an official reporter — see [Sending Test Data](#s
 
 ```
   Playwright / Jest / pytest
-         │  (POST /api/builds, /api/tests)
+         │  (POST /api/build, /api/test/multi)
          ▼
   ┌─────────────────────────┐
   │   Express server        │
@@ -245,12 +245,14 @@ Set one of these as an environment variable or in `.env` (Docker) / `config/dev.
 
 **Option B — AWS ElastiCache (Valkey) with IAM auth**:
 
-| Variable                   | Description                                |
-| -------------------------- | ------------------------------------------ |
-| `VALKEY_PRIMARY_ENDPOINT`  | ElastiCache primary endpoint hostname      |
-| `VALKEY_USER`              | IAM-enabled Valkey user                    |
-| `VALKEY_REPLICATION_GROUP` | Replication group ID (used in SigV4 token) |
-| `AWS_REGION`               | AWS region (default: `us-east-1`)          |
+| Variable                   | Description                                      |
+| -------------------------- | ------------------------------------------------ |
+| `VALKEY_PRIMARY_ENDPOINT`  | ElastiCache primary endpoint hostname            |
+| `VALKEY_USER`              | IAM-enabled Valkey user                          |
+| `VALKEY_REPLICATION_GROUP` | Replication group ID (used in SigV4 token)       |
+| `AWS_REGION`               | AWS region (default: `us-east-1`) — env var only |
+
+`VALKEY_PRIMARY_ENDPOINT`, `VALKEY_USER`, and `VALKEY_REPLICATION_GROUP` can be set as environment variables or in `.env` (Docker) / `config/production.json` (bare metal). `AWS_REGION` must be an environment variable.
 
 When all three Valkey vars are set, the server authenticates via SigV4 presigned tokens and rotates them automatically every 12 minutes.
 
@@ -258,9 +260,9 @@ When all three Valkey vars are set, the server authenticates via SigV4 presigned
 
 ---
 
-### Seed / init credentials (Docker only)
+### Seed / init credentials
 
-These env vars are read by `initialize.js` at first startup when the DB is empty:
+These env vars are read by `initialize.js` on first run when the DB is empty:
 
 | Variable         | Default             |
 | ---------------- | ------------------- |
@@ -268,7 +270,9 @@ These env vars are read by `initialize.js` at first startup when the DB is empty
 | `ADMIN_PASSWORD` | `changeme`          |
 | `DEMO_PASSWORD`  | `1234`              |
 
-Set them in `.env` (copy from `.env.example`) before the first `docker-compose up`.
+**Docker:** set them in `.env` (copy from `.env.example`) before the first `docker-compose up`.
+
+**Bare metal:** defaults apply automatically — no extra config needed. To override, export the env vars before running `npm run initialize`.
 
 ## Sending Test Data
 
@@ -297,12 +301,11 @@ Most endpoints require either a session cookie (browser login) or an `Authorizat
 
 ## npm Scripts
 
-| Script               | Description                                                          |
-| -------------------- | -------------------------------------------------------------------- |
-| `npm start`          | Start the server                                                     |
-| `npm run initialize` | Seed the database (admin user, system settings, dashboard templates) |
-| `npm run seed`       | Generate sample data                                                 |
-| `npm test`           | Run the test suite                                                   |
+| Script               | Description                                                                  |
+| -------------------- | ---------------------------------------------------------------------------- |
+| `npm start`          | Start the server                                                             |
+| `npm run initialize` | Seed the database (admin + demo users, system settings, dashboard templates) |
+| `npm test`           | Run the test suite                                                           |
 
 ## License
 

@@ -7,12 +7,14 @@ logger         = require('./logger')
 emailTransporter    = undefined
 emailTransporterKey = undefined
 
-renderTemplate = (req, user, assignments) ->
+renderTemplate = (baseUrl, req, user, assignments) ->
   sentBy = req.user.username
-  origin = req.headers.origin or ''
 
   testRows = assignments.map((a) ->
-    testUrl = a.test_url or (origin + '/launches?product=' + encodeURIComponent(a.product) + '&type=' + encodeURIComponent(a.type) + '&search=' + encodeURIComponent(a.uid))
+    testUrl = if baseUrl
+      baseUrl.replace(/\/$/, '') + '/launches?product=' + encodeURIComponent(a.product) + '&type=' + encodeURIComponent(a.type) + '&search=' + encodeURIComponent(a.uid)
+    else
+      ''
     '<tr>' +
       '<td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;vertical-align:top">' +
         '<a href="' + testUrl + '" style="color:#1d6ae5;text-decoration:none;font-size:12px;font-weight:600;word-break:break-all">' + a.uid + '</a>' +
@@ -74,12 +76,14 @@ sendToUser = (req, res, user, assignments, done) ->
       emailTransporterKey = currentKey
       emailTransporter = buildTransport(emailConfig)
 
+    baseUrl = setting?.notification?.url or (req.protocol + '://' + req.get('host'))
+
     emailTransporter.sendMail {
       from: emailConfig.user
       to: user.email
       subject: 'UReport: ' + assignments.length + ' test(s) assigned to you'
       text: 'New Test Assignments'
-      html: renderTemplate(req, user, assignments)
+      html: renderTemplate(baseUrl, req, user, assignments)
     },
     (error, info) ->
       if error

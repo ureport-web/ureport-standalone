@@ -7,11 +7,11 @@ logger         = require('./logger')
 emailTransporter    = undefined
 emailTransporterKey = undefined
 
-renderTemplate = (req, user, assignment) ->
+renderTemplate = (baseUrl, req, user, assignment) ->
   assignedBy = req.user.username
 
-  testUrl = if assignment
-    assignment.test_url or (req.headers.origin + '/launches?product=' + assignment.product + '&type=' + assignment.type + '&search=' + encodeURIComponent(assignment.uid))
+  testUrl = if assignment and baseUrl
+    baseUrl.replace(/\/$/, '') + '/launches?product=' + encodeURIComponent(assignment.product) + '&type=' + encodeURIComponent(assignment.type) + '&search=' + encodeURIComponent(assignment.uid)
   else
     ''
 
@@ -100,12 +100,14 @@ prepareSendEmail = (req, res, user, assignment) ->
         emailTransporterKey = currentKey
         emailTransporter = buildTransport(emailConfig)
 
+      baseUrl = setting?.notification?.url or (req.protocol + '://' + req.get('host'))
+
       emailTransporter.sendMail {
         from: emailConfig.user
         to: user.email
         subject: 'UReport: A new test has been assigned to you'
         text: 'New Test Assignment'
-        html: renderTemplate(req, user, assignment)
+        html: renderTemplate(baseUrl, req, user, assignment)
       },
       (error, info) ->
         if error
