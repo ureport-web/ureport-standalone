@@ -12,7 +12,11 @@ renderTemplate = (baseUrl, req, user, assignments) ->
 
   testRows = assignments.map((a) ->
     testUrl = if baseUrl
-      baseUrl.replace(/\/$/, '') + '/launches?product=' + encodeURIComponent(a.product) + '&type=' + encodeURIComponent(a.type) + '&search=' + encodeURIComponent(a.uid)
+      base = baseUrl.replace(/\/$/, '')
+      if a.test_url
+        base + a.test_url
+      else
+        base + '/launches?product=' + encodeURIComponent(a.product) + '&type=' + encodeURIComponent(a.type) + '&search=' + encodeURIComponent(a.uid)
     else
       ''
     '<tr>' +

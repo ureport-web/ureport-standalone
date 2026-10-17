@@ -77,6 +77,24 @@ Relation condition options are populated from existing Test Relations for the pr
 
 ---
 
+## Multi-Run Builds and Notification Behaviour
+
+When multiple CI pipeline runs share the same **product / type / build number**, UReport merges them into a single build document. Notifications are designed to fire once per run — not once per build — by scoping the rule evaluation to tests uploaded in the current run only.
+
+### Result counts in the email
+
+The pass / fail / skip counts shown in the email reflect **this pipeline run only**, not the accumulated totals across all runs. If your suite is split across sequential runs (e.g. run 1 covers feature A, run 2 covers feature B), each run's email will show only that run's test counts. Open the build in UReport to see the full picture.
+
+### Known limitation — raw API / incremental uploads
+
+The per-run scoping relies on a timestamp boundary set when the build is closed (the previous run's close time). This works correctly when all tests are uploaded **before** the build close call, which is the standard reporter flow.
+
+If you use the raw API and upload tests incrementally while another run is still in progress, tests uploaded before the close boundary may fall outside the scoping window and not be evaluated for that run's notification. In this case, a notification for those tests may be missed or delayed to a later run.
+
+**Workaround:** ensure all tests for a run are uploaded before calling the build close endpoint, or use the official UReport reporter which handles this automatically.
+
+---
+
 ## Email Setup
 
 Notifications require SMTP to be configured. Go to **Administration → System Settings → Notification Settings**. UReport uses Gmail SMTP for sending notification emails.

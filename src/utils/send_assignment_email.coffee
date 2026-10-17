@@ -11,7 +11,11 @@ renderTemplate = (baseUrl, req, user, assignment) ->
   assignedBy = req.user.username
 
   testUrl = if assignment and baseUrl
-    baseUrl.replace(/\/$/, '') + '/launches?product=' + encodeURIComponent(assignment.product) + '&type=' + encodeURIComponent(assignment.type) + '&search=' + encodeURIComponent(assignment.uid)
+    base = baseUrl.replace(/\/$/, '')
+    if assignment.test_url
+      base + assignment.test_url
+    else
+      base + '/launches?product=' + encodeURIComponent(assignment.product) + '&type=' + encodeURIComponent(assignment.type) + '&search=' + encodeURIComponent(assignment.uid)
   else
     ''
 

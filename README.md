@@ -276,11 +276,6 @@ These env vars are read by `initialize.js` on first run when the DB is empty:
 
 ## Sending Test Data
 
-UReport stores test results in two collections:
-
-- **Build** — represents a single execution (e.g. a CI build). Holds metadata like build number, product, and environment.
-- **Test** — represents an individual test case that belongs to a Build.
-
 **Official reporters:**
 
 - [ureport-playwright-reporter](https://www.npmjs.com/package/ureport-playwright-reporter) — Playwright
@@ -305,7 +300,6 @@ Most endpoints require either a session cookie (browser login) or an `Authorizat
 | -------------------- | ---------------------------------------------------------------------------- |
 | `npm start`          | Start the server                                                             |
 | `npm run initialize` | Seed the database (admin + demo users, system settings, dashboard templates) |
-| `npm test`           | Run the test suite                                                           |
 
 ## License
 

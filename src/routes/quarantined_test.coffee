@@ -1,8 +1,10 @@
 express = require('express')
 router = express.Router()
 QuarantinedTest = require('../models/quarantined_test')
+QuarantineHistory = require('../models/quarantine_history')
 ObjectId = require('mongoose').Types.ObjectId
 registerAudit = require('../utils/register_audit')
+logger = require('../utils/logger')
 { extrasToKey } = require('../utils/quarantine_evaluator')
 
 SCOPE_FIELDS = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage']
@@ -69,23 +71,53 @@ router.post '/filter', (req, res, next) ->
       return next err
     res.json docs
 
+# GET /history/:uid — quarantine cycle history for a test uid
+router.get '/history/:uid', (req, res, next) ->
+  query = { uid: req.params.uid }
+  query.product = req.query.product if req.query.product
+  query.type = req.query.type if req.query.type
+  QuarantineHistory.find(query).sort({ quarantined_at: -1 }).exec (err, docs) ->
+    if err
+      return next err
+    res.json docs
+
 # PUT /:id — manual resolve (set is_active: false, optionally is_exempt: true)
 router.put '/:id', (req, res, next) ->
   registerAudit(req, res, 'QUARANTINE_RESOLVE', 'Resolve Quarantine', 'quarantine', { uid: req.params.id, product: 'SYSTEM', type: 'QUARANTINE' })
-  update = { is_active: false, resolved_at: new Date() }
+  resolvedAt = new Date()
+  update = { is_active: false, resolved_at: resolvedAt }
   update.is_exempt = true if req.body.is_exempt == true
   update.is_exempt = false if req.body.is_exempt == false
+  resolvedBy = if req.body.is_exempt == true then 'exempt' else 'manual'
   QuarantinedTest.findOneAndUpdate(
     { _id: new ObjectId(req.params.id) },
     update,
-    { new: true },
-    (err, doc) ->
+    { new: false },
+    (err, oldDoc) ->
       if err
         return next err
-      if doc
-        res.json doc
-      else
-        res.status(404).json { error: 'Not found' }
+      unless oldDoc
+        return res.status(404).json { error: 'Not found' }
+      QuarantineHistory.create({
+        uid:            oldDoc.uid,
+        product:        oldDoc.product,
+        type:           oldDoc.type,
+        scope:          oldDoc.scope,
+        rule_id:        oldDoc.rule_id,
+        rule_name:      oldDoc.rule_name,
+        triggered_mode: oldDoc.triggered_mode,
+        fail_snapshot:  oldDoc.fail_snapshot,
+        build_snapshot: oldDoc.build_snapshot,
+        quarantined_at: oldDoc.quarantined_at,
+        resolved_at:    resolvedAt,
+        resolved_by:    resolvedBy,
+        cycle:          oldDoc.cycle or 1
+      }, (hErr) ->
+        if hErr
+          logger.error '[quarantine] history create error', hErr
+      )
+      updatedDoc = Object.assign(oldDoc.toObject(), update)
+      res.json updatedDoc
   )
 
 # DELETE / — bulk hard delete by ids array
