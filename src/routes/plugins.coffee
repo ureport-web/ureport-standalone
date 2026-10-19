@@ -103,6 +103,11 @@ savePluginAudit = (req, name, action) ->
   audit.save (err) ->
     if err then logger.error("[plugin] failed to write audit for #{name}:", err.message)
 
+# Maps plugin names to the license feature key that covers them.
+# If a plugin name is not in this map, the license key defaults to the plugin name itself.
+PLUGIN_LICENSE_KEY =
+  'auto-heal': 'auto-triage'
+
 # ── Routes ───────────────────────────────────────────────────────────────────
 
 # GET /api/plugins — list loaded plugins with versions
@@ -161,8 +166,9 @@ router.post '/:name/install', (req, res) ->
   unless licenseState.valid
     return res.status(403).json({ error: 'No valid license' })
 
-  unless licenseState.features and licenseState.features.includes(name)
-    return res.status(403).json({ error: "License does not include feature: #{name}" })
+  licenseKey = PLUGIN_LICENSE_KEY[name] or name
+  unless licenseState.features and licenseState.features.includes(licenseKey)
+    return res.status(403).json({ error: "License does not include feature: #{licenseKey}" })
 
   licenseToken = getRawToken()
   unless licenseToken
@@ -219,9 +225,10 @@ router.post '/:name/upload', upload.single('bundle'), (req, res) ->
     fs.unlink req.file.path, ->
     return res.status(403).json({ error: 'No valid license' })
 
-  unless licenseState.features and licenseState.features.includes(name)
+  licenseKey = PLUGIN_LICENSE_KEY[name] or name
+  unless licenseState.features and licenseState.features.includes(licenseKey)
     fs.unlink req.file.path, ->
-    return res.status(403).json({ error: "License does not include feature: #{name}" })
+    return res.status(403).json({ error: "License does not include feature: #{licenseKey}" })
 
   isUpdate = pluginLoader.isLoaded(name)
   tarPath = req.file.path
