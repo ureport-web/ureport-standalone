@@ -48,6 +48,11 @@ buildSchema = new Schema(
   	},
 	start_time: { type: Date, default: Date.now },
 	end_time: Date,
+	# Stores the end_time of the previous run before it gets overwritten on each finish.
+	# Used by the notification plugin to scope test queries to the current run only.
+	# Without this, multiple CI runs sharing the same build document (same product/type/build_number)
+	# would cause notifications to re-trigger on failing tests from earlier runs.
+	prev_end_time: Date,
 	owner: String,
 	is_archive: { type: Boolean, default: false},
 	status: {

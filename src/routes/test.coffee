@@ -42,6 +42,15 @@ applyStatusFilter = (tests, statusParam) ->
     return tests if statuses.indexOf('All') != -1
     tests.filter (t) -> statuses.indexOf(t.status) != -1
 
+router.get '/by-uid/:uid', (req, res, next) ->
+    Test.findOne({ uid: req.params.uid })
+    .select('_id uid name status build product type file error_message')
+    .exec((err, test) ->
+      if err then return res.status(500).json({ error: err.message })
+      if not test then return res.status(404).json({ error: 'Test not found' })
+      res.json test
+    )
+
 router.get '/:id',  (req, res, next) ->
     Test.findOne({
       _id: new ObjectId(req.params.id)

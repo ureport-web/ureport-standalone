@@ -1,6 +1,6 @@
 {
   "name": "ureport-server",
-  "version": "2.2.3",
+  "version": "2.3.3",
   "description": "The universal automation reporting app server",
   "main": "server.js",
   "scripts": {
@@ -15,6 +15,9 @@
     "version:patch": "npm version patch --no-git-tag-version",
     "version:minor": "npm version minor --no-git-tag-version",
     "version:major": "npm version major --no-git-tag-version",
+    "release:patch": "bash scripts/release.sh patch",
+    "release:minor": "bash scripts/release.sh minor",
+    "release:major": "bash scripts/release.sh major",
     "prepare": "[ \"$NODE_ENV\" = \"production\" ] || husky"
   },
   "keywords": [
@@ -58,6 +61,7 @@
     "tar": "^7.5.22",
     "underscore": "^1.9.1",
     "uuid": "^3.3.3",
+    "ws": "^8.22.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {

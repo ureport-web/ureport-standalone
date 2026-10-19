@@ -26,8 +26,17 @@ const sidebars = {
       label: 'Plugins',
       collapsible: false,
       items: [
+        'auto-heal',
         'auto-triage',
         'notifications',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Agent',
+      collapsible: false,
+      items: [
+        'ureport-agent',
       ],
     },
   ],

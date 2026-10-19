@@ -612,6 +612,7 @@ The combination of `product` and `type` creates your Product Lane — the fundam
 | `owner` | No | Owner or initiator of the build |
 | `environments` | No | Free-form object for environment data (base URLs, regions, DB info, etc.) |
 | `settings` | No | Free-form object for test run configuration (flags, timeouts, params, etc.) |
+| `extras` | No | Free-form key/value string pairs for custom build metadata (e.g. `{ "region": "us-east-1", "triggered_by": "schedule" }`). Use `customParams` in the Playwright reporter config to populate this field. |
 | `is_archive` | No | Set to `true` to archive — archived builds are hidden from default views and excluded from analytics |
 
 ```json
@@ -913,6 +914,12 @@ Every test execution belongs to a Product Lane, which determines:
 | `device` | Device type (e.g. `"Desktop"`, `"Mobile"`, `"Tablet"`) |
 | `platform` | Operating system (e.g. `"Windows"`, `"macOS"`, `"Linux"`) |
 | `platform_version` | OS version (e.g. `"Windows-11"`, `"macOS-13"`) |
+
+**Custom metadata**
+
+| Field | Description |
+|---|---|
+| `extras` | Free-form `Record<string, string>` for custom build metadata (e.g. `{ "region": "us-east-1" }`). Populated automatically when using `customParams` in the Playwright reporter config. |
 
 ### Why Product and Type matter
 

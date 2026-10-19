@@ -176,6 +176,11 @@ router.get '/confirm-email/:token', (req, res, next) ->
         else
             activateUser()
 
+router.get '/me', (req, res, next) ->
+  if !req.isAuthenticated()
+    return res.status(401).json({ message: 'Not authenticated' })
+  res.json({ session: req.session })
+
 router.post '/logout', (req, res, next) ->
     username = if req.user then req.user.username else ""
     createAuthAudit(req, 'LOGOUT', 'Logout', username)

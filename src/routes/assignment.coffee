@@ -72,6 +72,8 @@ router.post '/bulk', (req, res, next) ->
   updated = 0
 
   async.eachSeries items, (item, next) ->
+    item.assigned_by_user = req.user._id
+    item.assigned_by_username = req.user.username
     if !item.uid or !item.product or !item.type
       return next()
     Assignment.find({ product: item.product, type: item.type, uid: item.uid, state: 'OPEN' })
@@ -131,7 +133,11 @@ router.post '/followup', (req, res, next) ->
     res.status(400)
     return res.json {error: "ids array is required"}
 
-  Assignment.find({ _id: { $in: req.body.ids }, state: 'OPEN' })
+  followupQuery = { _id: { $in: req.body.ids }, state: 'OPEN' }
+  if req.user.role != 'admin'
+    followupQuery.assigned_by_user = req.user._id
+
+  Assignment.find(followupQuery)
   .exec (err, assignments) ->
     if err then return next(err)
     if !assignments or assignments.length == 0
@@ -190,6 +196,9 @@ router.post '/',  (req, res, next) ->
   if (!AccessControl.canAccessCreateAny(req.user.role,component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
 
+  req.body.assigned_by_user = req.user._id
+  req.body.assigned_by_username = req.user.username
+
   if(!req.body.user && !req.body.username)
     res.status(400)
     return res.json ({error: "key user or username is requried"})
@@ -210,34 +219,34 @@ router.post '/',  (req, res, next) ->
             assignment.save (err, rs) ->
               if err
                 return next(err)
+              res.json rs
               send_assignment_email(req,res,req.body,rs)
               registerAudit(req,res,"Change Assignment to " + req.body.username, "ASSIGN")
-              res.json rs
           else
             new Assignment(req.body).save((err, rs) ->
               if err
                 return next(err)
+              res.json rs
               send_assignment_email(req,res,req.body,rs)
               registerAudit(req,res,"Assign to " + req.body.username, "ASSIGN")
-              res.json rs
             )
           )
       else
         new Assignment(req.body).save((err, rs) ->
             if err
               return next(err)
+            res.json rs
             send_assignment_email(req,res,req.body,rs)
             registerAudit(req,res,"Assign to " + req.body.username, "ASSIGN")
-            res.json rs
           )
       )
   else if (req.body.product)
     new Assignment(req.body).save((err, rs) ->
         if err
           return next(err)
+        res.json rs
         send_assignment_email(req,res,req.body,rs)
         registerAudit(req,res,"Assign to" + req.body.username, "ASSIGN")
-        res.json rs
       )
   else
     res.status(400)

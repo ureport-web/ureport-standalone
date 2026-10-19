@@ -20,6 +20,7 @@ FEATURE_SERVER_URL = process.env.FEATURE_SERVER_URL or
 unless FEATURE_SERVER_URL
   logger.warn '[plugins] FEATURE_SERVER_URL not set — plugin install endpoint will be unavailable'
 PLUGINS_DIR = path.resolve(__dirname, '../../plugins')
+AGENT_DIR   = path.resolve(__dirname, '../../agent')
 
 upload = multer({
   dest: os.tmpdir(),
@@ -244,6 +245,28 @@ router.post '/:name/upload', upload.single('bundle'), (req, res) ->
     fs.unlink tarPath, ->
     logger.error "[plugin] upload extract failed for #{name}:", err.message
     res.status(500).json({ error: 'Failed to extract bundle: ' + err.message })
+
+###
+ * GET /api/plugins/agent/download
+ * GET /api/plugins/agent/download/zip
+ * Serves ureport-agent bundles from the local ./agent/ directory.
+ * No license gate — available to all authenticated users.
+ * Place ureport-agent.tar.gz / ureport-agent.zip in the agent/ folder next to plugins/.
+###
+serveAgentFile = (res, filename) ->
+  filePath = path.join(AGENT_DIR, filename)
+  unless fs.existsSync(filePath)
+    return res.status(404).json({ error: "Agent bundle not found. Place #{filename} in the agent/ directory." })
+  res.download filePath, filename, (err) ->
+    if err and not res.headersSent
+      logger.error '[agent] download error:', err.message
+      res.status(500).json({ error: 'Failed to send agent bundle' })
+
+router.get '/agent/download', (req, res) ->
+  serveAgentFile(res, 'ureport-agent.tar.gz')
+
+router.get '/agent/download/zip', (req, res) ->
+  serveAgentFile(res, 'ureport-agent.zip')
 
 # POST /api/plugins/:name/load — hot-load a plugin already on disk (first install only)
 router.post '/:name/load', (req, res) ->

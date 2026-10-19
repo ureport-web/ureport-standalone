@@ -25,6 +25,8 @@ assignmentSchema = new Schema(
 	failure: { type: Schema.Types.Mixed,required: true }
 	test_url: String
 	assign_at: { type: Date, default: Date.now },
+	assigned_by_user: Schema.Types.ObjectId
+	assigned_by_username: String
 	comments: [Schema({
 		userId: Schema.Types.ObjectId,
 		user: String,
@@ -54,6 +56,10 @@ assignmentSchema.statics.appendAssignment = (assignment, payload) ->
 			assignment.username = payload.username
 		if(payload.user)
 			assignment.user = payload.user
+		if(payload.assigned_by_user)
+			assignment.assigned_by_user = payload.assigned_by_user
+		if(payload.assigned_by_username)
+			assignment.assigned_by_username = payload.assigned_by_username
 		if(payload.assign_at)
 			assignment.assign_at = payload.assign_at
 		else

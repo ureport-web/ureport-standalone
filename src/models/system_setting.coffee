@@ -21,6 +21,9 @@ systemSettingSchema = new Schema(
 	audit_retention_days: { type: Number, default: 90 },
 	# Shape defined by the SSO plugin — see plugins/sso/index.js
 	sso: Schema.Types.Mixed,
+	# Shape defined by the auto-heal plugin — see plugins/auto-heal/index.js
+	# { tokens: [{ hash, name, created_at, last_connected_at }], ...future settings }
+	heal_agent: Schema.Types.Mixed,
 )
 
 systemSettingSchema.statics.updateSetting = (setting, payload) ->

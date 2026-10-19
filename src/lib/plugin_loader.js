@@ -10,6 +10,8 @@ let _app = null
 let _db = null
 const _loaded = new Set()
 const _versions = {}
+const _serverReadyCallbacks = []
+let _server = null
 
 function init(app, db) {
   _app = app
@@ -47,6 +49,13 @@ function loadPlugin(name) {
             logger.warn(`[plugin] ${name} skipped — feature not licensed`)
           }
         })
+      },
+      onServerReady: (cb) => {
+        if (_server) {
+          cb(_server)
+        } else {
+          _serverReadyCallbacks.push(cb)
+        }
       }
     }
     plugin(_app, _db, guardedHooks)
@@ -71,9 +80,14 @@ function loadAll() {
   }
 }
 
+function setServer(server) {
+  _server = server
+  _serverReadyCallbacks.splice(0).forEach(cb => cb(server))
+}
+
 function isLoaded(name) { return _loaded.has(name) }
 function listLoaded() {
   return Array.from(_loaded).map(name => ({ name, version: _versions[name] || '0.0.0' }))
 }
 
-module.exports = { init, loadPlugin, loadAll, isLoaded, listLoaded }
+module.exports = { init, loadPlugin, loadAll, isLoaded, listLoaded, setServer }

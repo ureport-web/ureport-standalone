@@ -26,6 +26,7 @@ quarantinedTestSchema = new Schema(
   is_active: { type: Boolean, default: true },
   is_exempt: { type: Boolean, default: false },
   resolved_at: { type: Date, default: null },
+  cycle: { type: Number, default: 1 },
   scope: {
     version:          { type: String, default: '' },
     team:             { type: String, default: '' },

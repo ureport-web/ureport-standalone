@@ -91,6 +91,21 @@ router.post '/search', (req, res, next) ->
         res.json users
     );
 
+router.post '/by-ids', (req, res, next) ->
+  if (!AccessControl.canAccessReadAny(req.user.role, component))
+    return res.status(403).json({"error": "You don't have permission to perform this action"})
+
+  ids = req.body.ids
+  if (!ids || !Array.isArray(ids) || ids.length == 0)
+    return res.json []
+
+  User.find({ _id: { $in: ids } }, { password: 0, apiToken: 0 })
+  .exec((err, users) ->
+    if err
+      return next(err)
+    res.json users
+  )
+
 # update user
 router.put '/update/:username',  (req, res, next) ->
   if(!AccessControl.canAccessUpdateAny(req.user.role, component))

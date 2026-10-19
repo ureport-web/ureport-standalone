@@ -246,6 +246,7 @@ router.post '/status/calculate/:id',  (req, res, next) ->
 
           if foundBuild
             foundBuild.status = rs
+            foundBuild.prev_end_time = foundBuild.end_time  # save previous run's end_time before overwriting
             foundBuild.end_time = Date.now()
             foundBuild.save (err, sbuild) ->
               if err
