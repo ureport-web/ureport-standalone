@@ -48,7 +48,7 @@ if (config !== undefined) {
     process.env.FEATURE_SERVER_URL ||
     (config.has("FEATURE_SERVER_URL") ? config.get("FEATURE_SERVER_URL") : "https://features.ureportlab.com");
   app.get("/", (req, res) => {
-    const html = fs
+    const html = require("fs")
       .readFileSync(path.join(__dirname, "public/index.html"), "utf8")
       .replace(/\{\{FEATURE_SERVER_URL\}\}/g, FEATURE_SERVER_URL);
     res.send(html);
