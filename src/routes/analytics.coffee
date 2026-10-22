@@ -10,7 +10,7 @@ ANALYTICS_CACHE_TTL = 2 * 60 * 60  # 2 hours in seconds
 toMatch = (val) -> if Array.isArray(val) then { $in: val } else val
 
 buildMatchFromBody = (body, sinceDate) ->
-  { product, type, team, version, browser, device, platform, platform_version, stage } = body
+  { product, type, team, version, browser, device, platform, platform_version, stage, extras } = body
   match = { product, type, is_archive: false, start_time: { $gte: sinceDate } }
   if team then match.team = toMatch(team)
   if version then match.version = toMatch(version)
@@ -19,6 +19,9 @@ buildMatchFromBody = (body, sinceDate) ->
   if platform then match.platform = toMatch(platform)
   if platform_version then match.platform_version = toMatch(platform_version)
   if stage then match.stage = toMatch(stage)
+  if extras
+    for k, v of extras
+      match["extras.#{k}"] = v
   match
 
 router.post '/top-failures', (req, res, next) ->
@@ -94,7 +97,7 @@ router.post '/pass-rate-history', (req, res, next) ->
     { $match: buildMatch },
     { $sort: { start_time: -1 } },
     { $group: {
-      _id: { product: '$product', type: '$type', team: '$team', version: '$version', browser: '$browser', device: '$device', platform: '$platform', platform_version: '$platform_version', stage: '$stage' },
+      _id: { product: '$product', type: '$type', team: '$team', version: '$version', browser: '$browser', device: '$device', platform: '$platform', platform_version: '$platform_version', stage: '$stage', extras: '$extras' },
       entries: { $push: { build: '$build', start_time: '$start_time', pass: '$status.pass', total: '$status.total' } }
     }},
     { $project: { entries: { $slice: ['$entries', lim] } } },
@@ -142,7 +145,7 @@ router.post '/build-duration-history', (req, res, next) ->
     { $match: buildMatch },
     { $sort: { start_time: -1 } },
     { $group: {
-      _id: { product: '$product', type: '$type', team: '$team', version: '$version', browser: '$browser', device: '$device', platform: '$platform', platform_version: '$platform_version', stage: '$stage' },
+      _id: { product: '$product', type: '$type', team: '$team', version: '$version', browser: '$browser', device: '$device', platform: '$platform', platform_version: '$platform_version', stage: '$stage', extras: '$extras' },
       entries: { $push: { build: '$build', start_time: '$start_time', end_time: '$end_time' } }
     }},
     { $project: { entries: { $slice: ['$entries', lim] } } },
@@ -185,49 +188,89 @@ parseSinceDuration = (since) ->
   return new Date(since)
 
 router.post '/global-top-failures', (req, res, next) ->
-  { since, limit = 10 } = req.body
+  { since, limit = 20 } = req.body
   cacheKey = "analytics:top-failures:#{since}:#{limit}"
+  MIN_RUNS  = 3   # minimum runs to be eligible
+  LANE_CAP  = 5   # max results per product:type lane
 
   cache.get cacheKey, (err, cached) ->
     if cached then return res.json cached
 
-    sinceDate = parseSinceDuration(since)
-    lim = parseInt(limit)
+    sinceDate  = parseSinceDuration(since)
+    lim        = parseInt(limit)
+    fetchLimit = Math.min(lim * 20, 500)
 
     Build.find({ start_time: { $gte: sinceDate }, is_archive: false })
     .sort({ start_time: -1 }).limit(1000)
-    .select('_id product type').lean().exec (err, builds) ->
+    .select('_id product type stage platform platform_version team browser device extras').lean().exec (err, builds) ->
       if err then return next(err)
       if builds.length is 0 then return res.json []
 
       buildMap = {}
       buildIds = builds.map (b) ->
-        buildMap[b._id.toString()] = { product: b.product, type: b.type }
+        buildMap[b._id.toString()] = {
+          product: b.product, type: b.type,
+          stage: b.stage, platform: b.platform, platform_version: b.platform_version,
+          team: b.team, browser: b.browser, device: b.device, extras: b.extras
+        }
         b._id
 
       Test.aggregate([
-        { $match: { build: { $in: buildIds }, status: 'FAIL', is_rerun: false } },
+        { $match: { build: { $in: buildIds } } }
+        { $sort: { is_rerun: -1, start_time: -1 } }
         { $group: {
-          _id: '$uid',
-          name: { $first: '$name' },
-          failCount: { $sum: 1 },
-          lastFailedAt: { $max: '$start_time' },
-          lastBuild: { $last: '$build' }
-        }},
-        { $sort: { failCount: -1 } },
-        { $limit: lim }
+          _id: { build: '$build', uid: '$uid' }
+          status:     { $first: '$status' }
+          name:       { $first: '$name' }
+          start_time: { $first: '$start_time' }
+        }}
+        { $group: {
+          _id: '$_id.uid'
+          name:      { $first: '$name' }
+          totalRuns: { $sum: 1 }
+          failCount: { $sum: { $cond: [{ $in: ['$status', ['FAIL', 'RERUN_FAIL']] }, 1, 0] } }
+          lastFailedAt: { $max: { $cond: [{ $in: ['$status', ['FAIL', 'RERUN_FAIL']] }, '$start_time', null] } }
+          lastBuild: { $first: '$_id.build' }
+        }}
+        { $match: { failCount: { $gte: MIN_RUNS } } }
+        { $sort: { failCount: -1 } }
+        { $limit: fetchLimit }
       ]).exec (err, results) ->
         if err then return next(err)
 
-        data = results.map (r) ->
+        # Sort by fail rate descending
+        candidates = results
+          .map((r) -> Object.assign({}, r, { failRate: r.failCount / r.totalRuns }))
+          .sort((a, b) -> b.failRate - a.failRate)
+
+        # Apply per product:type lane cap
+        laneCount = {}
+        final = []
+        for r in candidates
+          break if final.length >= lim
+          lane = buildMap[r.lastBuild?.toString()] or {}
+          key = (lane.product or '') + ':' + (lane.type or '')
+          laneCount[key] = (laneCount[key] or 0) + 1
+          final.push(r) if laneCount[key] <= LANE_CAP
+
+        data = final.map (r) ->
           lane = buildMap[r.lastBuild?.toString()] or {}
           {
-            test_uid: r._id
-            test_name: r.name
-            product: lane.product or ''
-            type: lane.type or ''
-            fail_count: r.failCount
-            last_failed: r.lastFailedAt
+            test_uid:         r._id
+            test_name:        r.name
+            product:          lane.product or ''
+            type:             lane.type or ''
+            stage:            lane.stage or undefined
+            platform:         lane.platform or undefined
+            platform_version: lane.platform_version or undefined
+            team:             lane.team or undefined
+            browser:          lane.browser or undefined
+            device:           lane.device or undefined
+            extras:           lane.extras or undefined
+            fail_count:       r.failCount
+            total_runs:       r.totalRuns
+            fail_rate:        Math.round(r.failRate * 1000) / 10
+            last_failed:      r.lastFailedAt
           }
 
         cache.set cacheKey, data, ANALYTICS_CACHE_TTL

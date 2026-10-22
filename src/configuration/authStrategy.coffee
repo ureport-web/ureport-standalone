@@ -7,10 +7,11 @@ User = require('../models/user')
 # configure passport.js to use the local strategy
 passport.use new LocalStrategy {usernameField: 'username'}, (username, password, done) ->
   User.findByName username, (user) ->
-    if (!user) 
+    if (!user)
       return done(null, false, { message: 'Invalid username.'})
-    else
-      bcrypt.compare password, user.password, (err, result) -> 
+    if (user.has_password == false)
+      return done(null, false, { message: 'This account uses SSO — log in with your identity provider.' })
+    bcrypt.compare password, user.password, (err, result) ->
           if (result)
             return done(null, user);
           else

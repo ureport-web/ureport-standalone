@@ -17,12 +17,27 @@
     <link rel="canonical" href="https://ureportlab.com/" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://ureportlab.com/" />
-    <meta property="og:title" content="UReport — Test Automation Reporting & Analytics Platform" />
-    <meta property="og:description" content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis, dashboards and CI/CD integration. Works with Playwright, pytest, Jest and more." />
-    <meta property="og:image" content="https://ureportlab.com/assets/og-image.png" />
+    <meta
+      property="og:title"
+      content="UReport — Test Automation Reporting & Analytics Platform"
+    />
+    <meta
+      property="og:description"
+      content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis, dashboards and CI/CD integration. Works with Playwright, pytest, Jest and more."
+    />
+    <meta
+      property="og:image"
+      content="https://ureportlab.com/assets/og-image.png"
+    />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="UReport — Test Automation Reporting & Analytics Platform" />
-    <meta name="twitter:description" content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis, dashboards and CI/CD integration." />
+    <meta
+      name="twitter:title"
+      content="UReport — Test Automation Reporting & Analytics Platform"
+    />
+    <meta
+      name="twitter:description"
+      content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis, dashboards and CI/CD integration."
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -1867,6 +1882,8 @@
       }
       .pricing-grid--4 {
         grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: auto auto auto 1fr auto auto;
+        row-gap: 0;
       }
       .pricing-card {
         border: 1px solid var(--border);
@@ -1874,8 +1891,10 @@
         padding: 1.75rem;
         background: #fff;
         position: relative;
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-row: span 6;
+        grid-template-rows: subgrid;
+        align-items: start;
       }
       .pricing-tier {
         font-size: 12px;
@@ -3717,7 +3736,7 @@ reporter: [
               >GitHub</a
             >
             <a href="/docs">Docs</a>
-            <a href="/contact">Contact</a>
+            <a href="https://features.ureportlab.com/contact">Contact</a>
           </div>
           <div class="footer-copy">
             © 2026 UReport — Core platform MIT licensed · Premium plugins

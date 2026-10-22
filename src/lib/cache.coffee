@@ -113,7 +113,7 @@ module.exports =
       catch err
         logger.warn '[cache] node-cache get error:', err.message
         cb(null, null)
-    if _redis
+    if _redis and _redis.status is 'ready'
       _redis.get key, (err, val) ->
         if err
           logger.warn '[cache] get error (using in-process):', err.message
@@ -128,7 +128,7 @@ module.exports =
         _nodeCache.set(key, value, ttlSeconds)
       catch err
         logger.warn '[cache] node-cache set error:', err.message
-    if _redis
+    if _redis and _redis.status is 'ready'
       _redis.set key, JSON.stringify(value), 'EX', ttlSeconds, (err) ->
         if err
           logger.warn '[cache] set error (using in-process):', err.message
@@ -142,7 +142,7 @@ module.exports =
         _nodeCache.del(key)
       catch err
         logger.warn '[cache] node-cache del error:', err.message
-    if _redis
+    if _redis and _redis.status is 'ready'
       _redis.del key, (err) ->
         if err
           logger.warn '[cache] del error (using in-process):', err.message

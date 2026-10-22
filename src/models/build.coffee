@@ -48,6 +48,11 @@ buildSchema = new Schema(
   	},
 	start_time: { type: Date, default: Date.now },
 	end_time: Date,
+	# Stores the end_time of the previous run before it gets overwritten on each finish.
+	# Used by the notification plugin to scope test queries to the current run only.
+	# Without this, multiple CI runs sharing the same build document (same product/type/build_number)
+	# would cause notifications to re-trigger on failing tests from earlier runs.
+	prev_end_time: Date,
 	owner: String,
 	is_archive: { type: Boolean, default: false},
 	status: {
@@ -61,6 +66,10 @@ buildSchema = new Schema(
 	settings: { 
 		type: Schema.Types.Mixed, 
 		default: { 'default': "default"}
+	},
+	extras: {
+		type: Map,
+		of: String
 	},
 	# if client exists, we map the settings and environments to the clients
 	outages: [],
@@ -108,6 +117,12 @@ buildSchema.statics.initBuild = (payload) ->
 	if(payload.stage)
 		newBuildPayload.stage = payload.stage
 
+	if(payload.extras and Object.keys(payload.extras).length > 0)
+		sorted = {}
+		for k in Object.keys(payload.extras).sort()
+			sorted[k] = payload.extras[k]
+		newBuildPayload.extras = sorted
+
 	if(payload.is_archive)
 		newBuildPayload.is_archive = payload.is_archive
 
@@ -154,6 +169,12 @@ buildSchema.statics.updateAttributes = (build, payload) ->
 			build.comments = payload.comments
 		if(payload.outages)
 			build.outages = payload.outages
+		if(payload.extras and Object.keys(payload.extras).length > 0)
+			sorted = {}
+			for k in Object.keys(payload.extras).sort()
+				sorted[k] = payload.extras[k]
+			build.extras = sorted
+			build.markModified('extras')
 		if(payload.client)
 			if(payload.settings)
 				build.settings[payload.client] = payload.settings

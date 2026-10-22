@@ -28,20 +28,22 @@ mongoose.set('useCreateIndex', true);
 mongoose.Promise = global.Promise;
 
 # add & configure middleware
+SESSION_TTL_DAYS = 7
+
 module.exports =  session({
     genid: (req) -> return uuid(),
     secret: 'uReport',
-    resave: true,
+    resave: false,
     rolling: true,
     saveUninitialized: false,
     store: new MongoStore({
       mongooseConnection: mongoose.connection,
       collection: 'sessions',
-      # clear_interval: 1*60 #In seconds -> 1 minutes (works even when commented)
-      #  autoRemove: 'interval',
+      ttl: SESSION_TTL_DAYS * 24 * 60 * 60,  # explicit TTL in seconds — must match cookie maxAge
+      touchAfter: 24 * 60 * 60,              # only update session in DB once per 24h (rolling still resets cookie)
     }),
     cookie: {
-        maxAge: 7 * 24 * 60 * 60 * 1000, # 7 days
+        maxAge: SESSION_TTL_DAYS * 24 * 60 * 60 * 1000,
         httpOnly: true,
         secure: process.env.NODE_ENV == 'production',
         sameSite: 'lax',

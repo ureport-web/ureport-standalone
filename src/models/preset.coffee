@@ -12,6 +12,7 @@ laneSchema = new Schema(
     team:             { type: String }
     stage:            { type: String }
     device:           { type: String }
+    extras:           { type: Map, of: String }
   }
   { _id: false }
 )

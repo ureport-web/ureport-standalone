@@ -25,6 +25,8 @@ assignmentSchema = new Schema(
 	failure: { type: Schema.Types.Mixed,required: true }
 	test_url: String
 	assign_at: { type: Date, default: Date.now },
+	assigned_by_user: Schema.Types.ObjectId
+	assigned_by_username: String
 	comments: [Schema({
 		userId: Schema.Types.ObjectId,
 		user: String,
@@ -54,6 +56,10 @@ assignmentSchema.statics.appendAssignment = (assignment, payload) ->
 			assignment.username = payload.username
 		if(payload.user)
 			assignment.user = payload.user
+		if(payload.assigned_by_user)
+			assignment.assigned_by_user = payload.assigned_by_user
+		if(payload.assigned_by_username)
+			assignment.assigned_by_username = payload.assigned_by_username
 		if(payload.assign_at)
 			assignment.assign_at = payload.assign_at
 		else
@@ -79,8 +85,8 @@ assignmentSchema.statics.hasSameFailure = (new_assignment, exist_assignment, cal
 	if(new_assignment.failure && exist_assignment.failure)
 		if(new_assignment.failure.token != null  && exist_assignment.failure.token != null )
 			callback(null, new_assignment.failure.token == exist_assignment.failure.token)
-		else if(new_assignment.failure.reason != null && exist_assignment.failure.reason != null )
-			callback(null,  new_assignment.failure.reason == exist_assignment.failure.reason)
+		else if(new_assignment.failure.error_message != null && exist_assignment.failure.error_message != null )
+			callback(null,  new_assignment.failure.error_message == exist_assignment.failure.error_message)
 		else
 			callback(null, false)
 	else

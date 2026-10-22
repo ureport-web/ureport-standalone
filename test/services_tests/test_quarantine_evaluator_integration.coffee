@@ -5,11 +5,12 @@ chai      = require('chai')
 should    = chai.should()
 ObjectId  = mongoose.Types.ObjectId
 
-Build          = require('../../src/models/build')
-Test           = require('../../src/models/test')
-Setting        = require('../../src/models/setting')
-QuarantinedTest = require('../../src/models/quarantined_test')
-evaluator      = require('../../src/utils/quarantine_evaluator')
+Build            = require('../../src/models/build')
+Test             = require('../../src/models/test')
+Setting          = require('../../src/models/setting')
+QuarantinedTest  = require('../../src/models/quarantined_test')
+QuarantineHistory = require('../../src/models/quarantine_history')
+evaluator        = require('../../src/utils/quarantine_evaluator')
 
 PRODUCT = 'q-test-product'
 TYPE    = 'q-test-type'
@@ -171,6 +172,7 @@ describe 'evaluateQuarantineRules — integration', ->
           doc.fail_snapshot.should.equal 5
           doc.build_snapshot.should.equal 20
           doc.is_active.should.equal true
+          doc.cycle.should.equal 1
           done()
       , 1500
       return
@@ -483,6 +485,7 @@ describe 'evaluateQuarantineRules — integration', ->
         Build.deleteMany({ product: PRODUCT, type: TYPE_RESOLVE }).exec()
         Test.deleteMany({ build: { $in: [resCurrentId].concat(resPrevIds) } }).exec()
         QuarantinedTest.deleteMany({ product: PRODUCT, type: TYPE_RESOLVE }).exec()
+        QuarantineHistory.deleteMany({ product: PRODUCT, type: TYPE_RESOLVE }).exec()
         Setting.deleteMany({ product: PRODUCT, type: TYPE_RESOLVE }).exec()
       ]).then(-> done()).catch(done)
       return
@@ -496,6 +499,21 @@ describe 'evaluateQuarantineRules — integration', ->
           doc.should.not.be.null
           doc.is_active.should.equal false
           should.exist doc.resolved_at
+          done()
+      , 1500
+      return
+
+    it 'writes a QuarantineHistory record on auto-resolve with resolved_by=auto', (done) ->
+      @timeout(5000)
+      evaluator.evaluateQuarantineRules(resCurrent)
+      setTimeout ->
+        QuarantineHistory.findOne({ uid: 'uid-resolve', product: PRODUCT, type: TYPE_RESOLVE }).exec (err, hist) ->
+          return done(err) if err
+          hist.should.not.be.null
+          hist.resolved_by.should.equal 'auto'
+          hist.cycle.should.equal 1
+          should.exist hist.quarantined_at
+          should.exist hist.resolved_at
           done()
       , 1500
       return
@@ -570,6 +588,7 @@ describe 'evaluateQuarantineRules — integration', ->
           doc.is_active.should.equal true
           doc.scope.stage.should.equal 'regression'
           doc.scope.version.should.equal ''
+          doc.scope.extras_key.should.equal ''
           done()
       , 1500
       return
@@ -578,7 +597,9 @@ describe 'evaluateQuarantineRules — integration', ->
       @timeout(3000)
       QuarantinedTest.findOne({
         uid: 'uid-scoped', product: PRODUCT, type: TYPE_SCOPED,
-        scope: { version: '', team: '', browser: '', device: '', platform: '', platform_version: '', stage: 'smoke' }
+        'scope.version': '', 'scope.team': '', 'scope.browser': '', 'scope.device': '',
+        'scope.platform': '', 'scope.platform_version': '', 'scope.stage': 'smoke',
+        'scope.extras_key': ''
       }).exec (err, doc) ->
         return done(err) if err
         should.not.exist doc
@@ -609,7 +630,9 @@ describe 'evaluateQuarantineRules — integration', ->
             # No QuarantinedTest with scope.stage='smoke' should exist
             QuarantinedTest.findOne({
               uid: 'uid-scoped', product: PRODUCT, type: TYPE_SCOPED,
-              scope: { version: '', team: '', browser: '', device: '', platform: '', platform_version: '', stage: 'smoke' }
+              'scope.version': '', 'scope.team': '', 'scope.browser': '', 'scope.device': '',
+              'scope.platform': '', 'scope.platform_version': '', 'scope.stage': 'smoke',
+              'scope.extras_key': ''
             }).exec (qErr, doc) ->
               return done(qErr) if qErr
               should.not.exist doc

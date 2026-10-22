@@ -16,7 +16,7 @@ Built for teams adopting AI-driven QA workflows, uReport helps organizations red
 
 Free and open-source.
 
-**Live demo:** https://ureport-standalone.onrender.com/nextgen/
+**Live demo:** https://ureportlab.com/ | **Docs:** https://ureportlab.com/docs/
 
 ## 🚀 How it solves it
 
@@ -69,7 +69,7 @@ docker-compose up --build
 5. Run `npm start`.
 6. Open `http://localhost:4100` in your browser.
 
-Default credentials: **admin / 1234**
+Default credentials: **admin / changeme** (override with `ADMIN_PASSWORD` env var)
 
 ---
 
@@ -79,7 +79,7 @@ Send your first results with an official reporter — see [Sending Test Data](#s
 
 ```
   Playwright / Jest / pytest
-         │  (POST /api/builds, /api/tests)
+         │  (POST /api/build, /api/test/multi)
          ▼
   ┌─────────────────────────┐
   │   Express server        │
@@ -137,24 +137,24 @@ ureport ships a built-in [Model Context Protocol](https://modelcontextprotocol.i
 
 **Available tools:**
 
-| Tool                  | Description                                                                                        |
-| --------------------- | -------------------------------------------------------------------------------------------------- |
-| `list_presets`        | List all saved presets — call this first to discover valid preset names                            |
-| `list_builds`         | List recent builds matching a saved preset                                                         |
-| `search_builds`       | List recent builds using explicit filters (product, type, platform, team, browser, etc.)           |
-| `get_statistics`      | Pass/fail stats and pass rate trends for builds matching a preset                                  |
-| `search_statistics`   | Pass/fail stats using explicit filters                                                             |
-| `get_relation_fields` | Discover available tags, components, teams, and custom fields before using `get_tests`             |
-| `get_tests`           | Get individual test results with rich filtering: status, name, tag, partner code, XRAY ID, etc.   |
+| Tool                  | Description                                                                                     |
+| --------------------- | ----------------------------------------------------------------------------------------------- |
+| `list_presets`        | List all saved presets — call this first to discover valid preset names                         |
+| `list_builds`         | List recent builds matching a saved preset                                                      |
+| `search_builds`       | List recent builds using explicit filters (product, type, platform, team, browser, etc.)        |
+| `get_statistics`      | Pass/fail stats and pass rate trends for builds matching a preset                               |
+| `search_statistics`   | Pass/fail stats using explicit filters                                                          |
+| `get_relation_fields` | Discover available tags, components, teams, and custom fields before using `get_tests`          |
+| `get_tests`           | Get individual test results with rich filtering: status, name, tag, partner code, XRAY ID, etc. |
 
 **Example prompts:**
 
-- *"Show me the latest nightly build results"*
-- *"What's the pass rate trend over the last 20 builds for the PythonAPI preset?"*
-- *"Find all failing tests for partner code AC in the latest nightly run"*
-- *"Search for XRAY-768 across all tests"*
-- *"Show me tests tagged with Payment Auth/Capture that failed on Safari"*
-- *"Which builds have more than 5 failures today?"*
+- _"Show me the latest nightly build results"_
+- _"What's the pass rate trend over the last 20 builds for the PythonAPI preset?"_
+- _"Find all failing tests for partner code AC in the latest nightly run"_
+- _"Search for XRAY-768 across all tests"_
+- _"Show me tests tagged with Payment Auth/Capture that failed on Safari"_
+- _"Which builds have more than 5 failures today?"_
 
 **Setup:** point your MCP client at `POST <ureport-backend-url>/mcp`. See [`docs/mcp.md`](docs/mcp.md) for full tool reference, connection config, and query examples.
 
@@ -218,11 +218,11 @@ Top-level view of all test execution lanes grouped by product, showing live pass
 
 ### Server / DB
 
-| Key        | Description                                                    | Default                       |
-| ---------- | -------------------------------------------------------------- | ----------------------------- |
-| `DBHost`   | MongoDB connection string (env var overrides config file)      | `mongodb://localhost/ureport` |
-| `PORT`     | HTTP port the server listens on                                | `4100`                        |
-| `NODE_ENV` | Runtime environment (`dev` / `production` / `docker`)         | `dev`                         |
+| Key        | Description                                               | Default                       |
+| ---------- | --------------------------------------------------------- | ----------------------------- |
+| `DBHost`   | MongoDB connection string (env var overrides config file) | `mongodb://localhost/ureport` |
+| `PORT`     | HTTP port the server listens on                           | `4100`                        |
+| `NODE_ENV` | Runtime environment (`dev` / `production` / `docker`)     | `dev`                         |
 
 **Development:** edit `config/dev.json`.
 
@@ -236,21 +236,23 @@ By default the server uses an **in-process cache** (`node-cache`) — no setup n
 
 **Option A — Redis / Valkey URL** (simplest):
 
-| Variable | Example | Notes |
-| --- | --- | --- |
-| `REDIS_URL` | `redis://localhost:6379` | Standard Redis URL |
+| Variable     | Example                   | Notes                                           |
+| ------------ | ------------------------- | ----------------------------------------------- |
+| `REDIS_URL`  | `redis://localhost:6379`  | Standard Redis URL                              |
 | `VALKEY_URL` | `valkey://localhost:6379` | Valkey URL (converted internally to `redis://`) |
 
 Set one of these as an environment variable or in `.env` (Docker) / `config/dev.json` (bare metal).
 
 **Option B — AWS ElastiCache (Valkey) with IAM auth**:
 
-| Variable | Description |
-| --- | --- |
-| `VALKEY_PRIMARY_ENDPOINT` | ElastiCache primary endpoint hostname |
-| `VALKEY_USER` | IAM-enabled Valkey user |
-| `VALKEY_REPLICATION_GROUP` | Replication group ID (used in SigV4 token) |
-| `AWS_REGION` | AWS region (default: `us-east-1`) |
+| Variable                   | Description                                      |
+| -------------------------- | ------------------------------------------------ |
+| `VALKEY_PRIMARY_ENDPOINT`  | ElastiCache primary endpoint hostname            |
+| `VALKEY_USER`              | IAM-enabled Valkey user                          |
+| `VALKEY_REPLICATION_GROUP` | Replication group ID (used in SigV4 token)       |
+| `AWS_REGION`               | AWS region (default: `us-east-1`) — env var only |
+
+`VALKEY_PRIMARY_ENDPOINT`, `VALKEY_USER`, and `VALKEY_REPLICATION_GROUP` can be set as environment variables or in `.env` (Docker) / `config/production.json` (bare metal). `AWS_REGION` must be an environment variable.
 
 When all three Valkey vars are set, the server authenticates via SigV4 presigned tokens and rotates them automatically every 12 minutes.
 
@@ -258,24 +260,21 @@ When all three Valkey vars are set, the server authenticates via SigV4 presigned
 
 ---
 
-### Seed / init credentials (Docker only)
+### Seed / init credentials
 
-These env vars are read by `initialize.js` at first startup when the DB is empty:
+These env vars are read by `initialize.js` on first run when the DB is empty:
 
-| Variable         | Default              |
-| ---------------- | -------------------- |
-| `ADMIN_EMAIL`    | `admin@example.com`  |
-| `ADMIN_PASSWORD` | `changeme`           |
-| `DEMO_PASSWORD`  | `1234`               |
+| Variable         | Default             |
+| ---------------- | ------------------- |
+| `ADMIN_EMAIL`    | `admin@example.com` |
+| `ADMIN_PASSWORD` | `changeme`          |
+| `DEMO_PASSWORD`  | `1234`              |
 
-Set them in `.env` (copy from `.env.example`) before the first `docker-compose up`.
+**Docker:** set them in `.env` (copy from `.env.example`) before the first `docker-compose up`.
+
+**Bare metal:** defaults apply automatically — no extra config needed. To override, export the env vars before running `npm run initialize`.
 
 ## Sending Test Data
-
-UReport stores test results in two collections:
-
-- **Build** — represents a single execution (e.g. a CI build). Holds metadata like build number, product, and environment.
-- **Test** — represents an individual test case that belongs to a Build.
 
 **Official reporters:**
 
@@ -297,12 +296,10 @@ Most endpoints require either a session cookie (browser login) or an `Authorizat
 
 ## npm Scripts
 
-| Script               | Description                                                          |
-| -------------------- | -------------------------------------------------------------------- |
-| `npm start`          | Start the server                                                     |
-| `npm run initialize` | Seed the database (admin user, system settings, dashboard templates) |
-| `npm run seed`       | Generate sample data                                                 |
-| `npm test`           | Run the test suite                                                   |
+| Script               | Description                                                                  |
+| -------------------- | ---------------------------------------------------------------------------- |
+| `npm start`          | Start the server                                                             |
+| `npm run initialize` | Seed the database (admin + demo users, system settings, dashboard templates) |
 
 ## License
 

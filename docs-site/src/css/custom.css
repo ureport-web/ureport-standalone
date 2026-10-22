@@ -1,0 +1,217 @@
+/* ===========================================
+   UReport Docs — Docusaurus Theme Overrides
+   Matches the look of the in-app Angular docs
+   =========================================== */
+
+/* --- Brand colors (matches PrimeNG primary #1d9e75) --- */
+:root {
+  --ifm-color-primary: #1d9e75;
+  --ifm-color-primary-dark: #198a65;
+  --ifm-color-primary-darker: #167857;
+  --ifm-color-primary-darkest: #0f5940;
+  --ifm-color-primary-light: #22b284;
+  --ifm-color-primary-lighter: #27c693;
+  --ifm-color-primary-lightest: #44d4a9;
+
+  --ifm-code-font-size: 0.875rem;
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+  --ifm-font-size-base: 15px;
+  --ifm-line-height-base: 1.65;
+  --ifm-heading-font-weight: 700;
+  --ifm-navbar-height: 56px;
+  --ifm-sidebar-width: 220px;
+  --ifm-toc-border-color: var(--ifm-color-emphasis-200);
+  --docusaurus-highlighted-code-line-bg: rgba(29, 158, 117, 0.1);
+
+  /* Content max width — matches Angular help page 900px */
+  --ifm-container-width-xl: 1200px;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #27c693;
+  --ifm-color-primary-dark: #22b284;
+  --ifm-color-primary-darker: #1d9e75;
+  --ifm-color-primary-darkest: #167857;
+  --ifm-color-primary-light: #3dd4a3;
+  --ifm-color-primary-lighter: #52dab0;
+  --ifm-color-primary-lightest: #7de6c6;
+  --docusaurus-highlighted-code-line-bg: rgba(39, 198, 147, 0.15);
+  --ifm-background-color: #0f172a;
+  --ifm-background-surface-color: #1e293b;
+}
+
+/* --- Navbar --- */
+.navbar {
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  box-shadow: none;
+  font-weight: 600;
+}
+
+.navbar__title {
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+}
+
+/* --- Sidebar --- */
+.menu__link {
+  font-size: 0.875rem;
+  border-radius: 6px;
+}
+
+.menu__link--active {
+  font-weight: 600;
+}
+
+/* --- Article / content --- */
+article .markdown h1:first-child {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+/* h2: matches Angular .help-section h2 — colored left border-bottom */
+article .markdown > h2,
+.markdown h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--ifm-color-primary);
+  margin-top: 2.5rem;
+}
+
+article .markdown > h3,
+.markdown h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ifm-font-color-base);
+  margin-top: 1.75rem;
+}
+
+/* --- Code blocks — match Angular .code-block --- */
+.prism-code {
+  border-radius: 8px !important;
+  font-size: 0.85rem !important;
+}
+
+div[class*='codeBlockContainer'] {
+  border-radius: 8px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  overflow: hidden;
+}
+
+div[class*='codeBlockTitle'] {
+  background: var(--ifm-color-emphasis-100);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.4rem 1rem;
+  color: var(--ifm-color-emphasis-700);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+/* --- Admonitions — match Angular .info-box --- */
+.alert {
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.alert--warning {
+  --ifm-alert-background-color: #fff7ed;
+  --ifm-alert-border-color: #fed7aa;
+  --ifm-alert-foreground-color: #9a3412;
+}
+
+[data-theme='dark'] .alert--warning {
+  --ifm-alert-background-color: #431407;
+  --ifm-alert-border-color: #9a3412;
+  --ifm-alert-foreground-color: #fdba74;
+}
+
+.alert--info {
+  --ifm-alert-background-color: #ecfdf5;
+  --ifm-alert-border-color: #6ee7b7;
+  --ifm-alert-foreground-color: #065f46;
+}
+
+[data-theme='dark'] .alert--info {
+  --ifm-alert-background-color: #022c22;
+  --ifm-alert-border-color: #065f46;
+  --ifm-alert-foreground-color: #6ee7b7;
+}
+
+/* --- Tables — match Angular .help-table --- */
+table {
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+table th,
+table td {
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  text-align: left;
+}
+
+table th {
+  background: var(--ifm-color-emphasis-100);
+  font-weight: 600;
+}
+
+table tr:hover td {
+  background: var(--ifm-color-emphasis-100);
+}
+
+/* --- TOC (right side) --- */
+.table-of-contents__link {
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.table-of-contents__link--active,
+.table-of-contents__link:hover {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+/* --- Pagination nav --- */
+.pagination-nav__link {
+  border-radius: 8px;
+}
+
+/* --- Footer --- */
+.footer {
+  background: var(--ifm-color-emphasis-100);
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .footer {
+  background: #0f172a;
+}
+
+/* --- Inline code --- */
+code {
+  border-radius: 4px;
+  font-size: 0.85em;
+  padding: 0.15em 0.4em;
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-primary-darker);
+}
+
+[data-theme='dark'] code {
+  color: var(--ifm-color-primary-lighter);
+  background: rgba(39, 198, 147, 0.1);
+  border-color: rgba(39, 198, 147, 0.2);
+}
+
+/* Don't double-style code inside code blocks */
+.prism-code code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}

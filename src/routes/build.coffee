@@ -11,6 +11,7 @@ async = require("async")
 registerAudit = require('../utils/register_audit')
 AccessControl = require('../utils/ac_grants')
 { getLicenseState } = require('../utils/license')
+{ escapeRegex, safeRegex } = require('../utils/regex_utils')
 cache = require('../lib/cache')
 component = 'build'
 
@@ -29,20 +30,21 @@ hooks = require('../lib/plugin_hooks')
 router.get '/active-lanes', (req, res, next) ->
   days = parseInt(req.query.days) || 7
   sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+  extrasNorm = { $cond: { if: { $gt: [{ $size: { $ifNull: [{ $objectToArray: '$extras' }, []] } }, 0] }, then: '$extras', else: null } }
   Build.aggregate([
     { $match: { start_time: { $gte: sinceDate }, is_archive: false } },
     { $group: {
       _id: {
         product: '$product', type: '$type', team: '$team',
         browser: '$browser', device: '$device', platform: '$platform',
-        platform_version: '$platform_version', stage: '$stage'
+        platform_version: '$platform_version', stage: '$stage', extras: extrasNorm
       }
     }},
     { $project: {
       _id: 0,
       product: '$_id.product', type: '$_id.type', team: '$_id.team',
       browser: '$_id.browser', device: '$_id.device', platform: '$_id.platform',
-      platform_version: '$_id.platform_version', stage: '$_id.stage'
+      platform_version: '$_id.platform_version', stage: '$_id.stage', extras: '$_id.extras'
     }}
   ]).exec (err, lanes) ->
     if err then return next(err)
@@ -133,6 +135,7 @@ router.post '/',  (req, res, next) ->
         if(err)
           return next err
         cache.del "test:v2:#{foundBuild._id}"
+        cache.del "entity:others:#{foundBuild.product}:#{foundBuild.type}"
         res.json rs
       )
     else
@@ -142,6 +145,7 @@ router.post '/',  (req, res, next) ->
       foundBuild.save((err, rs) ->
         if err
           return next err
+        cache.del "entity:others:#{req.body.product}:#{req.body.type}"
         res.json rs
       )
   );
@@ -229,7 +233,7 @@ router.post '/status/calculate/:id',  (req, res, next) ->
 
       uidCols.forEach (item) ->
         if item.status
-          statusKey = item.status.toLowerCase()
+          statusKey = item.status.toLowerCase().replace('rerun_', '')
           rs[statusKey] = (rs[statusKey] or 0) + 1
           rs.total += 1
         if item.status == 'FAIL' or item.status == 'SKIP'
@@ -242,10 +246,12 @@ router.post '/status/calculate/:id',  (req, res, next) ->
 
           if foundBuild
             foundBuild.status = rs
+            foundBuild.prev_end_time = foundBuild.end_time  # save previous run's end_time before overwriting
             foundBuild.end_time = Date.now()
             foundBuild.save (err, sbuild) ->
               if err
                 return next err
+              cache.del "test:v2:#{foundBuild._id}"
               res.json {
                 status: rs,
                 end_time: foundBuild.end_time
@@ -275,6 +281,14 @@ router.post '/status/latest',  (req, res, next) ->
   if since
     matchQuery.start_time = { '$gte': new Date(since) }
 
+  normalizedExtras = {
+    $cond: {
+      if: { $gt: [{ $size: { $ifNull: [{ $objectToArray: "$extras" }, []] } }, 0] },
+      then: "$extras",
+      else: null
+    }
+  }
+
   Build.aggregate()
   .match(matchQuery)
   .sort({ start_time: 1 })
@@ -289,7 +303,8 @@ router.post '/status/latest',  (req, res, next) ->
         device: "$device",
         platform: "$platform",
         platform_version: "$platform_version",
-        stage: "$stage"
+        stage: "$stage",
+        extras: normalizedExtras
       },
       product: { $last: "$product"},
       type: { $last: "$type"},
@@ -457,6 +472,12 @@ router.post '/filter',  (req, res, next) ->
   if(req.body.stage)
     conditions.push({ $or : req.body.stage })
 
+  if(req.body.extras)
+    for k, v of req.body.extras
+      cond = {}
+      cond["extras.#{k}"] = v
+      conditions.push(cond)
+
   query = {
     $and : conditions
   }
@@ -527,43 +548,57 @@ router.post '/entity/recommend',  (req, res, next) ->
   }
 
   if(req.body.version)
+    if not safeRegex(String(req.body.version)) then return res.status(400).json {error: "Invalid regex in version"}
     query.version = { $regex: req.body.version, $options: 'i'}
 
   if(req.body.team)
+    if not safeRegex(String(req.body.team)) then return res.status(400).json {error: "Invalid regex in team"}
     query.team = { $regex: req.body.team, $options: 'i'}
 
   if(req.body.browser)
+    if not safeRegex(String(req.body.browser)) then return res.status(400).json {error: "Invalid regex in browser"}
     query.browser = { $regex: req.body.browser, $options: 'i'}
 
   if(req.body.device)
+    if not safeRegex(String(req.body.device)) then return res.status(400).json {error: "Invalid regex in device"}
     query.device = { $regex: req.body.device, $options: 'i'}
-  
+
   if(req.body.platform)
+    if not safeRegex(String(req.body.platform)) then return res.status(400).json {error: "Invalid regex in platform"}
     query.platform = { $regex: req.body.platform, $options: 'i'}
-  
+
   if(req.body.platform_version)
+    if not safeRegex(String(req.body.platform_version)) then return res.status(400).json {error: "Invalid regex in platform_version"}
     query.platform_version = { $regex: req.body.platform_version, $options: 'i'}
 
   if(req.body.stage)
+    if not safeRegex(String(req.body.stage)) then return res.status(400).json {error: "Invalid regex in stage"}
     query.stage = { $regex: req.body.stage, $options: 'i'}
 
-  Build.aggregate() 
+  if(req.body.extras)
+    for k, v of req.body.extras
+      query["extras.#{k}"] = v
+
+  extrasNormRec = { $cond: { if: { $gt: [{ $size: { $ifNull: [{ $objectToArray: '$extras' }, []] } }, 0] }, then: '$extras', else: null } }
+
+  Build.aggregate()
   .match(query)
   .group({
     _id: {
       $concat: ['$product', '_', '$type']
-    }, 
+    },
     recommends: {
       $addToSet: {
         product: '$product',
         type: '$type',
         team: '$team',
-        version: '$version', 
-        browser: '$browser', 
-        device: '$device', 
-        platform: '$platform', 
+        version: '$version',
+        browser: '$browser',
+        device: '$device',
+        platform: '$platform',
         platform_version: '$platform_version',
-        stage: '$stage'
+        stage: '$stage',
+        extras: extrasNormRec
       }
     }
   })
@@ -586,9 +621,11 @@ router.post '/entity/others',  (req, res, next) ->
     res.status(400)
     return res.json {error: "Type is mandatory"}
 
-  key = 'entity'
+  filterFields = ['team','version','device','browser','platform','platform_version','stage']
+  isFiltered = filterFields.some (f) -> !!req.body[f]
+  cacheKey = "entity:others:#{req.body.product}:#{req.body.type}"
   condition = { product : req.body.product, type: req.body.type}
-  
+
   if(req.body.team)
     condition['team'] = req.body.team
   if(req.body.version)
@@ -604,20 +641,41 @@ router.post '/entity/others',  (req, res, next) ->
   if(req.body.stage)
     condition['stage'] = req.body.stage
 
-  entities = ['version','device','team', 'browser', 'platform', 'platform_version', 'stage']
-  async.map(entities,
-    (item, callback) ->
-      Build.distinct(item, condition).
-      exec((err, entity) ->
-        _t = {}
-        _t[item] = entity
-        callback(err,_t)
-      )
-    (err,rs) ->
-      if err
-        return next(err)
-      res.json rs
-  )
+  cache.get cacheKey, (cacheErr, cached) ->
+    if cached and not isFiltered
+      return res.json cached
+
+    entities = ['version','device','team', 'browser', 'platform', 'platform_version', 'stage']
+    async.map(entities,
+      (item, callback) ->
+        Build.distinct(item, condition).
+        exec((err, entity) ->
+          _t = {}
+          _t[item] = entity
+          callback(err,_t)
+        )
+      (err, rs) ->
+        if err
+          return next(err)
+
+        Build.aggregate([
+          { $match: condition },
+          { $project: { extras: { $objectToArray: { $ifNull: ['$extras', {}] } } } },
+          { $unwind: '$extras' },
+          { $group: { _id: '$extras.k', values: { $addToSet: '$extras.v' } } }
+        ]).exec (extrasErr, extrasResult) ->
+          if extrasErr
+            return next(extrasErr)
+
+          extrasMap = {}
+          if extrasResult
+            extrasResult.forEach (item) -> extrasMap[item._id] = item.values
+
+          rs.push({ extras: extrasMap })
+          if not isFiltered
+            cache.set cacheKey, rs, 600
+          res.json rs
+    )
 
 router.post '/total',  (req, res, next) ->
     query = {}
@@ -648,6 +706,10 @@ router.post '/total',  (req, res, next) ->
     if(req.body.stage)
       query.stage = req.body.stage
 
+    if(req.body.extras)
+      for k, v of req.body.extras
+        query["extras.#{k}"] = v
+
     if(req.body.untilDate)
       untilDate = moment(req.body.untilDate).format()
       query.start_time = {
@@ -666,11 +728,11 @@ router.post '/total',  (req, res, next) ->
 router.post '/purge/calculate',  (req, res, next) ->
     if (!AccessControl.canAccessUpdateAny(req.user.role, component))
       return res.status(403).json({"error": "You don't have permission to perform this action"})
-    if(!req.body.product)
+    if(!req.body.product and !req.body.untilDate)
       res.status(400)
       return res.json {error: "Product is mandatory"}
 
-    if(!req.body.type)
+    if(!req.body.type and !req.body.untilDate)
       res.status(400)
       return res.json {error: "Type is mandatory"}
     
@@ -701,12 +763,36 @@ router.post '/purge/calculate',  (req, res, next) ->
 
     if(req.body.stage)
       query.stage = req.body.stage
-      
+
+    # Extras: when the key is explicitly present in the body (even as null), treat it as
+    # an exact-lane constraint. null/absent extras means "must have no extras".
+    # When the key is absent entirely, no extras constraint (broad purge).
+    if req.body.hasOwnProperty('extras')
+      if req.body.extras
+        for k, v of req.body.extras
+          query["extras.#{k}"] = v
+      else
+        query['$or'] = [{ extras: null }, { extras: {} }]
+    else if req.body.extras
+      # fallback: extras present but hasOwnProperty not supported (shouldn't happen)
+      for k, v of req.body.extras
+        query["extras.#{k}"] = v
+
+    # Exact-lane matching: when the frontend sends an optional field explicitly as null
+    # (using hasOwnProperty), constrain the query to null/missing for that field.
+    # This prevents cross-lane data loss (e.g. purging team=null must not affect team=X).
+    # Fields omitted entirely (not hasOwnProperty) remain unconstrained for broad purges.
+    for field in ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage']
+      if req.body.hasOwnProperty(field) and not query[field]?
+        query[field] = null
+
     if(req.body.untilDate)
       untilDate = moment(req.body.untilDate).format()
-      query.start_time = {
-        '$lt': new Date(untilDate)
-      }
+      query.start_time = { '$lt': new Date(untilDate) }
+
+    if(req.body.fromDate)
+      fromDate = moment(req.body.fromDate).format()
+      query.start_time = Object.assign({}, query.start_time or {}, { '$gte': new Date(fromDate) })
 
     Build.find(query).select('_id').lean().exec((err, builds) ->
       if err
@@ -811,6 +897,10 @@ router.post '/:page/:perPage',  (req, res, next) ->
     if(req.body.stage)
       query.stage = req.body.stage
 
+    if(req.body.extras)
+      for k, v of req.body.extras
+        query["extras.#{k}"] = v
+
     if(req.body.untilDate)
       untilDate = moment(req.body.untilDate).format()
       query.start_time = {
@@ -844,9 +934,11 @@ router.post '/:page/:perPage',  (req, res, next) ->
         prevQuery.platform = build.platform if build.platform
         prevQuery.platform_version = build.platform_version if build.platform_version
         prevQuery.stage = build.stage if build.stage
+        if build.extras
+          build.extras.forEach (v, k) -> prevQuery["extras.#{k}"] = v
         Build.findOne(prevQuery).sort({start_time: -1}).select('_id build start_time status').exec (prevErr, prev) ->
           return cb(prevErr) if prevErr
-          obj = build.toObject()
+          obj = build.toObject({ flattenMaps: true })
           obj.aggregate_previous_runs = if prev then [prev] else []
           cb null, obj
       , (mapErr, results) ->
@@ -879,12 +971,18 @@ router.post '/search', (req, res, next) ->
   if(req.body.specificQueries)
     query = { $or : req.body.specificQueries }
   else
-    productQuery = { $regex: '^'+req.body.product+'$', $options: 'i'}
-    typeQuery = { $regex: '^'+req.body.type+'$', $options: 'i'}
-    if(regexBoth.test(req.body.product.trim()) || regexStart.test(req.body.product.trim()) || regexEnd.test(req.body.product.trim()))
-      productQuery = { $regex: req.body.product, $options: 'i'}
-    if(regexBoth.test(req.body.type.trim()) || regexStart.test(req.body.type.trim()) || regexEnd.test(req.body.type.trim()))
-      typeQuery = { $regex: req.body.type, $options: 'i'}
+    productTrim = req.body.product.trim()
+    typeTrim = req.body.type.trim()
+    if not safeRegex(productTrim) then return res.status(400).json { error: "Invalid regex in product" }
+    if not safeRegex(typeTrim) then return res.status(400).json { error: "Invalid regex in type" }
+    if(regexBoth.test(productTrim) || regexStart.test(productTrim) || regexEnd.test(productTrim) || /\|/.test(productTrim))
+      productQuery = { $regex: productTrim, $options: 'i'}
+    else
+      productQuery = { $regex: '^'+escapeRegex(productTrim)+'$', $options: 'i'}
+    if(regexBoth.test(typeTrim) || regexStart.test(typeTrim) || regexEnd.test(typeTrim) || /\|/.test(typeTrim))
+      typeQuery = { $regex: typeTrim, $options: 'i'}
+    else
+      typeQuery = { $regex: '^'+escapeRegex(typeTrim)+'$', $options: 'i'}
 
     isArchive = req.body.is_archive || false
     conditions = [
@@ -893,36 +991,52 @@ router.post '/search', (req, res, next) ->
       { type: typeQuery },
       { start_time: { $gte: new Date(moment().subtract(since,'day').format()) } },
     ]
-    
+
     if(req.body.version)
+      if not safeRegex(String(req.body.version)) then return res.status(400).json { error: "Invalid regex in version" }
       conditions.push({ version: { $regex: req.body.version, $options: 'i'} })
 
     if(req.body.team)
-      if(regexBoth.test(req.body.team.trim()) || regexStart.test(req.body.team.trim()) || regexEnd.test(req.body.team.trim()))
-        conditions.push({ team: { $regex: req.body.team, $options: 'i'} })
+      teamTrim = req.body.team.trim()
+      if not safeRegex(teamTrim) then return res.status(400).json { error: "Invalid regex in team" }
+      if(regexBoth.test(teamTrim) || regexStart.test(teamTrim) || regexEnd.test(teamTrim) || /\|/.test(teamTrim))
+        conditions.push({ team: { $regex: teamTrim, $options: 'i'} })
       else
-        conditions.push({ team: { $regex: '^'+req.body.team+'$', $options: 'i'} })
+        conditions.push({ team: { $regex: '^'+escapeRegex(teamTrim)+'$', $options: 'i'} })
 
     if(req.body.browser)
+      if not safeRegex(String(req.body.browser)) then return res.status(400).json { error: "Invalid regex in browser" }
       conditions.push({ browser: { $regex: req.body.browser, $options: 'i'} })
 
     if(req.body.device)
+      if not safeRegex(String(req.body.device)) then return res.status(400).json { error: "Invalid regex in device" }
       conditions.push({ device: { $regex: req.body.device, $options: 'i'} })
-    
+
     if(req.body.platform)
-      if(regexBoth.test(req.body.platform.trim()) || regexStart.test(req.body.platform.trim()) || regexEnd.test(req.body.platform.trim()))
-        conditions.push({ platform: { $regex: req.body.platform, $options: 'i'} })
+      platformTrim = req.body.platform.trim()
+      if not safeRegex(platformTrim) then return res.status(400).json { error: "Invalid regex in platform" }
+      if(regexBoth.test(platformTrim) || regexStart.test(platformTrim) || regexEnd.test(platformTrim) || /\|/.test(platformTrim))
+        conditions.push({ platform: { $regex: platformTrim, $options: 'i'} })
       else
-        conditions.push({ platform: { $regex: '^'+req.body.platform+'$', $options: 'i'} })
-    
+        conditions.push({ platform: { $regex: '^'+escapeRegex(platformTrim)+'$', $options: 'i'} })
+
     if(req.body.platform_version)
+      if not safeRegex(String(req.body.platform_version)) then return res.status(400).json { error: "Invalid regex in platform_version" }
       conditions.push({ platform_version: { $regex: req.body.platform_version, $options: 'i'} })
 
     if(req.body.stage)
-      if(regexBoth.test(req.body.stage.trim()) || regexStart.test(req.body.stage.trim()) || regexEnd.test(req.body.stage.trim()))
-        conditions.push({ stage: { $regex: req.body.stage, $options: 'i'} })
+      stageTrim = req.body.stage.trim()
+      if not safeRegex(stageTrim) then return res.status(400).json { error: "Invalid regex in stage" }
+      if(regexBoth.test(stageTrim) || regexStart.test(stageTrim) || regexEnd.test(stageTrim) || /\|/.test(stageTrim))
+        conditions.push({ stage: { $regex: stageTrim, $options: 'i'} })
       else
-        conditions.push({ stage: { $regex: '^'+req.body.stage+'$', $options: 'i'} })
+        conditions.push({ stage: { $regex: '^'+escapeRegex(stageTrim)+'$', $options: 'i'} })
+
+    if(req.body.extras)
+      for k, v of req.body.extras
+        cond = {}
+        cond["extras.#{k}"] = v
+        conditions.push(cond)
 
     query = { $and : conditions }
 
@@ -930,7 +1044,7 @@ router.post '/search', (req, res, next) ->
   .sort({start_time:1})
   .match(query)
   .group(
-    { 
+    {
       # _id:  "$_id",
       _id:  {
         product:  "$product",
@@ -941,7 +1055,8 @@ router.post '/search', (req, res, next) ->
         device: "$device",
         platform: "$platform",
         platform_version: "$platform_version",
-        stage: "$stage"
+        stage: "$stage",
+        extras: "$extras"
       },
       product: { $last: "$product"},
       type: { $last: "$type"},
@@ -952,6 +1067,7 @@ router.post '/search', (req, res, next) ->
       platform: { $last: "$platform"},
       platform_version: { $last: "$platform_version"},
       stage: { $last: "$stage"},
+      extras: { $last: "$extras"},
       build: { $last: "$build"},
       start_time: { $last: "$start_time"},
       end_time: { $last: "$end_time"},
@@ -963,11 +1079,11 @@ router.post '/search', (req, res, next) ->
       aggregate_last_start_time: {
         $last: "$start_time"
       },
-      status: { 
+      status: {
         $last: "$status"
       },
-      aggregate_previous_runs: { 
-        $push: { 
+      aggregate_previous_runs: {
+        $push: {
           _id: "$_id",
           build: "$build",
           start_time: "$start_time",
@@ -976,7 +1092,7 @@ router.post '/search', (req, res, next) ->
       }
   })
   .project(
-    { 
+    {
       _id: "$_id",
       product: "$product",
       type: "$type",
@@ -987,13 +1103,14 @@ router.post '/search', (req, res, next) ->
       platform: "$platform",
       platform_version: "$platform_version",
       stage: "$stage",
+      extras: "$extras",
       build: "$build",
       start_time: "$start_time",
       end_time: "$end_time",
       aggregate_last_id: "$aggregate_last_id",
       aggregate_last_start_time: "$aggregate_last_start_time",
       status: "$status",
-      aggregate_previous_runs: { 
+      aggregate_previous_runs: {
         $slice : ["$aggregate_previous_runs", range]
       },
       environments: "$environments",

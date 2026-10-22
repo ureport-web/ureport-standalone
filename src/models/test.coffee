@@ -103,8 +103,13 @@ testSchema.statics.addStep = (rs, payload) ->
 
 testSchema.statics.changeStatus = (rs, payload) ->
 	if(payload.status)
-		if(rs['status'] != "RERUN_PASS") # only keep the status as old when current test status is not rerun pass
-			rs['old_status'] = rs['status']
+		if payload.status == 'RERUN_PASS'
+			# Manually overriding to pass: save base status (strip RERUN_ prefix — rerun is tracked by is_rerun boolean)
+			rs['old_status'] = rs['status'].replace(/^RERUN_/, '')
+		else if rs['status'] == 'RERUN_PASS'
+			# Resetting from manual pass back to original: clear old_status
+			rs['old_status'] = 'UNKNOWN'
+		# else: other status transitions (e.g. framework updates) leave old_status unchanged
 		rs['status'] = payload.status
 	if(payload.comments)
 		rs['comments'] = payload.comments

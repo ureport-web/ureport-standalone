@@ -3,6 +3,7 @@
 # Called fire-and-forget — never awaited.
 
 QuarantinedTest = require('../models/quarantined_test')
+QuarantineHistory = require('../models/quarantine_history')
 Test = require('../models/test')
 Build = require('../models/build')
 Setting = require('../models/setting')
@@ -11,7 +12,18 @@ ObjectId = require('mongoose').Types.ObjectId
 matcher = require('./notification_rule_matcher')
 logger = require('./logger')
 
+extrasToKey = (extras) ->
+  return '' unless extras and typeof extras is 'object'
+  obj = if extras instanceof Map then Object.fromEntries(extras) else extras
+  sorted = Object.keys(obj).sort().filter (k) -> obj[k]
+  sorted.map((k) -> "#{k}=#{obj[k]}").join('|')
+
+extractExtras = (arg) ->
+  return {} unless arg?.extras
+  if arg.extras instanceof Map then Object.fromEntries(arg.extras) else arg.extras
+
 toScope = (obj) ->
+  extrasObj = extractExtras(obj)
   version:          obj?.version          or ''
   team:             obj?.team             or ''
   browser:          obj?.browser          or ''
@@ -19,6 +31,7 @@ toScope = (obj) ->
   platform:         obj?.platform         or ''
   platform_version: obj?.platform_version or ''
   stage:            obj?.stage            or ''
+  extras_key:       extrasToKey(extrasObj)
 
 normalizeConditions = (threshold) ->
   if Array.isArray(threshold.conditions) and threshold.conditions.length > 0
@@ -28,9 +41,17 @@ normalizeConditions = (threshold) ->
 
 matchesScope = (rule, build) ->
   scope = rule.scope or {}
-  ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage'].every (f) ->
+  predefinedMatch = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage'].every (f) ->
     return true unless scope[f]
     build[f] == scope[f]
+  return false unless predefinedMatch
+
+  ruleExtras = scope.extras or {}
+  return true unless Object.keys(ruleExtras).length > 0
+  buildExtras = extractExtras(build)
+  Object.keys(ruleExtras).every (k) ->
+    return true unless ruleExtras[k]
+    buildExtras[k] == ruleExtras[k]
 
 # Determine which UIDs should be quarantined given per-build failure results.
 # condition: { mode, failures, fail_rate }
@@ -201,6 +222,10 @@ evaluateQuarantineRules = (build) ->
       scopeFields.forEach (f) ->
         if build[f]
           buildScopeFilter[f] = build[f]
+      if build.extras?.size > 0
+        build.extras.forEach (value, key) ->
+          if value
+            buildScopeFilter["extras.#{key}"] = value
       prevBuildsQuery = Object.assign({
         product: build.product,
         type: build.type,
@@ -361,34 +386,64 @@ evaluateQuarantineRules = (build) ->
 
                   logger.info "#{prefix} rule \"#{ruleName}\" threshold hits=#{toQuarantine.length} (#{Object.keys(uidBestMap).length} before exempt filter)"
 
-                  ruleHasScope = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage'].some (f) -> rule.scope?[f]
+                  ruleHasExtras = rule.scope?.extras and Object.keys(rule.scope.extras).length > 0
+                  ruleHasScope = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage'].some((f) -> rule.scope?[f]) or ruleHasExtras
                   ruleScope = if ruleHasScope then toScope(rule.scope) else toScope(build)
                   toQuarantine.forEach (item) ->
-                    QuarantinedTest.findOneAndUpdate(
-                      { uid: item.uid, product: build.product, type: build.type, scope: ruleScope },
-                      {
-                        $set: {
-                          uid: item.uid,
-                          product: build.product,
-                          type: build.type,
-                          rule_id: (rule._id or '').toString(),
-                          rule_name: rule.name or '',
-                          quarantined_at: new Date(),
-                          fail_snapshot: item.failCount,
-                          build_snapshot: qualifyingBuildIds.length,
-                          triggered_mode: item.mode or 'total',
-                          is_active: true,
-                          scope: ruleScope
-                        },
-                        $unset: { resolved_at: '' }
-                      },
-                      { upsert: true, new: true, runValidators: false },
-                      (uErr, doc) ->
-                        if uErr
-                          logger.error "[quarantine] upsert error uid=#{item.uid}", uErr
-                        else if doc
-                          logger.info "[quarantine] quarantined uid=#{item.uid} mode=#{item.mode} failCount=#{item.failCount}/#{item.buildCount} rule=\"#{ruleName}\""
-                    )
+                    QuarantinedTest.findOne({ uid: item.uid, product: build.product, type: build.type }).exec (fErr, existingDoc) ->
+                      if fErr
+                        logger.error "[quarantine] findOne error uid=#{item.uid}", fErr
+                        return
+
+                      doUpsert = (overrideCycle) ->
+                        isReQuarantine = existingDoc and !existingDoc.is_active
+                        updateOp = {
+                          $set: {
+                            uid: item.uid,
+                            product: build.product,
+                            type: build.type,
+                            rule_id: (rule._id or '').toString(),
+                            rule_name: rule.name or '',
+                            quarantined_at: new Date(),
+                            fail_snapshot: item.failCount,
+                            build_snapshot: qualifyingBuildIds.length,
+                            triggered_mode: item.mode or 'total',
+                            is_active: true,
+                            scope: ruleScope
+                          },
+                          $unset: { resolved_at: '' }
+                        }
+                        if isReQuarantine
+                          # Use existingDoc.cycle directly — avoids $inc-on-null edge case for docs
+                          # created before cycle tracking was added (would incorrectly land on 1 not 2)
+                          updateOp.$set.cycle = (existingDoc.cycle or 1) + 1
+                        else if overrideCycle > 1
+                          # Post-TTL re-quarantine: restore cycle count from history
+                          updateOp.$setOnInsert = { cycle: overrideCycle }
+                        QuarantinedTest.findOneAndUpdate(
+                          { uid: item.uid, product: build.product, type: build.type },
+                          updateOp,
+                          { upsert: true, new: true, runValidators: false, setDefaultsOnInsert: true },
+                          (uErr, doc) ->
+                            if uErr
+                              logger.error "[quarantine] upsert error uid=#{item.uid}", uErr
+                            else if doc
+                              logger.info "[quarantine] quarantined uid=#{item.uid} mode=#{item.mode} failCount=#{item.failCount}/#{item.buildCount} rule=\"#{ruleName}\""
+                        )
+
+                      if existingDoc
+                        doUpsert(1)
+                      else
+                        # No existing doc — may have been TTL-deleted. Check history to restore cycle count.
+                        QuarantineHistory.find({ uid: item.uid, product: build.product, type: build.type })
+                          .sort({ cycle: -1 })
+                          .limit(1)
+                          .select('cycle')
+                          .exec (hErr, histDocs) ->
+                            if hErr
+                              logger.error "[quarantine] history lookup error uid=#{item.uid}", hErr
+                            maxCycle = if histDocs?.length > 0 then (histDocs[0].cycle or 0) else 0
+                            doUpsert(maxCycle + 1)
 
               # --- Auto-resolve: re-check active quarantined UIDs ---
               if activeQuarantined.length == 0
@@ -428,12 +483,14 @@ evaluateQuarantineRules = (build) ->
                   arUidMap[uid] = [] unless arUidMap[uid]
                   arUidMap[uid].push { build: r.build.toString(), failed: r.failed }
 
-                arBuildIdStrs = arQualifyingBuildIds.map (id) -> id.toString()
-
                 activeQuarantined.forEach (q) ->
                   # Find the rule that originally quarantined this test
                   rule = enabledRules.find (r) -> (r._id or '').toString() == q.rule_id
                   rule = rule or enabledRules[0]
+
+                  # Skip if current build scope doesn't match the rule scope —
+                  # passes from a different scope should not resolve this quarantine.
+                  return unless matchesScope(rule, build)
 
                   threshold = rule.threshold or {}
                   results = arUidMap[q.uid] or []
@@ -443,17 +500,37 @@ evaluateQuarantineRules = (build) ->
                   logger.debug "[quarantine] auto-resolve uid=#{q.uid} results=#{results.length} required=#{requiredPasses} shouldResolve=#{shouldResolve}"
 
                   if shouldResolve
+                    resolvedAt = new Date()
                     QuarantinedTest.findOneAndUpdate(
                       { _id: q._id },
-                      { is_active: false, resolved_at: new Date() },
-                      { new: true },
-                      (rErr, doc) ->
+                      { is_active: false, resolved_at: resolvedAt },
+                      { new: false },
+                      (rErr, oldDoc) ->
                         if rErr
                           logger.error "[quarantine] auto-resolve update error uid=#{q.uid}", rErr
-                        else if doc
+                          return
+                        if oldDoc
                           logger.info "[quarantine] auto-resolved uid=#{q.uid} after #{requiredPasses} consecutive passes"
+                          QuarantineHistory.create({
+                            uid:            oldDoc.uid,
+                            product:        oldDoc.product,
+                            type:           oldDoc.type,
+                            scope:          oldDoc.scope,
+                            rule_id:        oldDoc.rule_id,
+                            rule_name:      oldDoc.rule_name,
+                            triggered_mode: oldDoc.triggered_mode,
+                            fail_snapshot:  oldDoc.fail_snapshot,
+                            build_snapshot: oldDoc.build_snapshot,
+                            quarantined_at: oldDoc.quarantined_at,
+                            resolved_at:    resolvedAt,
+                            resolved_by:    'auto',
+                            cycle:          oldDoc.cycle or 1
+                          }, (hErr) ->
+                            if hErr
+                              logger.error "[quarantine] history create error uid=#{q.uid}", hErr
+                          )
                     )
 
                 release()
 
-module.exports = { evaluateQuarantineRules, matchesScope, evaluateThreshold, hasConsecutivePasses, filterByNamePattern, toScope }
+module.exports = { evaluateQuarantineRules, matchesScope, evaluateThreshold, hasConsecutivePasses, filterByNamePattern, toScope, extrasToKey, extractExtras }

@@ -23,6 +23,11 @@ maskCredentials = (setting) ->
     obj.notification = JSON.parse(JSON.stringify(obj.notification))
     obj.notification.email.password = MASKED
   if obj.license_key then obj.license_key = MASKED
+  if obj.sso
+    obj.sso = JSON.parse(JSON.stringify(obj.sso))
+    for providerName, providerConfig of obj.sso
+      if providerConfig?.client_secret
+        obj.sso[providerName].client_secret = MASKED
   obj
 
 guardCredentials = (body, existing) ->
@@ -34,6 +39,10 @@ guardCredentials = (body, existing) ->
       body.notification.email.password = existing?.notification?.email?.password or ''
   if body.license_key is MASKED
     body.license_key = existing?.license_key or undefined
+  if body.sso
+    for providerName, providerConfig of body.sso
+      if !providerConfig?.client_secret or providerConfig.client_secret is MASKED
+        body.sso[providerName].client_secret = existing?.sso?[providerName]?.client_secret or ''
   body
 
 applyLicenseKey = (body, existing) ->
@@ -52,7 +61,7 @@ applyLicenseKey = (body, existing) ->
   body
 
 router.get '/:name',  (req, res, next) ->
-  if (!AccessControl.canAccessReadAny(req.user.role,component))
+  if (!req.user or !AccessControl.canAccessReadAny(req.user.role,component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
   if(!req.params.name)
     res.status(400)
@@ -91,7 +100,7 @@ router.get '/:name',  (req, res, next) ->
   )
 
 router.put '/:id',  (req, res, next) ->
-  if (!AccessControl.canAccessDeleteAny(req.user.role,component))
+  if (!req.user or !AccessControl.canAccessDeleteAny(req.user.role,component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
 
   SystemSetting.findOne({_id: req.params.id}).
@@ -120,7 +129,7 @@ router.put '/:id',  (req, res, next) ->
   );
 
 router.post '/',  (req, res, next) ->
-  if (!AccessControl.canAccessDeleteAny(req.user.role,component))
+  if (!req.user or !AccessControl.canAccessDeleteAny(req.user.role,component))
     return res.status(403).json({"error": "You don't have permission to perform this action"})
   SystemSetting.findOne({name: 'SYSTEM_SETTING'}).exec (err, existing) ->
     if err

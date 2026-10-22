@@ -1,6 +1,6 @@
 {
-    "type" : "Prod",
-    "DBHost": "your prod db",
-    "PORT": 8080
-  }
-  
+  "type": "Prod",
+  "DBHost": "your prod db",
+  "PORT": 8080,
+  "FEATURE_SERVER_URL": "https://features.ureportlab.com"
+}

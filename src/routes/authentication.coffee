@@ -83,6 +83,9 @@ router.post '/login', (req, res, next) ->
     )(req, res, next);
 
 router.post '/signup', (req, res, next) ->
+    if process.env.UREPORT_IS_DEMO is 'true'
+        return res.status(403).json({ message: 'Sign up is disabled in demo mode.' })
+
     { username, displayname, email, password } = req.body
 
     if !username || !email || !password
@@ -173,6 +176,11 @@ router.get '/confirm-email/:token', (req, res, next) ->
         else
             activateUser()
 
+router.get '/me', (req, res, next) ->
+  if !req.isAuthenticated()
+    return res.status(401).json({ message: 'Not authenticated' })
+  res.json({ session: req.session })
+
 router.post '/logout', (req, res, next) ->
     username = if req.user then req.user.username else ""
     createAuthAudit(req, 'LOGOUT', 'Logout', username)
@@ -221,6 +229,8 @@ router.post '/forgot', (req, res, next) ->
             User.findOne query, (err, user) ->
                 if !user
                     return res.json { msg: 'No account with that email or username exists.' }
+                if user.has_password == false
+                    return res.status(400).json { msg: 'This account uses SSO. Reset your password through your identity provider.' }
                 user.resetPasswordToken = token
                 user.resetPasswordExpires = Date.now() + 3600000
                 user.save (err) ->

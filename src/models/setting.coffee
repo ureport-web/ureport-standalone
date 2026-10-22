@@ -47,6 +47,7 @@ quarantineScopeSchema = new Schema(
     platform: { type: String }
     platform_version: { type: String }
     stage: { type: String }
+    extras: { type: Schema.Types.Mixed }
   }
   { _id: false }
 )

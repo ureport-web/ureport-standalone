@@ -38,6 +38,7 @@ try {
   //don't use cluster when it is testing env
   if (process.env.NODE_ENV != undefined && process.env.NODE_ENV === "test") {
     var server = http.createServer(app);
+    require("./src/lib/plugin_loader").setServer(server);
     server.listen(port);
     server.on("error", onError);
     server.on("listening", onListening);
@@ -75,9 +76,9 @@ try {
         cluster.fork();
       });
 
-      // Broadcast plugin load requests to all other workers
+      // Broadcast inter-worker messages
       cluster.on("message", function (sender, msg) {
-        if (msg && msg.type === "UREPORT_LOAD_PLUGIN") {
+        if (msg && (msg.type === "UREPORT_LOAD_PLUGIN" || msg.type === "UREPORT_HEAL_SIGNAL" || msg.type === "UREPORT_RERUN_SIGNAL")) {
           Object.values(cluster.workers).forEach(function (worker) {
             if (worker.id !== sender.id) worker.send(msg);
           });
@@ -102,6 +103,7 @@ try {
 
       console.log("Listen on port " + port);
       var server = http.createServer(app);
+      require("./src/lib/plugin_loader").setServer(server);
       server.listen(port);
       server.on("error", onError);
       server.on("listening", onListening);
