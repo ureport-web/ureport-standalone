@@ -38,9 +38,21 @@ if (config !== undefined) {
   app = express();
 
   // Static marketing & docs pages
-  app.get("/", (req, res) =>
-    res.sendFile(path.join(__dirname, "public/index.html")),
-  );
+  //
+  // FEATURE_SERVER_URL: where the pricing section's "buy" / "cloud" CTAs point.
+  // Same resolution as src/routes/plugins.coffee: env var first, then
+  // config/*.json (production: https://features.ureportlab.com). Override the
+  // env var on preview/staging apps so those links stay inside that
+  // environment (e.g. FEATURE_SERVER_URL=https://ureport-feature-server-preview.fly.dev).
+  const FEATURE_SERVER_URL =
+    process.env.FEATURE_SERVER_URL ||
+    (config.has("FEATURE_SERVER_URL") ? config.get("FEATURE_SERVER_URL") : "https://features.ureportlab.com");
+  app.get("/", (req, res) => {
+    const html = require("fs")
+      .readFileSync(path.join(__dirname, "public/index.html"), "utf8")
+      .replace(/\{\{FEATURE_SERVER_URL\}\}/g, FEATURE_SERVER_URL);
+    res.send(html);
+  });
 
   // set static file to dist folder.
   app.use("", express.static(path.join(__dirname, "public")));
