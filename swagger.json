@@ -4171,6 +4171,1069 @@
           }
         }
       }
+    },
+    "/ai/heal/agent-token": {
+      "post": {
+        "tags": [
+          "Auto-Heal: Agent"
+        ],
+        "summary": "Generate a new global agent token (admin)",
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Token generated. Raw token is returned once — store it securely.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string",
+                      "description": "First 16 chars of token hash — use for revocation."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "ci-agent-01",
+                    "description": "Human-readable label for this token."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/agent-token/{id}": {
+      "delete": {
+        "tags": [
+          "Auto-Heal: Agent"
+        ],
+        "summary": "Revoke a global agent token (admin)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "First 16 chars of the token hash (returned at creation)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token revoked."
+          },
+          "404": {
+            "description": "Token not found."
+          }
+        }
+      }
+    },
+    "/ai/heal/agent-status": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Agent"
+        ],
+        "summary": "List all global agent tokens and live connection status (admin)",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "List of global agent tokens.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "agents": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "connected": {
+                            "type": "boolean"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "last_seen": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "last_hello": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/user-agent-status": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Agent"
+        ],
+        "summary": "List all user-specific agent tokens (admin)",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "List of user agent tokens with owner info."
+          }
+        }
+      }
+    },
+    "/ai/heal/my-agent/status": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Agent"
+        ],
+        "summary": "Get the current user\\'s personal agent token status",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Agent token status for the authenticated user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hasToken": {
+                      "type": "boolean"
+                    },
+                    "connected": {
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "last_seen": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/my-agent/token": {
+      "post": {
+        "tags": [
+          "Auto-Heal: Agent"
+        ],
+        "summary": "Generate (or replace) the current user\\'s personal agent token",
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Token generated. Raw token returned once.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Auto-Heal: Agent"
+        ],
+        "summary": "Revoke the current user\\'s personal agent token",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Token revoked."
+          },
+          "404": {
+            "description": "No token found."
+          }
+        }
+      }
+    },
+    "/ai/heal/playbooks": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Playbooks"
+        ],
+        "summary": "List all playbooks",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "All playbooks.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "playbooks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/HealPlaybook"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Auto-Heal: Playbooks"
+        ],
+        "summary": "Create a playbook (admin)",
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Playbook created."
+          },
+          "400": {
+            "description": "Validation error."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HealPlaybookInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/playbooks/{id}": {
+      "put": {
+        "tags": [
+          "Auto-Heal: Playbooks"
+        ],
+        "summary": "Update a playbook (admin)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Playbook updated."
+          },
+          "404": {
+            "description": "Playbook not found."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HealPlaybookInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Auto-Heal: Playbooks"
+        ],
+        "summary": "Delete a playbook (admin)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Playbook deleted."
+          },
+          "404": {
+            "description": "Playbook not found."
+          }
+        }
+      }
+    },
+    "/ai/heal/signal": {
+      "post": {
+        "tags": [
+          "Auto-Heal: Signals"
+        ],
+        "summary": "Trigger a heal signal for a failing test",
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Heal signal created and queued."
+          },
+          "404": {
+            "description": "Test or playbook not found."
+          },
+          "429": {
+            "description": "Queue is full (max 20 pending signals)."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "testId",
+                  "playbookId"
+                ],
+                "properties": {
+                  "testId": {
+                    "type": "string",
+                    "description": "MongoDB _id of the Test document."
+                  },
+                  "playbookId": {
+                    "type": "string",
+                    "description": "MongoDB _id of the HealPlaybook."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/signals": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Signals"
+        ],
+        "summary": "List heal signals",
+        "description": "",
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "enum": {
+                  "type": "array",
+                  "example": [
+                    "pending",
+                    "queued",
+                    "running",
+                    "claimed",
+                    "pr_created",
+                    "test_failed",
+                    "bug_confirmed",
+                    "completed",
+                    "error"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "test_uid",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "test_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "format": {
+                  "type": "string",
+                  "example": "date-time"
+                }
+              }
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "default": {
+                  "type": "number",
+                  "example": 50
+                },
+                "maximum": {
+                  "type": "number",
+                  "example": 1000
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of heal signals."
+          }
+        }
+      }
+    },
+    "/ai/heal/signals/{id}": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Signals"
+        ],
+        "summary": "Get a single heal signal by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Heal signal."
+          },
+          "404": {
+            "description": "Signal not found."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Auto-Heal: Signals"
+        ],
+        "summary": "Delete a heal signal (admin)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signal deleted."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Auto-Heal: Signals"
+        ],
+        "summary": "Update a claimed signal with the heal result",
+        "description": "Called by external agents after completing work. Signal must be in claimed + external dispatch mode.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signal updated."
+          },
+          "409": {
+            "description": "Signal not in claimable state."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pr_created",
+                      "test_failed",
+                      "bug_confirmed",
+                      "completed",
+                      "error"
+                    ]
+                  },
+                  "pr_url": {
+                    "type": "string",
+                    "description": "Required when status=pr_created."
+                  },
+                  "branch": {
+                    "type": "string"
+                  },
+                  "diff_summary": {
+                    "type": "string"
+                  },
+                  "test_output": {
+                    "type": "string"
+                  },
+                  "attempted_diff": {
+                    "type": "string"
+                  },
+                  "agent_analysis": {
+                    "type": "string"
+                  },
+                  "bug_report": {
+                    "type": "object",
+                    "properties": {
+                      "summary": {
+                        "type": "string"
+                      },
+                      "detail": {
+                        "type": "string"
+                      }
+                    },
+                    "description": "Required when status=bug_confirmed."
+                  },
+                  "bug_tracking_url": {
+                    "type": "string"
+                  },
+                  "error_detail": {
+                    "type": "string"
+                  },
+                  "external_ref": {
+                    "type": "string"
+                  },
+                  "rerun_passed": {
+                    "type": "boolean",
+                    "description": "Required true when status=completed."
+                  },
+                  "ai_provider": {
+                    "type": "string",
+                    "example": "anthropic"
+                  },
+                  "ai_model": {
+                    "type": "string",
+                    "example": "claude-sonnet-4-5"
+                  },
+                  "input_tokens": {
+                    "type": "integer"
+                  },
+                  "output_tokens": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/signals/{id}/claim": {
+      "post": {
+        "tags": [
+          "Auto-Heal: Signals"
+        ],
+        "summary": "Claim a queued signal for external processing",
+        "description": "Used by external agents polling for work. Transitions signal from queued → claimed.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signal claimed. Full job payload returned."
+          },
+          "409": {
+            "description": "Signal not in queued state."
+          }
+        }
+      }
+    },
+    "/ai/heal/preview-run-hint": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Signals"
+        ],
+        "summary": "Preview the resolved run hint for a test + playbook combination",
+        "description": "",
+        "parameters": [
+          {
+            "name": "testId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playbookId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resolved run hint text."
+          }
+        }
+      }
+    },
+    "/ai/heal/preview": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Signals"
+        ],
+        "summary": "Preview fully resolved job payload for a test + playbook (no dispatch)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "testId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playbookId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resolved job payload as it would be sent to the agent."
+          }
+        }
+      }
+    },
+    "/ai/heal/rerun/configs": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Rerun"
+        ],
+        "summary": "List rerun configs for the current user",
+        "description": "",
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of rerun configs owned by the authenticated user."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Auto-Heal: Rerun"
+        ],
+        "summary": "Create a rerun config",
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Rerun config created."
+          },
+          "400": {
+            "description": "Validation error."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RerunConfigInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/rerun/configs/{id}": {
+      "put": {
+        "tags": [
+          "Auto-Heal: Rerun"
+        ],
+        "summary": "Update a rerun config (owner only)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rerun config updated."
+          },
+          "403": {
+            "description": "Not your config."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Auto-Heal: Rerun"
+        ],
+        "summary": "Delete a rerun config (owner only)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rerun config deleted."
+          },
+          "403": {
+            "description": "Not your config."
+          }
+        }
+      }
+    },
+    "/ai/heal/rerun/preview": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Rerun"
+        ],
+        "summary": "Preview resolved rerun command for a test + config",
+        "description": "",
+        "parameters": [
+          {
+            "name": "testId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "configId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resolved command string."
+          }
+        }
+      }
+    },
+    "/ai/heal/rerun/trigger": {
+      "post": {
+        "tags": [
+          "Auto-Heal: Rerun"
+        ],
+        "summary": "Trigger a rerun for a failing test via the user\\'s personal agent",
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Rerun signal created and dispatched to agent."
+          },
+          "404": {
+            "description": "Agent not connected for this user."
+          },
+          "429": {
+            "description": "Queue full (max 5 pending reruns per user)."
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "testId",
+                  "configId"
+                ],
+                "properties": {
+                  "testId": {
+                    "type": "string"
+                  },
+                  "configId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/rerun/signals/{id}": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Rerun"
+        ],
+        "summary": "Get a single rerun signal by ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rerun signal."
+          },
+          "404": {
+            "description": "Signal not found."
+          }
+        }
+      }
+    },
+    "/ai/heal/rerun/signals/latest": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Rerun"
+        ],
+        "summary": "Get the latest rerun signal for a test (current user)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "testId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latest rerun signal, or null."
+          }
+        }
+      }
+    },
+    "/ai/heal/rerun/signals": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Rerun"
+        ],
+        "summary": "List rerun signals for the current user",
+        "description": "",
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "format": {
+                  "type": "string",
+                  "example": "date-time"
+                }
+              }
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "default": {
+                  "type": "number",
+                  "example": 50
+                },
+                "maximum": {
+                  "type": "number",
+                  "example": 500
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of rerun signals."
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4850,6 +5913,161 @@
             }
           },
           "is_public": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "HealPlaybook": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "product": {
+            "type": "string",
+            "description": "Null = applies to all products."
+          },
+          "type": {
+            "type": "string",
+            "description": "Null = applies to all types."
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "auto_trigger": {
+            "type": "boolean",
+            "default": false,
+            "description": "Auto-trigger on new failures matching this lane."
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "step_id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "checkout",
+                    "ai/fix",
+                    "run/test",
+                    "create_pr/github",
+                    "create_pr/gitlab",
+                    "notify/slack"
+                  ]
+                },
+                "config": {
+                  "type": "object",
+                  "description": "Step-specific configuration."
+                }
+              }
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "HealPlaybookInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "steps"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "product": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "auto_trigger": {
+            "type": "boolean",
+            "default": false
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "step_id",
+                "type"
+              ],
+              "properties": {
+                "step_id": {
+                  "type": "string",
+                  "example": "checkout"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "checkout",
+                    "ai/fix",
+                    "run/test",
+                    "create_pr/github",
+                    "create_pr/gitlab",
+                    "notify/slack"
+                  ]
+                },
+                "config": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "RerunConfigInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "product",
+          "type",
+          "run_command"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "product": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "run_command": {
+            "type": "string",
+            "example": "npx playwright test {file} --grep \"{name}\"",
+            "description": "Command template. Supports {file}, {name}, {uid} placeholders."
+          },
+          "working_dir": {
+            "type": "string",
+            "description": "Working directory for the run command (relative to agent checkout root)."
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "auto_trigger": {
             "type": "boolean",
             "default": false
           }

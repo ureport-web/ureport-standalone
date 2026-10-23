@@ -287,6 +287,66 @@ const doc = {
           widgets: { type: 'array', items: { type: 'object' } },
           is_public: { type: 'boolean', default: false }
         }
+      },
+      HealPlaybook: {
+        type: 'object',
+        properties: {
+          _id:        { type: 'string' },
+          name:       { type: 'string' },
+          product:    { type: 'string', description: 'Null = applies to all products.' },
+          type:       { type: 'string', description: 'Null = applies to all types.' },
+          enabled:    { type: 'boolean', default: true },
+          auto_trigger: { type: 'boolean', default: false, description: 'Auto-trigger on new failures matching this lane.' },
+          steps: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                step_id:    { type: 'string' },
+                type:       { type: 'string', enum: ['checkout', 'ai/fix', 'run/test', 'create_pr/github', 'create_pr/gitlab', 'notify/slack'] },
+                config:     { type: 'object', description: 'Step-specific configuration.' }
+              }
+            }
+          },
+          created_at: { type: 'string', format: 'date-time' },
+          updated_at: { type: 'string', format: 'date-time' }
+        }
+      },
+      HealPlaybookInput: {
+        type: 'object',
+        required: ['name', 'steps'],
+        properties: {
+          name:         { type: 'string' },
+          product:      { type: 'string' },
+          type:         { type: 'string' },
+          enabled:      { type: 'boolean', default: true },
+          auto_trigger: { type: 'boolean', default: false },
+          steps: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['step_id', 'type'],
+              properties: {
+                step_id: { type: 'string', example: 'checkout' },
+                type:    { type: 'string', enum: ['checkout', 'ai/fix', 'run/test', 'create_pr/github', 'create_pr/gitlab', 'notify/slack'] },
+                config:  { type: 'object' }
+              }
+            }
+          }
+        }
+      },
+      RerunConfigInput: {
+        type: 'object',
+        required: ['name', 'product', 'type', 'run_command'],
+        properties: {
+          name:        { type: 'string' },
+          product:     { type: 'string' },
+          type:        { type: 'string' },
+          run_command: { type: 'string', example: 'npx playwright test {file} --grep "{name}"', description: 'Command template. Supports {file}, {name}, {uid} placeholders.' },
+          working_dir: { type: 'string', description: 'Working directory for the run command (relative to agent checkout root).' },
+          enabled:     { type: 'boolean', default: true },
+          auto_trigger:{ type: 'boolean', default: false }
+        }
       }
     }
   },
@@ -294,8 +354,22 @@ const doc = {
 };
 
 const root = path.resolve(__dirname, '..');
+const fs = require('fs');
+
+// Collect input files: core routes + all plugin swagger-routes.js files
+const inputFiles = [path.join(root, 'src/swagger/routes.js')];
+const pluginsDir = path.join(root, 'plugins');
+if (fs.existsSync(pluginsDir)) {
+  fs.readdirSync(pluginsDir).forEach((plugin) => {
+    const pluginRoutes = path.join(pluginsDir, plugin, 'swagger-routes.js');
+    if (fs.existsSync(pluginRoutes)) {
+      inputFiles.push(pluginRoutes);
+    }
+  });
+}
+
 swaggerAutogen(
   path.join(root, 'swagger.json'),
-  [path.join(root, 'src/swagger/routes.js')],
+  inputFiles,
   doc
 );

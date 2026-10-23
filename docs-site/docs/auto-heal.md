@@ -20,12 +20,24 @@ The **Rerun** feature lets you run any test on your own agent without AI involve
 
 ---
 
+## Three Ways to Use Auto-Heal
+
+| Mode | Who executes the fix | Infrastructure needed | When to use |
+|---|---|---|---|
+| **Guided** (playbook) | ureport-agent runs a fixed pipeline: checkout → AI fix → verify → open PR | Install ureport-agent; configure a guided playbook | Predictable, auditable pipeline with explicit steps |
+| **Agent Delegation** (playbook) | ureport-agent hands off to Claude; Claude explores and fixes autonomously | Install ureport-agent; configure a delegation playbook | You want the AI agent to decide how to fix with minimal configuration |
+| **External Consumer** | Your own system — any language, any AI, any workflow | Build a poller that calls the signals API | You already have an AI automation platform and want UReport to surface failures and accept outcomes |
+
+---
+
 ## How Auto-Heal Works
+
+**Agent mode (Guided or Agent Delegation):**
 
 ```
 Failing test in a build
         ↓
-Trigger Auto-Heal (manual or future: automatic)
+Trigger Auto-Heal (manual or auto-trigger on build complete)
         ↓
 Plugin creates a HealSignal (status: pending → queued)
         ↓
@@ -36,6 +48,24 @@ Agent runs the playbook pipeline on your machine
 Agent streams progress back in real time
         ↓
 Signal updated with final status (pr_created / test_failed / bug_confirmed / error)
+```
+
+**External Consumer mode:**
+
+```
+Failing test in a build
+        ↓
+Auto-trigger fires (dispatch_mode: external in lane settings)
+        ↓
+Plugin creates a HealSignal (status: open)
+        ↓
+Your system polls GET /api/ai/heal/signals?status=open
+        ↓
+Your system claims the signal: POST /signals/:id/claim
+        ↓
+Your system processes the fix (any language, any AI)
+        ↓
+Your system reports the outcome: PUT /signals/:id
 ```
 
 Everything after the trigger is autonomous. You review the result in the Signals tab.
@@ -136,23 +166,22 @@ Sends the failing test details to an AI model and applies the returned code chan
 
 | Setting | Description |
 |---|---|
-| **Provider** | `Anthropic (Claude)`, `OpenAI (GPT)`, `Google Gemini`, or `Claude CLI` |
-| **Model** | Model name passed to the API (e.g. `claude-sonnet-4-6`, `gpt-4o`, `gemini-2.0-flash`). Not used for Claude CLI. |
+| **Provider** | `claude-cli` — Claude CLI (Anthropic). `gemini-cli` — Gemini CLI (Google). |
+| **Model** | `gemini-cli` only — model flag passed to the Gemini CLI (e.g. `gemini-2.0-flash`). Not used for `claude-cli`. |
 | **Instructions** | Prompt sent to the AI describing what to fix. Supports test variable placeholders (see below). |
-| **Max Attempts** | Claude CLI only — how many fix+verify cycles to attempt before giving up (1–5, default 2). |
+| **Max Attempts** | How many fix+verify cycles to attempt before giving up (1–5, default 2). Each failed attempt resets changed files and retries with the previous failure output as context. |
 
-**API providers** (Anthropic, OpenAI, Gemini) receive the failing test file content, error message, and stack trace. They return a JSON response with `analysis` and `changes` (list of `{file, content}` pairs). The agent writes the changed files and stages them.
+Both providers run as a CLI process in the agent's workspace directory. They have native file tools to explore the repo, apply changes, run the test, and self-report whether it passed via `testPassed` in their JSON output.
 
-**Claude CLI** runs `claude --print --output-format json` in the workspace directory. Claude has native file tools and explores the repo itself. It runs the test internally and self-reports whether it passed via `testPassed` in its JSON output. When `Max Attempts > 1`, failed fix attempts are reset (`git checkout HEAD`) and Claude is retried with the previous failure output as context.
+- **`claude-cli`** — runs `claude --print --output-format json <prompt>`. Requires `ANTHROPIC_API_KEY` on the agent machine.
+- **`gemini-cli`** — runs `gemini -p <prompt> --yolo [--model <model>]`. Requires `GEMINI_API_KEY` on the agent machine (or authentication via `gemini auth login`).
 
-#### Environment Variables for AI Providers
+#### Authentication for AI Providers
 
-| Provider | Required |
+| Provider | Authentication |
 |---|---|
-| Anthropic | `ANTHROPIC_API_KEY` on the agent machine |
-| OpenAI | `OPENAI_API_KEY` on the agent machine |
-| Gemini | `GEMINI_API_KEY` on the agent machine |
-| Claude CLI | `ANTHROPIC_API_KEY` (used by the Claude CLI binary) |
+| `claude-cli` | Browser OAuth — run `claude` once on the agent machine to log in. Credentials stored in `~/.claude/`. No API key needed. |
+| `gemini-cli` | `GEMINI_API_KEY` env var on the agent machine, or `gemini auth login`. |
 
 #### Instructions Placeholders
 
@@ -213,19 +242,22 @@ The PR body includes the AI analysis, a diff summary, the original error, and a 
 
 ## Agent Delegation Mode
 
-In Agent Delegation mode, the playbook has a single **Goal / Prompt** field. The agent receives this prompt along with the failing test details and autonomously:
+In Agent Delegation mode, the playbook has a single **Goal / Prompt** field and a **Provider** setting. The agent receives the prompt along with the failing test details and autonomously explores and fixes the repo using the selected CLI tool.
 
-1. Explores the repository with file tools (`read_file`, `write_file`, `list_directory`)
-2. Runs commands (`run_command`) — typically to install deps and run the test
-3. Calls `finish(success, summary)` when done
+| Provider | Behavior |
+|---|---|
+| `claude-cli` (default) | Runs `claude --print --output-format json`. Has native file and shell tools. Reports `testPassed` in JSON output. Requires `ANTHROPIC_API_KEY`. |
+| `gemini-cli` | Runs `gemini -p <prompt> --yolo`. Reports `testPassed` in JSON output. Requires `GEMINI_API_KEY`. |
 
-If `success = true`, the agent stages all changes and the signal status becomes `completed`.
-If `success = false`, the agent believes the test reflects a real product bug — status becomes `bug_confirmed`.
-
-Agent Delegation requires `ANTHROPIC_API_KEY` on the agent machine and uses the `ai_model` from the agent config (default: `claude-sonnet-4-6`).
+If the CLI reports `testPassed: true`, staged changes are kept and the signal status becomes `completed`.
+If `testPassed: false`, the signal becomes `test_failed`.
 
 :::info
 Agent Delegation does not automatically commit or push — it stops at `completed` with staged changes. A Create PR stage is not available in this mode. The staged diff is captured and shown in the signal detail.
+:::
+
+:::warning Pre-cloned workspace required
+Agent Delegation skips the checkout stage. The repository must already be cloned at the expected workspace path (`{repo_path}/{product}__{type}/`) before the first delegation job runs. If the path does not exist, the signal immediately errors with `workspace not found`. Use guided mode with the Checkout stage enabled if you do not want to pre-clone manually.
 :::
 
 ---
@@ -234,18 +266,20 @@ Agent Delegation does not automatically commit or push — it stops at `complete
 
 Each Auto-Heal run creates a **HealSignal** that tracks progress from dispatch to outcome.
 
-| Status | Meaning |
-|---|---|
-| `pending` | Created, waiting to be dispatched |
-| `queued` | Dispatched — waiting for agent to pick up |
-| `running` | Agent is actively executing the pipeline |
-| `pr_created` | Fix applied, test passed, PR opened |
-| `test_failed` | Fix applied but test still failing |
-| `bug_confirmed` | Agent determined the test reflects a real product bug (delegation mode) |
-| `completed` | Pipeline completed successfully without a PR stage |
-| `error` | Pipeline failed at a stage (checkout, AI fix, verify, or create PR) |
-| `timed_out` | Agent did not respond within the timeout window |
-| `no_agent` | No connected agent available at dispatch time |
+| Status | Mode | Meaning |
+|---|---|---|
+| `pending` | Agent | Created, waiting to be dispatched to agent |
+| `queued` | Agent | Dispatched — agent has received it but not started |
+| `running` | Agent | Agent is actively executing the pipeline |
+| `pr_created` | Agent | Fix applied, test passed, PR opened |
+| `test_failed` | Agent | Fix applied but test still failing |
+| `bug_confirmed` | Agent | Agent determined the test reflects a real product bug (delegation mode) |
+| `completed` | Agent | Pipeline completed successfully without a PR stage |
+| `error` | Agent | Pipeline failed at a stage |
+| `timed_out` | Agent | Agent did not respond within the timeout window |
+| `no_agent` | Agent | No connected agent available at dispatch time |
+| `open` | External | Created, waiting for external consumer to claim |
+| `claimed` | External | External consumer has claimed it and is processing |
 
 ---
 
@@ -264,11 +298,46 @@ Operators can view playbooks but cannot create, edit, or delete them.
 
 ## Triggering Auto-Heal
 
-Auto-Heal is triggered from the **Launches** page. Open a build, find a failing test, and click the **Auto Heal** button in the AI Actions bar. A dialog lets you select which playbook to use.
+### Manual Trigger
+
+From the **Launches** page: open a build, find a failing test, click the **Auto Heal** button in the AI Actions bar. A dialog lets you select which playbook to use.
 
 The signal appears immediately in the **Signals** tab with status `pending` → `queued` as the job is dispatched.
 
 The **Auto Heal** button is visible when at least one agent is connected — either a global agent or your own personal agent.
+
+### Auto-Trigger
+
+Auto-Heal can fire automatically when a build completes. It runs **after auto-triage** so that already-triaged tests are excluded before signaling.
+
+**Enable auto-trigger:** Go to **Tests → Settings** for the product/type lane → **Auto-Heal Settings**.
+
+| Setting | Default | Description |
+|---|---|---|
+| **Enabled** | off | Turn on auto-trigger for this lane |
+| **Dispatch Mode** | `agent` | `agent` — dispatch to ureport-agent via WebSocket. `external` — create `open` signals for your own consumer to poll and process. |
+| **Default Playbook** | — | Playbook to use when dispatch mode is `agent`. Falls back to any active playbook if not set. |
+| **New Failures Only** | on | Only trigger for tests that **passed** in the previous build — skips known persistent failures. |
+| **Max Prior Failures** | 3 | Skip a test if it failed in this many consecutive prior builds (likely a real bug, not a flaky fix candidate). Set to 0 to disable. |
+| **Exclude Quarantined** | off | Skip tests that are currently quarantined. |
+| **Max Signals per Trigger** | 10 | Cap on how many signals to create per build completion event. |
+
+#### Filtering Order
+
+On each build completion, auto-trigger applies these exclusions in order:
+
+1. Tests that passed on a rerun in the same build → excluded
+2. Manually triaged tests (InvestigatedTest records) → always excluded, not configurable
+3. Auto-triaged tests → always excluded
+4. Quarantined tests → excluded if `exclude_quarantined` is on
+5. Tests that failed in the previous build too → excluded if `new_failures_only` is on
+6. Tests that failed in the last N consecutive builds → excluded if `max_prior_failures > 0`
+
+#### Failure Grouping
+
+Before creating signals, auto-trigger groups the remaining candidates by **error fingerprint** (first stable line of error/stack trace, with line numbers and addresses stripped). One signal is created per group — the newest test in the group is the primary; the others are recorded as `affectedTestUids`. This prevents creating dozens of signals when a single root cause affects many tests.
+
+Dedup for external mode: if an `open` signal already exists for a test with the same error fingerprint, the new trigger is skipped. If the error fingerprint changed (new failure mode), the existing signal is updated with fresh build context.
 
 ---
 
@@ -284,6 +353,78 @@ Go to **Tests → Auto-Heal → Signals** tab. Each row shows:
 Click the **detail icon** on any signal to open the full signal view — including per-stage output, AI analysis, the diff, test output, and history of previous signals for the same test.
 
 Admins can delete signals. Operators have read-only access.
+
+---
+
+## External Consumer API
+
+Use this when `dispatch_mode` is set to `external` in the lane's auto-heal settings. Your system acts as the repair agent — UReport surfaces failures; your system processes them and reports outcomes.
+
+### Authentication
+
+Use a standard UReport API bearer token (same as the REST API). Pass it as `Authorization: Bearer <token>`.
+
+### 1. Poll for Open Signals
+
+```
+GET /api/ai/heal/signals?status=open
+```
+
+Filter by lane:
+```
+GET /api/ai/heal/signals?status=open&product=MyApp&type=E2E
+```
+
+Each signal in the response includes:
+- `testName`, `testUid`, `testFile` — which test failed
+- `product`, `type` — which lane
+- `failureGroupId` — error fingerprint hash (stable across runs)
+- `affectedTestUids` — other tests in the same error group
+- `buildId` — build where the failure was detected
+
+### 2. Claim a Signal
+
+Atomically transitions the signal from `open` → `claimed`. Returns 409 if already claimed or not open.
+
+```
+POST /api/ai/heal/signals/:id/claim
+{ "claimed_by": "my-system-v1" }
+```
+
+### 3. Report the Outcome
+
+After your system processes the fix, report the result:
+
+```
+PUT /api/ai/heal/signals/:id
+```
+
+Required field:
+- `status` — one of `pr_created`, `test_failed`, `bug_confirmed`, `completed`, `error`
+
+Optional fields by status:
+
+| Field | When to use |
+|---|---|
+| `pr_url` | Required for `pr_created` — URL of the opened pull/merge request |
+| `branch` | Branch name (for `pr_created`) |
+| `diff_summary` | Short description of code changes applied |
+| `test_output` | Test runner output from the verify run |
+| `attempted_diff` | Diff that was tried (for `test_failed`) |
+| `agent_analysis` | Explanation of why the fix failed or what was found |
+| `bug_report` | Required for `bug_confirmed` — object with `summary` and optionally `detail` |
+| `bug_tracking_url` | For `bug_confirmed` — URL to Jira/GitHub issue. UReport auto-triages affected tests with this link. |
+| `error_detail` | Error description (for `error`) |
+| `external_ref` | Any external reference (ticket ID, PR mirror URL, etc.) |
+| `rerun_passed` | `true` if your system ran the test and it passed. UReport marks the test as PASS with `is_rerun=true`. Required (and only valid) with `completed`. |
+| `ai_provider` | AI provider name (informational, shown in signal detail) |
+| `ai_model` | AI model name (informational, shown in signal detail) |
+| `input_tokens` | Token count (informational, shown in signal detail) |
+| `output_tokens` | Token count (informational, shown in signal detail) |
+
+#### Auto-Triage on Bug Confirmed
+
+When you report `status: bug_confirmed` with a `bug_tracking_url`, UReport automatically creates InvestigatedTest records for the primary test and all `affectedTestUids`, linking them to the tracking URL. This prevents auto-trigger from re-signaling the same known bug on the next build.
 
 ---
 
@@ -356,6 +497,7 @@ The rerun signal appears in the **Reruns** section of the AI Actions bar with a 
 | `running` | Agent is executing the command |
 | `passed` | Command exited with code 0 |
 | `failed` | Command exited with non-zero code |
+| `timed_out` | Command exceeded the configured timeout and was killed |
 | `error` | Agent encountered an error before or during execution |
 | `no_agent` | No personal agent connected at dispatch time |
 

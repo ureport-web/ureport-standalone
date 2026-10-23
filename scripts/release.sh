@@ -10,11 +10,9 @@ if [[ "$BUMP" != "patch" && "$BUMP" != "minor" && "$BUMP" != "major" ]]; then
   exit 1
 fi
 
-# ── 1. Bump version ────────────────────────────────────────────────────────────
-echo "Bumping version ($BUMP)..."
-npm version "$BUMP" --no-git-tag-version
-VERSION=$(node -p "require('./package.json').version")
-echo "  → v$VERSION"
+# ── 1. Regenerate Swagger spec ─────────────────────────────────────────────────
+echo "Regenerating swagger.json..."
+npm run swagger
 
 # ── 2. Rebuild API docs ────────────────────────────────────────────────────────
 echo "Rebuilding docs..."
@@ -25,7 +23,7 @@ AGENT_SRC=${AGENT_SRC:-"../ureport-reporter/ureport-agent"}
 
 if [ -d "$AGENT_SRC" ]; then
   echo "Building agent bundle from $AGENT_SRC..."
-  (cd "$AGENT_SRC" && npm version "$BUMP" --no-git-tag-version && npm run bundle)
+  (cd "$AGENT_SRC" && npm run bundle)
   mkdir -p agent
   cp "$AGENT_SRC/dist/ureport-agent.tar.gz" agent/
   cp "$AGENT_SRC/dist/ureport-agent.zip"    agent/
@@ -33,6 +31,15 @@ if [ -d "$AGENT_SRC" ]; then
 else
   echo "  Skipping agent build — $AGENT_SRC not found (set AGENT_SRC env var to override)"
 fi
+
+# ── 4. Bump version (last — only if all steps succeeded) ───────────────────────
+echo "Bumping version ($BUMP)..."
+npm version "$BUMP" --no-git-tag-version
+VERSION=$(node -p "require('./package.json').version")
+if [ -d "$AGENT_SRC" ]; then
+  (cd "$AGENT_SRC" && npm version "$BUMP" --no-git-tag-version)
+fi
+echo "  → v$VERSION"
 
 echo ""
 echo "Release v$VERSION ready."
