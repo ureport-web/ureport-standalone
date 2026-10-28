@@ -14,7 +14,7 @@ healSignalSchema = new Schema(
   # References
   test_id:    { type: Schema.Types.ObjectId, ref: 'Test',  required: true }
   build_id:   { type: Schema.Types.ObjectId, ref: 'Build', required: true }
-  playbook_id: { type: Schema.Types.ObjectId, ref: 'HealPlaybook', required: true }
+  playbook_id: { type: Schema.Types.ObjectId, ref: 'HealPlaybook' }  # optional for external-mode signals
 
   # Snapshot of playbook at dispatch time (immutable history)
   playbook_snapshot: Schema.Types.Mixed
@@ -22,13 +22,35 @@ healSignalSchema = new Schema(
   triggered_by: { type: String }  # "user:<username>" or "auto"
   triggered_at: { type: Date, default: Date.now }
 
+  # Dispatch mode and external-consumer fields
+  dispatch_mode: { type: String, default: 'agent' }  # 'agent' | 'external'
+  external_ref:  { type: String }   # PR URL, ticket ID, or any ref the external system stores
+  claimed_at:    { type: Date }
+  claimed_by:    { type: String }   # identifier provided by external system on claim
+
+  # Failure grouping (set when triggered by auto-heal)
+  failure_group_id:   { type: String }           # hash of error fingerprint
+  affected_test_ids:  [{ type: Schema.Types.ObjectId, ref: 'Test' }]
+  affected_test_uids: [String]
+
   status:
     type: String
-    enum: ['pending', 'queued', 'running', 'completed', 'pr_created', 'test_failed', 'bug_confirmed', 'error', 'timed_out', 'no_agent']
+    enum: ['pending', 'queued', 'running', 'open', 'claimed', 'completed', 'pr_created', 'test_failed', 'bug_confirmed', 'error', 'timed_out', 'no_agent']
     default: 'pending'
 
   # Which agent handled this signal
   agent_id: { type: String }  # token hash prefix (first 16 chars)
+
+  # AI cost tracking (populated from agent result message)
+  ai: Schema(
+    {
+      provider:     String
+      model:        String
+      input_tokens: Number
+      output_tokens:Number
+    }
+    { _id: false }
+  )
 
   # pr_created outcome
   pr_url:       { type: String }

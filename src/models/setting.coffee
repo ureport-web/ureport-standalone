@@ -83,9 +83,22 @@ autoTriageScopeFilterSchema = new Schema(
 autoTriageSettingsSchema = new Schema(
   {
     enabled: { type: Boolean, default: false }
-    max_source_age_days: { type: Number, default: 90 }
+    max_source_age_days: { type: Number, default: 30 }
     ttl_days: { type: Number, default: 5 }
     scope_filter: autoTriageScopeFilterSchema
+  }
+  { _id: false }
+)
+
+autoHealSettingsSchema = new Schema(
+  {
+    enabled:               { type: Boolean, default: false }
+    dispatch_mode:         { type: String, default: 'agent' }  # 'agent' | 'external'
+    default_playbook_id:   { type: Schema.Types.ObjectId, ref: 'HealPlaybook' }  # used by auto-trigger in agent mode
+    exclude_quarantined:     { type: Boolean, default: false }
+    new_failures_only:       { type: Boolean, default: true }
+    max_prior_failures:      { type: Number, default: 3 }  # skip test if failed in last N consecutive builds; 0 = disabled
+    max_signals_per_trigger: { type: Number, default: 10 }
   }
   { _id: false }
 )
@@ -134,6 +147,7 @@ settingSchema = new Schema(
 	notification: Schema.Types.Mixed,
 	quarantine_rules: quarantineRulesSchema,
 	auto_triage_settings: autoTriageSettingsSchema,
+	auto_heal_settings: autoHealSettingsSchema,
 	default_framework: { type: String },
 	investigated_setting: Schema(
 		{	
@@ -197,6 +211,8 @@ settingSchema.statics.update = (setting, payload) ->
 			setting.quarantine_rules = payload.quarantine_rules
 		if(payload.auto_triage_settings != undefined)
 			setting.auto_triage_settings = payload.auto_triage_settings
+		if(payload.auto_heal_settings != undefined)
+			setting.auto_heal_settings = payload.auto_heal_settings
 		if(payload.default_framework != undefined)
 			setting.default_framework = payload.default_framework
 			setting.markModified('default_framework')

@@ -137,6 +137,28 @@ Additional controls:
 - **Jump to First Failed Step** — scrolls directly to the first failing step
 - **Original Failure Toggle** — for tests that passed after a rerun, toggle between final passing steps and original failing steps
 
+#### Rich HTML Step Content
+
+Step `detail` fields support a subset of HTML for richer output. Scripts, links, and event handlers are stripped for security. Allowed elements: `div`, `span`, `br`, `pre`, `code`, `b`, `i`, `strong`, `em`, `p`, `ul`, `ol`, `li`, `table`, `tr`, `td`, `th`, `thead`, `tbody`. Allowed attributes: `style`, `class`.
+
+**Expandable payload block**
+
+Use the `payload-toggle` class to add a click-to-expand section. The element immediately following the trigger is toggled on each click.
+
+```html
+<div class="payload-toggle" style="cursor:pointer">▶ Payload (click to expand)</div>
+<pre style="display:none">
+{
+  "status": 200,
+  "body": { "id": 42, "name": "example" }
+}
+</pre>
+```
+
+- The `<div class="payload-toggle">` is the clickable trigger.
+- The **immediately following sibling element** (here `<pre>`) is shown/hidden on click.
+- Use `<pre>` for formatted text. `<xmp>` is also accepted and is automatically converted to `<pre>`.
+
 ### Analytics Tab
 
 - **Run History (last 6 months)** — Stat chips for 2 Weeks, 1 Month, 3 Months, and Overall showing run count and pass rate. Scrollable table of each individual run with date, status, and error message. Runs are grouped by product lane — active lane first, other lanes follow.

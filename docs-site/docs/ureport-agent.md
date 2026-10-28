@@ -14,7 +14,7 @@ description: Run ureport-agent on your machine to enable Auto-Heal and Rerun. Th
 
 - **Node.js 18+**
 - **Git** configured with push access to your repository (SSH key or HTTPS credentials) — required for Auto-Heal checkout stage
-- **`ANTHROPIC_API_KEY`** environment variable — required if any playbook uses an AI Fix or Agent Delegation stage with Anthropic/Claude CLI
+- **AI provider key** — `GEMINI_API_KEY` for `gemini-cli`. `claude-cli` authenticates via browser OAuth (`~/.claude/` config) — no API key needed.
 - The **auto-heal** plugin must be installed on the UReport server
 
 ---
@@ -47,11 +47,11 @@ agent_token: YOUR_TOKEN_HERE
 repo_path: /tmp/ureport-agent-workspace
 
 # ── Optional ──────────────────────────────────────────────────────────────────
-# Claude model for AI fix and agent delegation (default: claude-sonnet-4-6)
-# ai_model: claude-sonnet-4-6
-
-# Max minutes to wait for Claude CLI to finish (default: 30)
+# Max minutes to wait for a single claude --print invocation (default: 30)
 # claude_cli_timeout_minutes: 30
+
+# Max minutes to wait for a single gemini -p invocation (default: 30)
+# gemini_cli_timeout_minutes: 30
 ```
 
 ### Configuration Reference
@@ -61,16 +61,16 @@ repo_path: /tmp/ureport-agent-workspace
 | `ureport_url` | Yes | — | Full URL to your UReport server (no trailing slash). HTTP and HTTPS both supported. |
 | `agent_token` | Yes | — | Agent token generated from the UReport UI. |
 | `repo_path` | No | `./workspace` | Root directory where the agent clones repositories. One subdirectory per product lane. |
-| `ai_model` | No | `claude-sonnet-4-6` | Claude model used for AI Fix (Anthropic provider) and Agent Delegation. Overridden per-playbook if the playbook specifies a model. |
 | `claude_cli_timeout_minutes` | No | `30` | Maximum minutes to wait for a single `claude --print` invocation to complete. |
+| `gemini_cli_timeout_minutes` | No | `30` | Maximum minutes to wait for a single `gemini -p` invocation to complete. |
 
 ### Environment Variables
 
 | Variable | When Required |
 |---|---|
-| `ANTHROPIC_API_KEY` | Any playbook using Anthropic provider, Claude CLI provider, or Agent Delegation mode |
-| `OPENAI_API_KEY` | Any playbook using OpenAI provider |
-| `GEMINI_API_KEY` | Any playbook using Google Gemini provider |
+| `GEMINI_API_KEY` | Any playbook using the `gemini-cli` provider |
+
+`claude-cli` does **not** use an API key — it authenticates via browser OAuth. Run `claude` once on the agent machine to log in; credentials are stored in `~/.claude/`.
 
 Set these in your shell environment before starting the agent, or use a process manager that injects them.
 
@@ -128,7 +128,7 @@ node agent.js /path/to/ureport-agent.yml
 On startup, the agent logs its version, server URL, and workspace path:
 
 ```
-[agent] ureport-agent v0.2.0
+[agent] ureport-agent v0.2.1
 [agent] server:    https://your-ureport-server
 [agent] workspace: /tmp/ureport-agent-workspace
 [agent] connecting to wss://your-ureport-server/ws/agent
@@ -165,16 +165,18 @@ The agent executes **one job at a time** — a single global flag, not per lane.
 
 ### Workspace Layout
 
-The agent creates one subdirectory per product lane inside `repo_path`:
+The agent creates subdirectories inside `repo_path`:
 
 ```
 /tmp/ureport-agent-workspace/
-  myapp__e2e/          ← workspace for myapp / e2e
-  myapp__regression/   ← workspace for myapp / regression
-  api__smoke/
+  myapp__e2e/          ← Auto-Heal guided: workspace for myapp / e2e lane
+  myapp__regression/   ← Auto-Heal guided: workspace for myapp / regression lane
+  rerun__<key>/        ← Rerun (checkout mode): separate workspace per rerun config
 ```
 
-On first run for a lane, the repository is cloned from the playbook's `Git Remote URL`. On subsequent runs, the existing clone is fetched, reset to `HEAD`, and a new branch is created.
+- **Auto-Heal guided/delegation:** one directory per product+type lane (`product__type`). Cloned on first run; fetched and reset on subsequent runs; a new fix branch is created each time.
+- **Rerun (checkout mode):** directory named `rerun__<key>` based on the test UID. Cloned on first run; fetched and reset to base branch on subsequent runs. No new branch — runs directly on base.
+- **Rerun (local mode):** no workspace created — the agent `cd`s into the configured local path as-is.
 
 ---
 
@@ -216,7 +218,7 @@ After=network.target
 WorkingDirectory=/opt/ureport-agent
 ExecStart=/usr/bin/node agent.js
 Restart=always
-Environment=ANTHROPIC_API_KEY=sk-ant-xxx
+# Environment=GEMINI_API_KEY=your-key   ← only needed for gemini-cli playbooks
 
 [Install]
 WantedBy=multi-user.target
@@ -238,8 +240,8 @@ No connected agent was available at dispatch time. Either connect a global agent
 **Rerun signal stays `no_agent`**
 Rerun jobs are sent only to your personal agent. Go to **My Agent** (`/agent`), generate a token, and start the agent with it.
 
-**`ANTHROPIC_API_KEY env var not set`**
-Set `ANTHROPIC_API_KEY` in the shell environment before starting the agent.
+**`GEMINI_API_KEY env var not set`**
+Set `GEMINI_API_KEY` in the shell environment before starting the agent (only needed for `gemini-cli` playbooks).
 
 **`checkout.remote is not set in the playbook`**
 Add a Git Remote URL to the Checkout stage in the playbook configuration.

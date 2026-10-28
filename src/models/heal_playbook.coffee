@@ -16,8 +16,10 @@ healPlaybookSchema = new Schema(
   #   createPr:  { enabled, titleTemplate, baseBranch }
   # }
   pipeline: Schema.Types.Mixed
-  # agent_delegation mode: goal prompt sent to the AI agent
+  # agent_delegation mode: goal prompt sent to the AI CLI tool
   prompt: { type: String }
+  # agent_delegation mode: which CLI provider to use ('claude-cli' | 'gemini-cli')
+  provider: { type: String }
   created_at: { type: Date, default: Date.now }
   updated_at: { type: Date, default: Date.now }
 )
