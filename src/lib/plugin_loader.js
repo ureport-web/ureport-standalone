@@ -44,12 +44,17 @@ function loadPlugin(name) {
       on: (event, handler) => {
         hooks.on(event, (payload) => {
           if (getLicenseState().features.includes(name)) {
-            handler(payload)
+            try {
+              handler(payload)
+            } catch (e) {
+              logger.error(`[plugin] ${name} unhandled error in ${event} handler: ${e.message}`)
+            }
           } else {
             logger.warn(`[plugin] ${name} skipped — feature not licensed`)
           }
         })
       },
+      emit: (event, payload) => hooks.emit(event, payload),
       onServerReady: (cb) => {
         if (_server) {
           cb(_server)
