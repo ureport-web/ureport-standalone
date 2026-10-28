@@ -125,19 +125,8 @@ router.post '/status/:id',  (req, res, next) ->
       test.save (err, rs) ->
         if err
           next err
-        # Patch the cached test in-place; if not found the cache is stale so evict it
-        buildKey = "test:v2:#{test.build}"
-        cached = cache.get buildKey
-        if cached
-          found = false
-          for t in cached
-            if t._id.toString() == test._id.toString()
-              t.status = test.status
-              t.old_status = test.old_status
-              found = true
-              break
-          if not found
-            cache.del buildKey
+        # Evict cache so next fetch reflects the updated status
+        cache.del "test:v2:#{test.build}"
         if(req.body.status)
             req.body.uid = test.uid  # set for audit purpose
             registerAudit(req, res, "Change Status to " + req.body.status, "UPDATE")

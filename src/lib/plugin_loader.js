@@ -6,6 +6,12 @@ const { getLicenseState } = require('../utils/license')
 
 const PLUGINS_DIR = path.resolve(__dirname, '../../plugins')
 
+// Feature bundles: if any listed feature is licensed, the plugin is considered licensed.
+// e.g. auto-heal is bundled with auto-triage — licensed together.
+const FEATURE_BUNDLES = {
+  'auto-heal': ['auto-heal', 'auto-triage'],
+}
+
 let _app = null
 let _db = null
 const _loaded = new Set()
@@ -43,7 +49,8 @@ function loadPlugin(name) {
     const guardedHooks = {
       on: (event, handler) => {
         hooks.on(event, (payload) => {
-          if (getLicenseState().features.includes(name)) {
+          const allowedFeatures = FEATURE_BUNDLES[name] || [name]
+          if (allowedFeatures.some(f => getLicenseState().features.includes(f))) {
             try {
               handler(payload)
             } catch (e) {
