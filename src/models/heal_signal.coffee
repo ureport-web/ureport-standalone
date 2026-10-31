@@ -28,6 +28,25 @@ healSignalSchema = new Schema(
   claimed_at:    { type: Date }
   claimed_by:    { type: String }   # identifier provided by external system on claim
 
+  # Failure context at trigger time (immutable snapshot for external consumers)
+  failure_snapshot: Schema(
+    {
+      error_message: String
+      stack_trace:   String
+    }
+    { _id: false }
+  )
+
+  # Recent pass/fail history for this test uid in this lane (last 10 prior builds, newest first)
+  lane_history: [Schema(
+    {
+      build_number: Number
+      status:       String   # PASS | FAIL
+      start_time:   Date
+    }
+    { _id: false }
+  )]
+
   # Failure grouping (set when triggered by auto-heal)
   failure_group_id:   { type: String }           # hash of error fingerprint
   affected_test_ids:  [{ type: Schema.Types.ObjectId, ref: 'Test' }]

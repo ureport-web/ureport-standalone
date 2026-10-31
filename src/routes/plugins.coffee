@@ -162,6 +162,9 @@ router.post '/:name/install', (req, res) ->
 
   isUpdate = pluginLoader.isLoaded(name)
 
+  if name is 'auto-heal' and not pluginLoader.isLoaded('auto-triage')
+    return res.status(400).json({ error: 'auto-heal requires auto-triage to be installed first' })
+
   licenseState = getLicenseState()
   unless licenseState.valid
     return res.status(403).json({ error: 'No valid license' })
@@ -219,6 +222,10 @@ router.post '/:name/upload', upload.single('bundle'), (req, res) ->
 
   unless req.file
     return res.status(400).json({ error: 'No file uploaded — send a .tar.gz as multipart field "bundle"' })
+
+  if name is 'auto-heal' and not pluginLoader.isLoaded('auto-triage')
+    fs.unlink req.file.path, ->
+    return res.status(400).json({ error: 'auto-heal requires auto-triage to be installed first' })
 
   licenseState = getLicenseState()
   unless licenseState.valid

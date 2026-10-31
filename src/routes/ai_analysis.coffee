@@ -100,7 +100,7 @@ router.post '/analyze-test/:testId', (req, res, next) ->
                   if err then logger.warn('Failed to save AiAnalysis for cache-hit test_id:', err)
                 )
               if not errorMsg
-                return res.json({ result: cached.result, cached: true, provider: cached.provider, model: cached.model, siblingTestIds: [] })
+                return res.json({ result: cached.result, cached: true, provider: cached.provider, model: cached.model, siblingTestIds: [], created_at: cached.created_at })
               Test.find({
                 build: test.build
                 _id: { $ne: test._id }
@@ -114,7 +114,7 @@ router.post '/analyze-test/:testId', (req, res, next) ->
                 siblingIds = deduped.map((s) -> s._id.toString())
                 if deduped.length
                   insertSiblingRecords(deduped, inputHash, cached.result, cached.provider, cached.model, product, type)
-                res.json({ result: cached.result, cached: true, provider: cached.provider, model: cached.model, siblingTestIds: siblingIds })
+                res.json({ result: cached.result, cached: true, provider: cached.provider, model: cached.model, siblingTestIds: siblingIds, created_at: cached.created_at })
               )
             )
             return
@@ -162,8 +162,9 @@ router.post '/analyze-test/:testId', (req, res, next) ->
                     # Don't fail if save fails — still return result
                     logger.warn('Failed to save AiAnalysis:', err)
 
+                  savedAt = (saved and saved.created_at) or new Date()
                   if not errorMsg
-                    return res.json({ result: result, cached: false, provider: providerName, model: modelName, siblingTestIds: [] })
+                    return res.json({ result: result, cached: false, provider: providerName, model: modelName, siblingTestIds: [], created_at: savedAt })
                   Test.find({
                     build: test.build
                     _id: { $ne: test._id }
@@ -177,7 +178,7 @@ router.post '/analyze-test/:testId', (req, res, next) ->
                     siblingIds = deduped.map((s) -> s._id.toString())
                     if deduped.length
                       insertSiblingRecords(deduped, inputHash, result, providerName, modelName, product, type)
-                    res.json({ result: result, cached: false, provider: providerName, model: modelName, siblingTestIds: siblingIds })
+                    res.json({ result: result, cached: false, provider: providerName, model: modelName, siblingTestIds: siblingIds, created_at: savedAt })
                   )
                 )
               )
