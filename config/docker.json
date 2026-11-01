@@ -1,0 +1,6 @@
+{
+  "type": "Docker",
+  "DBHost": "mongodb://mongodb:27017/ureport",
+  "PORT": 8080,
+  "FEATURE_SERVER_URL": "https://features.ureportlab.com"
+}

@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
 echo "Running initialization..."
-node /opt/ureport/initialize.js
+node /app/initialize.js
 echo "Starting ureport..."
 exec npm start
