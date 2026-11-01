@@ -54,7 +54,7 @@ router.get '/', (req, res, next) ->
       return next err
     res.json { quarantine: docs.map (d) -> d.uid }
 
-# POST /filter — filter by product/type/is_active/scope
+# POST /filter — filter by product/type/is_active/uid_search/min_cycle/scope
 router.post '/filter', (req, res, next) ->
   query = {}
   if req.body.product
@@ -63,6 +63,10 @@ router.post '/filter', (req, res, next) ->
     query.type = req.body.type
   if req.body.is_active != undefined
     query.is_active = req.body.is_active
+  if req.body.uid_search
+    query.uid = { $regex: req.body.uid_search, $options: 'i' }
+  if req.body.min_cycle and req.body.min_cycle > 1
+    query.cycle = { $gte: req.body.min_cycle }
   if req.body.scope
     applyScopeQuery(query, req.body.scope)
 
@@ -71,9 +75,10 @@ router.post '/filter', (req, res, next) ->
       return next err
     res.json docs
 
-# GET /history/:uid — quarantine cycle history for a test uid
-router.get '/history/:uid', (req, res, next) ->
-  query = { uid: req.params.uid }
+# GET /history?uid=&product=&type= — quarantine cycle history for a test uid
+router.get '/history', (req, res, next) ->
+  return res.status(400).json({ error: 'uid required' }) unless req.query.uid
+  query = { uid: req.query.uid }
   query.product = req.query.product if req.query.product
   query.type = req.query.type if req.query.type
   QuarantineHistory.find(query).sort({ quarantined_at: -1 }).exec (err, docs) ->

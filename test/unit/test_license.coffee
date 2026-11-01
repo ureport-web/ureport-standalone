@@ -13,7 +13,7 @@ describe 'validateLicense', ->
     result.valid.should.equal true
     result.isCommunity.should.equal true
     result.seats.should.equal 5
-    result.lanes.should.equal 3
+    chai.expect(result.lanes).to.equal null  # lane limit removed
     result.plan.should.equal 'community'
 
   it 'validates COMMUNITY_JWT token directly', ->
@@ -21,14 +21,14 @@ describe 'validateLicense', ->
     result.valid.should.equal true
     result.isCommunity.should.equal true
     result.seats.should.equal 5
-    result.lanes.should.equal 3
+    chai.expect(result.lanes).to.equal null  # lane limit removed
     result.plan.should.equal 'community'
 
   it 'returns fallback on invalid/garbage token (valid:false, community seats/lanes)', ->
     result = validateLicense('garbage.token.invalid')
     result.valid.should.equal false
     result.seats.should.equal 3
-    result.lanes.should.equal 3
+    chai.expect(result.lanes).to.equal null  # lane limit removed
     result.isCommunity.should.equal true
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ describe 'getLicenseState / setCachedState / invalidateCache', ->
     result.valid.should.equal true
     result.isCommunity.should.equal true
     result.seats.should.equal 5
-    result.lanes.should.equal 3
+    chai.expect(result.lanes).to.equal null  # lane limit removed
 
   it 'setCachedState then getLicenseState returns the injected state', ->
     setCachedState({ seats: 10, lanes: 5, valid: true, plan: 'pro', isCommunity: false })
@@ -58,4 +58,4 @@ describe 'getLicenseState / setCachedState / invalidateCache', ->
     invalidateCache()
     result = getLicenseState()
     result.seats.should.equal 5
-    result.lanes.should.equal 3
+    chai.expect(result.lanes).to.equal null  # lane limit removed

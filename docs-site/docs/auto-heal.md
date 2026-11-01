@@ -26,7 +26,7 @@ The **Rerun** feature lets you run any test on your own agent without AI involve
 |---|---|---|---|
 | **Guided** (playbook) | ureport-agent runs a fixed pipeline: checkout → AI fix → verify → open PR | Install ureport-agent; configure a guided playbook | Predictable, auditable pipeline with explicit steps |
 | **Agent Delegation** (playbook) | ureport-agent hands off to Claude; Claude explores and fixes autonomously | Install ureport-agent; configure a delegation playbook | You want the AI agent to decide how to fix with minimal configuration |
-| **External Consumer** | Your own system — any language, any AI, any workflow | Build a poller that calls the signals API | You already have an AI automation platform and want UReport to surface failures and accept outcomes |
+| **External Consumer** | Your own system — any language, any AI, any workflow | Build a poller that calls the signals API | You already have an AI automation platform and want UReport to surface failures and accept outcomes. Each signal carries a full failure snapshot (error message, stack trace) and lane history so your system has everything it needs without extra API calls. |
 
 ---
 
@@ -324,14 +324,37 @@ Auto-Heal can fire automatically when a build completes. It runs **after auto-tr
 
 #### Filtering Order
 
-On each build completion, auto-trigger applies these exclusions in order:
+On each build completion, auto-trigger determines the **final status per test UID** — when a test has multiple runs (retries), only the last run counts. Then it applies these exclusions in order:
 
-1. Tests that passed on a rerun in the same build → excluded
-2. Manually triaged tests (InvestigatedTest records) → always excluded, not configurable
-3. Auto-triaged tests → always excluded
-4. Quarantined tests → excluded if `exclude_quarantined` is on
-5. Tests that failed in the previous build too → excluded if `new_failures_only` is on
-6. Tests that failed in the last N consecutive builds → excluded if `max_prior_failures > 0`
+1. **Final status is not FAIL** — tests that ultimately passed (including via rerun) are excluded.
+2. **Active auto-triage coverage** — excluded if the test has a non-expired auto-triage record (`is_auto_triaged: true`) **and** the current failure fingerprint matches the investigated pattern. See [Triage exclusion rules](#triage-exclusion-rules) below.
+3. **Quarantined** — excluded if `exclude_quarantined` is on and the test is currently quarantined.
+4. **Not a new failure** — excluded if `new_failures_only` is on and the test's final status in the previous build (same lane) was also FAIL.
+5. **Persistent failure** — excluded if `max_prior_failures > 0` and the test failed in all of the last N consecutive builds.
+
+#### Triage Exclusion Rules
+
+Auto-trigger only excludes tests whose failure is **actively covered by a valid auto-triage record**. Manual triage records (created by a user in the UI) do not block signal creation — they are informational annotations, not active coverage gates.
+
+| Condition | Signal created? | Reason |
+|---|---|---|
+| Auto-triaged (TTL valid), current failure matches same error fingerprint | No | Auto-triage is actively covering this exact failure pattern |
+| Auto-triaged (TTL valid), current failure has **different** error fingerprint | Yes | New failure mode — different root cause, needs investigation |
+| Auto-triaged (TTL **expired**) | Yes | Coverage lapsed — failure is eligible again |
+| Auto-triage record missing (old records without `is_auto_triaged` flag) | Yes | Treated as expired — records from old plugin versions are not enforced |
+| **Manually triaged** (user-created triage in UI, any age) | **Yes** | Manual triage is a historical annotation; auto-heal signals are independent |
+
+:::info Source age limit
+Auto-Heal reads the **Source age limit** from Auto-Triage Settings (same lane) to determine staleness of triage records. Auto-triage records older than this limit no longer suppress heal signals, even if their TTL has not elapsed. Records with permanent TTL (`-1`) are always enforced regardless of age.
+
+If Auto-Triage is not enabled or its settings have never been configured, Auto-Heal defaults to **30 days**. Since only `is_auto_triaged: true` records can suppress heal signals, this only matters if auto-triage was previously enabled and left records behind.
+:::
+
+:::warning Triage status and heal signals can coexist
+A test may appear as **triaged** in the UI (because a user manually investigated it at some point) while also having an active heal signal. This is expected behavior — the manual triage records a past investigation, and the heal signal targets the current failure which may have a different cause or occurred after the test had been passing for a while.
+
+If you want to permanently suppress heal signals for a specific test, use auto-triage with `ttl: -1` (permanent coverage) rather than a manual triage.
+:::
 
 #### Failure Grouping
 
@@ -375,12 +398,37 @@ Filter by lane:
 GET /api/ai/heal/signals?status=open&product=MyApp&type=E2E
 ```
 
-Each signal in the response includes:
-- `testName`, `testUid`, `testFile` — which test failed
-- `product`, `type` — which lane
-- `failureGroupId` — error fingerprint hash (stable across runs)
-- `affectedTestUids` — other tests in the same error group
-- `buildId` — build where the failure was detected
+Each signal in the response includes everything your system needs to process the fix without additional API calls:
+
+| Field | Description |
+|---|---|
+| `testName`, `testUid`, `testFile` | Which test failed |
+| `product`, `type` | Which lane |
+| `buildId` | Build where the failure was detected |
+| `failureGroupId` | Error fingerprint hash (stable across runs with same root cause) |
+| `affectedTestUids` | Other tests in the same error group (same root cause) |
+| `failureSnapshot.errorMessage` | Error message captured at trigger time |
+| `failureSnapshot.stackTrace` | Stack trace captured at trigger time |
+| `laneHistory` | Array of `{ buildNumber, status, startTime }` for the last 10 prior builds in this lane — tells you whether this is a new regression or a recurring failure |
+
+#### Reading `laneHistory`
+
+`laneHistory` is ordered newest-first. Each entry is one prior build's outcome for this test UID.
+
+```json
+"laneHistory": [
+  { "buildNumber": 142, "status": "PASS", "startTime": "2024-10-28T..." },
+  { "buildNumber": 141, "status": "PASS", "startTime": "2024-10-27T..." },
+  { "buildNumber": 140, "status": "FAIL", "startTime": "2024-10-26T..." }
+]
+```
+
+- All recent builds `PASS` → this is likely a new regression introduced in the triggering build — a strong fix candidate.
+- Mixed or all `FAIL` → the test has been failing on and off; your system may want to apply different logic (investigate root cause, skip, or escalate).
+
+:::info
+`failureSnapshot` is captured at trigger time. If the test has been rerun since then, the snapshot reflects the state when the signal was created, not the latest rerun result.
+:::
 
 ### 2. Claim a Signal
 
