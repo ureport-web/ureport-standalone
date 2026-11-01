@@ -37,21 +37,23 @@ Once data is in, uReport does the heavy lifting:
 ### Option A — Docker (recommended, no prerequisites)
 
 ```bash
-docker-compose up --build
+docker compose up --build -d --wait
 ```
 
-`--build` compiles the app image from the included `Dockerfile` — no pre-built image to pull.
+`--build` compiles the app image from the included `Dockerfile` — no pre-built image to pull. The stack runs on **Node 22**, and `--wait` returns only once both containers report healthy, so the app is ready when the command finishes.
 
 Open `http://localhost:8080`. Default credentials: **admin / changeme**, **demo / 1234**.
 
-MongoDB is bundled — no separate install needed. Data persists in a named Docker volume.
+MongoDB is bundled — no separate install needed, and it is **not** published on a host port. Data persists in a named Docker volume.
+
+> **Working on uReport itself?** A local `docker-compose.override.yml` (gitignored) can add host-port mappings — `4100` for the frontend dev server, and `27018` for Compass to reach the bundled database. The container itself always listens on `8080`, so `localhost:8080` and `localhost:4100` serve the same app. Compose loads that file automatically; bypass it with `docker compose -f docker-compose.yml up -d` to reproduce exactly what customers get.
 
 **Custom credentials or external DB:** copy `.env.example` to `.env` and edit before running.
 
 ```bash
 cp .env.example .env
 # edit .env, then:
-docker-compose up --build
+docker compose up --build -d --wait
 ```
 
 > Credentials set in `.env` only take effect on the **first** startup (when the DB is empty).
@@ -60,7 +62,7 @@ docker-compose up --build
 
 ### Option B — Bare metal
 
-**Prerequisites:** Node.js ≥ 18, MongoDB ≥ 3.0
+**Prerequisites:** Node.js ≥ 22, MongoDB ≥ 3.0
 
 1. Clone the repo.
 2. Run `npm install`.
@@ -270,7 +272,7 @@ These env vars are read by `initialize.js` on first run when the DB is empty:
 | `ADMIN_PASSWORD` | `changeme`          |
 | `DEMO_PASSWORD`  | `1234`              |
 
-**Docker:** set them in `.env` (copy from `.env.example`) before the first `docker-compose up`.
+**Docker:** set them in `.env` (copy from `.env.example`) before the first `docker compose up`.
 
 **Bare metal:** defaults apply automatically — no extra config needed. To override, export the env vars before running `npm run initialize`.
 

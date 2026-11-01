@@ -21,10 +21,10 @@ No local Node.js or MongoDB install required — everything is bundled.
 ```bash
 git clone https://github.com/ureport-web/ureport-standalone.git
 cd ureport-standalone
-docker-compose up --build
+docker compose up --build -d --wait
 ```
 
-`--build` compiles the app image from the included `Dockerfile` — no pre-built image to pull.
+`--build` compiles the app image from the included `Dockerfile` — no pre-built image to pull. `-d` runs it in the background and `--wait` returns only once both containers report healthy.
 
 The container entrypoint automatically runs `initialize.js` on every start, which seeds the default admin and demo accounts if the database is empty (safe no-op if already initialized).
 
@@ -37,7 +37,7 @@ Copy `.env.example` to `.env` and edit before the first startup:
 ```bash
 cp .env.example .env
 # edit .env, then:
-docker-compose up --build
+docker compose up --build -d --wait
 ```
 
 ```bash title=".env"
@@ -88,7 +88,7 @@ Set `DBHost` in `.env` to your MongoDB URI. The bundled `mongodb` service in `do
 
 ### What do I need before installing?
 
-- **Node.js 18+** — runtime for the server
+- **Node.js 22+** — runtime for the server
 - **MongoDB 3+** — database (local, Atlas, or AWS DocumentDB)
 
 ### How do I get UReport running without Docker?
