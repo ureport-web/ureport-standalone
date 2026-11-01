@@ -55,6 +55,19 @@ jobs:
       - name: App answers on 8080
         run: curl -fsS --retry 10 --retry-delay 3 http://localhost:8080/api/version
 
+      # /api/version is static — it answers even when the database is
+      # unreachable, so on its own it would pass on an unusable app. Assert the
+      # seeded data is really there, through the container's own Mongo.
+      - name: Database was initialised
+        run: |
+          docker compose exec -T mongodb mongosh --quiet \
+            --eval "quit(db.getSiblingDB('ureport').users.countDocuments() > 0 ? 0 : 1)"
+
+      # public/nextgen is tracked, so a 200 here proves the built UI actually
+      # made it into the image and is being served by Express.
+      - name: Serves the bundled UI
+        run: curl -fsS http://localhost:8080/nextgen/
+
       - name: Container logs
         if: failure()
         run: docker compose logs --no-color
