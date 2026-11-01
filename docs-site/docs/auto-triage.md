@@ -47,7 +47,16 @@ Auto-triage is configured per product/type from the **Launches page**. Click the
 |---|---|---|
 | **Enabled** | Off | Master switch. Auto-triage does not run unless this is on. |
 | **Review TTL (days)** | 5 | How long a message or stack trace match remains valid. After this many days, the auto-triage record expires and the test becomes eligible for re-triage. Range: 1–365. |
-| **Source age limit (days)** | 90 | Investigations older than this are not used as match sources. Prevents very old patterns from silently matching new failures. Range: 1–180. |
+| **Source age limit (days)** | 90 | Controls two things: (1) how far back to look for source investigations when matching new failures, and (2) how old an existing triage record can be before it no longer counts as active coverage — the test becomes eligible for re-triage and **Auto-Heal signals**. Records with permanent TTL (`-1`) are always covered regardless of age. Range: 1–180. |
+
+:::info Source age limit vs Analysis Since Day
+These two settings form a hierarchy:
+
+- **Analysis Since Day** (System Settings, global) — the overall horizon for all analysis: how far back build history, charts, and trend views can look. This is the ceiling for everything.
+- **Source age limit** (Auto-Triage Settings, per lane) — a narrower, stricter subset of that horizon, applying only to automated decisions. Automated pattern matching and coverage enforcement should be conservative — using very old records risks propagating stale failure patterns as false positives.
+
+In practice, set **Source age limit ≤ Analysis Since Day**. For example: Analysis Since Day = 60, Source age limit = 30 means you can browse 60 days of history manually, but auto-triage and auto-heal only act on investigation records from the last 30 days.
+:::
 
 ---
 
@@ -92,11 +101,14 @@ Auto-triage builds its match maps from existing **InvestigatedTest** records for
 
 | Source type | Valid as source? | Notes |
 |---|---|---|
-| Manual investigation | Always | A human-created investigation is always valid regardless of age (within source age limit). |
-| Auto-triage, token match | Always | Token matches are permanent — the source record never expires. |
-| Auto-triage, message/stack match | Only if not expired | If the source auto-triage record has expired (TTL elapsed), it is excluded from the match pool. |
-| Fuzzy match (similarity < 100%) | Never | Fuzzy matches cannot be safely replicated by exact lookup — always excluded from the source pool. |
-| TTL = 0 or unset on auto-triage record | Never | Treated as expired immediately. |
+| Manual investigation, within source age limit | Yes | A recent human-created investigation is used as a source. |
+| Manual investigation, older than source age limit | No | Treated as stale — excluded from matching and coverage. |
+| Auto-triage with `ttl: -1` (permanent) | Always | Permanent records are never considered stale regardless of age. |
+| Auto-triage, token match (within age limit) | Yes | Token matches are permanent — the source record never expires via TTL. |
+| Auto-triage, message/stack match (within age limit, TTL valid) | Yes | Included if within age limit and TTL has not elapsed. |
+| Auto-triage, message/stack match (TTL expired) | No | Expired via TTL — excluded from the match pool. |
+| Fuzzy match (similarity < 100%) | Never | Fuzzy matches cannot be safely replicated by exact lookup — always excluded. |
+| Any record older than source age limit (unless `ttl: -1`) | No | Stale — excluded from both matching and coverage checks. |
 
 ---
 

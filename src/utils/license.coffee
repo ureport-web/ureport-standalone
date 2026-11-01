@@ -31,15 +31,17 @@ validateLicense = (key) ->
       valid:       true
       licensee:    payload.licensee or null
       seats:       if payload.seats?      then payload.seats      else null
-      lanes:       if payload.lanes?      then payload.lanes      else null
-      dashboards:  if payload.dashboards? then payload.dashboards else null
+      # lanes:       if payload.lanes?      then payload.lanes      else null  # disabled: lane limit removed
+      lanes:       null
+      # dashboards:  if payload.dashboards? then payload.dashboards else null  # disabled: dashboard limit removed
+      dashboards:  null
       plan:        payload.plan or 'community'
       features:    payload.features or []
       expiresAt:   if payload.exp then new Date(payload.exp * 1000) else null
       isCommunity: payload.plan is 'community'
     }
   catch err
-    { valid: false, licensee: null, seats: 3, lanes: 3, dashboards: 3, plan: 'community', features: [], expiresAt: null, isCommunity: true, error: err.message }
+    { valid: false, licensee: null, seats: 3, lanes: null, dashboards: null, plan: 'community', features: [], expiresAt: null, isCommunity: true, error: err.message }  # lanes/dashboards set to null: limits removed
 
 getLicenseState = -> _state or validateLicense(null)
 invalidateCache  = -> _state = null

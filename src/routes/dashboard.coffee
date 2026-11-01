@@ -68,23 +68,23 @@ router.post '/',  (req, res, next) ->
         res.json rs
     );
   else
-    state = getLicenseState()
-    if state.dashboards isnt null
-      Dashboard.countDocuments({ user: req.body.user }).exec (err, count) ->
-        if err then return next(err)
-        if count >= state.dashboards
-          return res.status(403).json({ error: 'Dashboard limit reached', limit: state.dashboards })
-        dashboard = new Dashboard(req.body)
-        dashboard.save (err, rs) ->
-          if err then return next(err)
-          res.json rs
-    else
-      dashboard = new Dashboard(req.body)
-      dashboard.save((err, rs) ->
-        if err
-          return next(err)
-        res.json rs
-      );
+    # state = getLicenseState()  # disabled: dashboard limit removed
+    # if state.dashboards isnt null
+    #   Dashboard.countDocuments({ user: req.body.user }).exec (err, count) ->
+    #     if err then return next(err)
+    #     if count >= state.dashboards
+    #       return res.status(403).json({ error: 'Dashboard limit reached', limit: state.dashboards })
+    #     dashboard = new Dashboard(req.body)
+    #     dashboard.save (err, rs) ->
+    #       if err then return next(err)
+    #       res.json rs
+    # else
+    dashboard = new Dashboard(req.body)
+    dashboard.save((err, rs) ->
+      if err
+        return next(err)
+      res.json rs
+    );
 
 # Update dashboard
 router.put '/:id',  (req, res, next) ->
