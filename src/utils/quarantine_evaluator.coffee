@@ -12,11 +12,7 @@ ObjectId = require('mongoose').Types.ObjectId
 matcher = require('./notification_rule_matcher')
 logger = require('./logger')
 
-extrasToKey = (extras) ->
-  return '' unless extras and typeof extras is 'object'
-  obj = if extras instanceof Map then Object.fromEntries(extras) else extras
-  sorted = Object.keys(obj).sort().filter (k) -> obj[k]
-  sorted.map((k) -> "#{k}=#{obj[k]}").join('|')
+{ extrasToKey } = require('./extras_key')
 
 extractExtras = (arg) ->
   return {} unless arg?.extras

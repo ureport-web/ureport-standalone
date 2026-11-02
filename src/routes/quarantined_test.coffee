@@ -5,6 +5,7 @@ QuarantineHistory = require('../models/quarantine_history')
 ObjectId = require('mongoose').Types.ObjectId
 registerAudit = require('../utils/register_audit')
 logger = require('../utils/logger')
+{ requireRole } = require('../utils/route_guards')
 { extrasToKey } = require('../utils/quarantine_evaluator')
 
 SCOPE_FIELDS = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage']
@@ -126,7 +127,7 @@ router.put '/:id', (req, res, next) ->
   )
 
 # DELETE / — bulk hard delete by ids array
-router.delete '/', (req, res, next) ->
+router.delete '/', requireRole('admin'), (req, res, next) ->
   ids = req.body?.ids
   unless Array.isArray(ids) and ids.length > 0
     return res.status(400).json { error: 'ids array required' }
@@ -137,7 +138,7 @@ router.delete '/', (req, res, next) ->
     res.json { deleted: result.deletedCount }
 
 # DELETE /:id — hard delete
-router.delete '/:id', (req, res, next) ->
+router.delete '/:id', requireRole('admin'), (req, res, next) ->
   registerAudit(req, res, 'RELEASE', 'Release Quarantine', 'quarantine', { uid: req.params.id, product: 'SYSTEM', type: 'QUARANTINE' })
   QuarantinedTest.findOneAndRemove({ _id: new ObjectId(req.params.id) }).exec (err, doc) ->
     if err

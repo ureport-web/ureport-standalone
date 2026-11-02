@@ -4,6 +4,7 @@ mongoose = require('mongoose')
 bsonLib = require('bson')
 bsonInst = new bsonLib.BSON()
 AccessControl = require('../utils/ac_grants')
+{ requireRole } = require('../utils/route_guards')
 
 Build = require('../models/build')
 Test  = require('../models/test')
@@ -189,9 +190,7 @@ estimateStripSteps = (query, res, next) ->
   .catch (e) -> next(e)
 
 # Strip Steps purge: remove setup/body/teardown from all tests before a date
-router.post '/purge/strip-steps', (req, res, next) ->
-  if (!AccessControl.canAccessReadAny(req.user.role, 'setting'))
-    return res.status(403).json({ error: "You don't have permission to perform this action" })
+router.post '/purge/strip-steps', requireRole('admin'), (req, res, next) ->
 
   unless req.body.untilDate
     return res.status(400).json({ error: 'untilDate is required' })

@@ -15,7 +15,7 @@ router.get '/:id',  (req, res, next) ->
   Setting.findOne({_id: req.params.id}).
   exec((err, setting) ->
     if(err)
-      next err
+      return next err
 
     if(setting)
       res.json setting

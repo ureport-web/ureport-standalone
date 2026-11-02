@@ -9,6 +9,7 @@ InvestigatedTest = require('../models/investigated_test')
 aiProviderFactory = require('../utils/ai_provider_factory')
 aiService = require('../utils/ai_service')
 logger = require('../utils/logger')
+{ requireRole, requireFeature } = require('../utils/route_guards')
 
 deduplicateSiblings = (siblings) ->
   byUid = {}
@@ -50,7 +51,7 @@ insertSiblingRecords = (siblings, inputHash, result, provider, model, product, t
  * POST /api/ai/analyze-test/:testId
  * Run AI root cause analysis for a failing test
 ###
-router.post '/analyze-test/:testId', (req, res, next) ->
+router.post '/analyze-test/:testId', requireRole('admin', 'operator'), requireFeature('auto-triage'), (req, res, next) ->
   testId = req.params.testId
 
   Test.findById(testId).exec((err, test) ->

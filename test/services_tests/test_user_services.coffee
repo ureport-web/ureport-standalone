@@ -188,7 +188,7 @@ describe 'User with operator access', ->
 
     it 'can only update himself', (done) ->
         payload = {
-            email: "updateemail@test.com",
+            email: "operatorupdateemail@test.com",
             position: "QA Manager",
             displayname: "#1 Boss",
             settings: {
@@ -207,7 +207,7 @@ describe 'User with operator access', ->
         user.update(server, cookies, himself, payload, 200,
             (rs) ->
                 rs.body.username.should.equal 'ToBeUpdateViewer2'
-                rs.body.email.should.equal 'updateemail@test.com'
+                rs.body.email.should.equal 'operatorupdateemail@test.com'
                 rs.body.displayname.should.equal '#1 Boss'
                 rs.body.role.should.equal 'operator'
                 rs.body.position.should.equal 'QA Manager'
@@ -257,7 +257,7 @@ describe 'User with admin access', ->
     it 'can update user', (done) ->
         payload = {
             role: "operator",
-            email: "updateemail@test.com",
+            email: "adminupdateemail@test.com",
             position: "QA Manager",
             displayname: "#1 Boss",
             settings: {
@@ -286,7 +286,7 @@ describe 'User with admin access', ->
         user.update(server, cookies, "ToBeUpdateViewer1", payload, 200,
             (rs) ->
                 rs.body.username.should.equal 'ToBeUpdateViewer1'
-                rs.body.email.should.equal 'updateemail@test.com'
+                rs.body.email.should.equal 'adminupdateemail@test.com'
                 rs.body.displayname.should.equal '#1 Boss'
                 rs.body.role.should.equal 'operator'
                 rs.body.position.should.equal 'QA Manager'

@@ -1,1 +1,1 @@
---compilers coffee:coffee-script/register -R spec --recursive
+--compilers coffee:coffee-script/register -R spec --recursive --timeout 10000

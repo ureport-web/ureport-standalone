@@ -118,13 +118,13 @@ router.post '/status/:id',  (req, res, next) ->
   Test.findOne({_id: req.params.id}).
   exec((err, test) ->
     if err
-      next err
+      return next err
 
     if test
       Test.changeStatus(test, req.body)
       test.save (err, rs) ->
         if err
-          next err
+          return next err
         # Evict cache so next fetch reflects the updated status
         cache.del "test:v2:#{test.build}"
         if(req.body.status)
@@ -199,7 +199,7 @@ router.post '/filter',  (req, res, next) ->
     .lean()
     .exec((err, tests) ->
         if(err)
-            next err
+            return next err
         res.json tests
     );
 
@@ -306,7 +306,7 @@ router.post '/find/test/:id',  (req, res, next) ->
     Test.findOne({_id: req.params.id}).
     exec((err, test) ->
         if err
-            next err
+            return next err
 
         if test
             res.json test

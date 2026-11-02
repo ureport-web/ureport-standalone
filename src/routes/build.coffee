@@ -12,6 +12,8 @@ registerAudit = require('../utils/register_audit')
 AccessControl = require('../utils/ac_grants')
 { getLicenseState } = require('../utils/license')
 { escapeRegex, safeRegex } = require('../utils/regex_utils')
+{ extrasToKey } = require('../utils/extras_key')
+{ requireRole } = require('../utils/route_guards')
 cache = require('../lib/cache')
 component = 'build'
 
@@ -54,7 +56,7 @@ router.get '/:id',  (req, res, next) ->
   Build.findOne({_id: req.params.id}).
   exec((err, build) ->
     if(err)
-      next err
+      return next err
 
     if(build)
       res.json build
@@ -120,6 +122,14 @@ router.post '/',  (req, res, next) ->
   else
     conditions.push({ $or : [{stage: null}] })
 
+  # extras are part of the lane identity: different extras -> different build.
+  # Builds created before extras_key existed have it unset; `null` matches those, treated as ''.
+  extrasKey = extrasToKey(req.body.extras)
+  if(extrasKey)
+    conditions.push({ extras_key: extrasKey })
+  else
+    conditions.push({ extras_key: { $in: ['', null] } })
+
   query = {
       $and : conditions
   }
@@ -180,12 +190,12 @@ router.delete '/:id',  (req, res, next) ->
   Build.deleteOne({_id: req.params.id}).
   exec((err, build) ->
     if err
-      next err
+      return next err
 
     Test.deleteMany({build: req.params.id}).
       exec((err, rs) ->
         if err
-          next err
+          return next err
         res.json rs
     );
   );
@@ -196,13 +206,13 @@ router.put '/status/:id',  (req, res, next) ->
   Build.findOne({_id: req.params.id}).
   exec((err, build) ->
     if err
-      next err
+      return next err
     if build
       #perform update
       Build.updateStatus(build, req.body)
       build.save (err, results) ->
         if err
-          next err
+          return next err
         res.json build
     else
       res.status(404)
@@ -324,7 +334,7 @@ router.post '/status/latest',  (req, res, next) ->
   );
   # res.json req.body
 
-router.post '/comment/:id',  (req, res, next) ->
+router.post '/comment/:id', requireRole('admin', 'operator'), (req, res, next) ->
   Build.findOne({_id: req.params.id}).
   exec((err, build) ->
     if err
@@ -341,7 +351,7 @@ router.post '/comment/:id',  (req, res, next) ->
       res.json {"error": "Cannot find Build with id " + req.params.id}
   );
 
-router.put '/comment/:id',  (req, res, next) ->
+router.put '/comment/:id', requireRole('admin', 'operator'), (req, res, next) ->
   Build.findOne({_id: req.params.id}).
   exec((err, build) ->
     if err
@@ -487,7 +497,7 @@ router.post '/filter',  (req, res, next) ->
   limit(range).
   exec((err, builds) ->
     if(err)
-      next err
+      return next err
     res.json builds
   );
 

@@ -43,7 +43,7 @@ router.post '/filter',  (req, res, next) ->
     sort({"create_at": -1}).
     exec((err, rs) ->
         if err
-          next err
+          return next err
         res.json rs
     );
 
