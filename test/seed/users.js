@@ -46,7 +46,7 @@ var users = [{
     "position" : ""
 },{ 
     "username" : "ToBeUpdateViewer1",
-    "email" : "Viewer@test.com",
+    "email" : "ToBeUpdateViewer1@test.com",
     "password" : "password",
     "settings" : {
         "language" : "en",
@@ -61,7 +61,7 @@ var users = [{
     "position" : ""
 },{ 
     "username" : "ToBeUpdateViewer2",
-    "email" : "Viewer@test.com",
+    "email" : "ToBeUpdateViewer2@test.com",
     "password" : "password",
     "settings" : {
         "language" : "en",
@@ -76,7 +76,7 @@ var users = [{
     "position" : ""
 },{ 
     "username" : "ToBeUpdateViewer3",
-    "email" : "Viewer@test.com",
+    "email" : "ToBeUpdateViewer3@test.com",
     "password" : "password",
     "settings" : {
         "language" : "en",
@@ -91,7 +91,7 @@ var users = [{
     "position" : ""
 },{ 
     "username" : "ToBeUpdatePreference",
-    "email" : "Viewer@test.com",
+    "email" : "ToBeUpdatePreference@test.com",
     "password" : "password",
     "settings" : {
         "language" : "en",

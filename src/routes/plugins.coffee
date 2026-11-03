@@ -12,6 +12,7 @@ router = express.Router()
 pluginLoader = require('../lib/plugin_loader')
 { getLicenseState, getRawToken } = require('../utils/license')
 logger = require('../utils/logger')
+{ requireRole } = require('../utils/route_guards')
 Audit = require('../models/audit')
 
 FEATURE_SERVER_URL = process.env.FEATURE_SERVER_URL or
@@ -151,7 +152,7 @@ router.get '/available', (req, res) ->
  * Downloads plugin bundle from Feature Server and hot-loads it.
  * Requires a valid enterprise license with the feature in features[].
 ###
-router.post '/:name/install', (req, res) ->
+router.post '/:name/install', requireRole('admin'), (req, res) ->
   name = req.params.name
 
   unless FEATURE_SERVER_URL
@@ -213,7 +214,7 @@ router.post '/:name/install', (req, res) ->
  * Upload a .tar.gz plugin bundle directly — for air-gapped / restricted networks.
  * Validates license feature entitlement before extracting.
 ###
-router.post '/:name/upload', upload.single('bundle'), (req, res) ->
+router.post '/:name/upload', requireRole('admin'), upload.single('bundle'), (req, res) ->
   name = req.params.name
 
   unless /^[a-z0-9-]+$/.test(name)
@@ -283,7 +284,7 @@ router.get '/agent/download/zip', (req, res) ->
   serveAgentFile(res, 'ureport-agent.zip')
 
 # POST /api/plugins/:name/load — hot-load a plugin already on disk (first install only)
-router.post '/:name/load', (req, res) ->
+router.post '/:name/load', requireRole('admin'), (req, res) ->
   name = req.params.name
   if pluginLoader.isLoaded(name)
     return res.status(409).json({ error: "#{name} already loaded — restart server to update" })

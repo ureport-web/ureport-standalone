@@ -114,7 +114,7 @@ router.post '/build/filter', (req, res, next) ->
   limit(range).
   exec((err, builds) ->
     if(err)
-      next err
+      return next err
     res.json builds
   );
 
@@ -331,7 +331,7 @@ router.post '/test/filter', (req, res, next) ->
     .sort({uid:1})
     .exec((err, tests) ->
         if(err)
-            next err
+            return next err
         res.json tests
     );
 
@@ -554,7 +554,7 @@ router.post '/test_relation/filter', (req, res, next) ->
     TestRelation.find(query,exclude).
     exec((err, tests) ->
         if(err)
-          next err
+          return next err
         res.json tests
     );
 

@@ -8,6 +8,7 @@ async = require("async")
 
 registerAudit = require('../utils/register_audit')
 AccessControl = require('../utils/ac_grants')
+{ requireRole } = require('../utils/route_guards')
 send_assignment_email      = require('../utils/send_assignment_email')
 send_followup_email        = require('../utils/send_followup_email')
 send_bulk_assignment_email = require('../utils/send_bulk_assignment_email')
@@ -17,7 +18,7 @@ router.get '/:id',  (req, res, next) ->
   Assignment.findOne({_id: req.params.id}).
   exec((err, rs) ->
     if(err)
-      next err
+      return next err
 
     if(rs)
       res.json rs
@@ -117,7 +118,7 @@ router.post '/bulk', (req, res, next) ->
 # Body: { ids: [assignmentId, ...] }
 # Bulk resolve assignments by id — called after triage to auto-close open assignments
 # Body: { ids: [assignmentId, ...] }
-router.put '/resolve/bulk', (req, res, next) ->
+router.put '/resolve/bulk', requireRole('admin', 'operator'), (req, res, next) ->
   if !req.body.ids or !Array.isArray(req.body.ids) or req.body.ids.length == 0
     return res.status(400).json {error: "ids array is required"}
 
@@ -128,7 +129,7 @@ router.put '/resolve/bulk', (req, res, next) ->
     if err then return next(err)
     res.json { resolved: result.nModified or result.modifiedCount or 0 }
 
-router.post '/followup', (req, res, next) ->
+router.post '/followup', requireRole('admin', 'operator'), (req, res, next) ->
   if !req.body.ids or !Array.isArray(req.body.ids) or req.body.ids.length == 0
     res.status(400)
     return res.json {error: "ids array is required"}
@@ -188,7 +189,7 @@ router.post '/filter',  (req, res, next) ->
   sort({"assign_at": -1}).
   exec((err, cases) ->
     if(err)
-      next err
+      return next err
     res.json cases
   );
 

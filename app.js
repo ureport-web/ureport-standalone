@@ -439,6 +439,14 @@ if (config !== undefined) {
       if (!res.headersSent) res.end();
       return;
     }
+    // Malformed ids (not 24 hex chars) are a client mistake, not a server fault
+    if (
+      err &&
+      (err.name === "CastError" ||
+        /a single String of 12 bytes or a string of 24 hex characters/.test(err.message || ""))
+    ) {
+      return res.status(400).json({ error: err.path ? `Invalid ${err.path}` : "Invalid id" });
+    }
     console.error("Internal Error:", err);
     if (err && err.name === "ValidationError") {
       if (!res.headersSent) res.status(500).json({ error: err });
