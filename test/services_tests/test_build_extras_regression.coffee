@@ -5,7 +5,7 @@ Verifies:
   - extras stored on POST /build
   - extras keys sorted alphabetically on save (both create and update paths)
   - builds without extras remain backward-compatible
-  - extras do NOT affect dedup (same product+type+build# → same document regardless of extras)
+  - extras are part of build identity (same product+type+build# but different extras → different documents)
   - updateAttributes updates extras and preserves key sort order
 ###
 process.env.NODE_ENV = 'test'
@@ -67,26 +67,41 @@ describe 'Phase 1 — Build extras field', ->
       done()
     return
 
-  it 'extras do NOT affect dedup — same product+type+build# finds same document', (done) ->
+  it 'different extras create different builds even with same product+type+build#', (done) ->
     post server, cookies, { product: PRODUCT, type: TYPE, build: 4, extras: { region: 'us-east' } }, 200, (res1) ->
-      id1 = res1.body._id
       post server, cookies, { product: PRODUCT, type: TYPE, build: 4, extras: { region: 'eu-west' } }, 200, (res2) ->
-        res2.body._id.should.equal id1
+        res2.body._id.should.not.equal res1.body._id
+        res1.body.extras.region.should.equal 'us-east'
+        res2.body.extras.region.should.equal 'eu-west'
         done()
     return
 
-  it 'updateAttributes updates extras to new value on dedup POST', (done) ->
+  it 'same extras dedup to the same build', (done) ->
     post server, cookies, { product: PRODUCT, type: TYPE, build: 5, extras: { env: 'staging' } }, 200, (res1) ->
-      post server, cookies, { product: PRODUCT, type: TYPE, build: 5, extras: { env: 'prod' } }, 200, (res2) ->
-        res2.body.extras.env.should.equal 'prod'
+      post server, cookies, { product: PRODUCT, type: TYPE, build: 5, extras: { env: 'staging' } }, 200, (res2) ->
+        res2.body._id.should.equal res1.body._id
         done()
     return
 
-  it 'sorts extras keys alphabetically on updateAttributes (dedup update path)', (done) ->
-    post server, cookies, { product: PRODUCT, type: TYPE, build: 6, extras: { alpha: '1' } }, 200, (res1) ->
-      post server, cookies, { product: PRODUCT, type: TYPE, build: 6, extras: { z_key: 'z', a_key: 'a' } }, 200, (res2) ->
-        keys = Object.keys(res2.body.extras)
-        keys.should.deep.equal ['a_key', 'z_key']
+  it 'extras {a} and {a,b} are distinct lanes', (done) ->
+    post server, cookies, { product: PRODUCT, type: TYPE, build: 7, extras: { region: 'eu' } }, 200, (res1) ->
+      post server, cookies, { product: PRODUCT, type: TYPE, build: 7, extras: { region: 'eu', shard: '1' } }, 200, (res2) ->
+        res2.body._id.should.not.equal res1.body._id
+        done()
+    return
+
+  it 'build without extras does not merge into a build with extras', (done) ->
+    post server, cookies, { product: PRODUCT, type: TYPE, build: 8, extras: { region: 'eu' } }, 200, (res1) ->
+      post server, cookies, { product: PRODUCT, type: TYPE, build: 8 }, 200, (res2) ->
+        res2.body._id.should.not.equal res1.body._id
+        done()
+    return
+
+  it 'sorts extras keys alphabetically on the dedup update path', (done) ->
+    post server, cookies, { product: PRODUCT, type: TYPE, build: 6, extras: { z_key: 'z', a_key: 'a' } }, 200, (res1) ->
+      post server, cookies, { product: PRODUCT, type: TYPE, build: 6, extras: { a_key: 'a', z_key: 'z' } }, 200, (res2) ->
+        res2.body._id.should.equal res1.body._id
+        Object.keys(res2.body.extras).should.deep.equal ['a_key', 'z_key']
         done()
     return
 

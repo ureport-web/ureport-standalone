@@ -1,6 +1,7 @@
 mongoose = require('mongoose')
 Schema = mongoose.Schema
 async = require("async")
+{ extrasToKey } = require('../utils/extras_key')
 
 buildSchema = new Schema(
 	product: {
@@ -71,6 +72,8 @@ buildSchema = new Schema(
 		type: Map,
 		of: String
 	},
+	# Derived from `extras` (see utils/extras_key). Part of the build identity: different extras = different lane.
+	extras_key: { type: String, default: '' },
 	# if client exists, we map the settings and environments to the clients
 	outages: [],
 	comments: [Schema({
@@ -292,6 +295,11 @@ buildSchema.statics.manipulateOutage = (build, payload) ->
 			)
 		else
 			build.outages = [outage]
+buildSchema.pre('validate', (next) ->
+	this.extras_key = extrasToKey(this.extras)
+	next()
+)
+
 buildSchema.index({ product: 1, type: 1, start_time: -1 }, { background: true })
 buildSchema.index({ start_time: -1 }, { background: true })
 buildSchema.index({ is_archive: 1, start_time: -1 }, { background: true })

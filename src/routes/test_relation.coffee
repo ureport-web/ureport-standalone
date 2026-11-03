@@ -62,7 +62,7 @@ router.post '/filter',  (req, res, next) ->
     TestRelation.find(query,exclude).
     exec((err, tests) ->
         if(err)
-          next err
+          return next err
         res.json tests
     );
 
@@ -92,7 +92,7 @@ router.post '/',  (req, res, next) ->
         },
         (err, relation) ->
             if err
-                next err
+                return next err
             res.json relation
     )
 

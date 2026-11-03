@@ -32,16 +32,20 @@ TYPE = 'EndpointReg'
 
 # ─── helpers ────────────────────────────────────────────────────────────────
 
+# Posts sequentially with a strictly increasing start_time (unless the payload sets one).
+# Parallel posts share the same Date.now() millisecond / arrive out of order, which makes
+# start_time-based assertions (latest build per lane, previous runs) flaky.
 createBuilds = (server, cookies, payloads, cb) ->
-  created = 0
   ids = []
-  for p in payloads
-    do (p) ->
-      build.create server, cookies, p, 200, (res) ->
-        ids.push res.body._id
-        created++
-        if created == payloads.length
-          cb(ids)
+  base = Date.now() - payloads.length * 1000
+  next = (i) ->
+    return cb(ids) if i >= payloads.length
+    p = payloads[i]
+    p = Object.assign({ start_time: new Date(base + i * 1000) }, p)
+    build.create server, cookies, p, 200, (res) ->
+      ids.push res.body._id
+      next(i + 1)
+  next(0)
 
 # ─── POST /search ─────────────────────────────────────────────────────────
 

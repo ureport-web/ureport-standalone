@@ -115,7 +115,7 @@ router.put '/:id',  (req, res, next) ->
       SystemSetting.updateSetting(systemSetting, req.body)
       systemSetting.save (err, results) ->
         if err
-          next err
+          return next err
         if req.body.audit_retention_days != undefined
           applyAuditTTL(req.body.audit_retention_days)
         req.app.locals.systemSettingCache.set(systemSetting.name, systemSetting)

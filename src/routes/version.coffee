@@ -1,7 +1,7 @@
 express = require('express')
 router = express.Router()
 getSystemSetting = require('../utils/getSystemSetting')
-{ getLicenseState, COMMUNITY_JWT } = require('../utils/license')
+{ getLicenseState } = require('../utils/license')
 cache = require('../lib/cache')
 v = require('../../package.json');
 
@@ -14,7 +14,7 @@ router.get '/version', (req, res, next) ->
       mode: cache.getMode()
       connected: cache.isConnected()
     state = getLicenseState()
-    generalInfo['licenseToken'] = setting?.license_key or COMMUNITY_JWT
+    # The raw licence token is a customer secret and this route is unauthenticated: expose only the parsed state.
     generalInfo['license'] =
       valid:       state.valid
       licensee:    state.licensee
