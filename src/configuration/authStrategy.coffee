@@ -34,6 +34,7 @@ passport.serializeUser (user, done) ->
       role: user.role,
       position: user.position,
       displayname: user.displayname,
+      has_password: user.has_password,
       settings: user.settings
     }
   );

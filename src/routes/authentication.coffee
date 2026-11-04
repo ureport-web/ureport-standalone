@@ -188,6 +188,24 @@ router.post '/logout', (req, res, next) ->
     req.session.destroy (err) ->
         res.json { msg: 'You are log out' }
 
+# Token status for the account page. Never returns the full secret, only a masked preview.
+router.get '/token', (req, res, next) ->
+  if !req.isAuthenticated()
+    return res.status(401).json({ message: 'Login required.' })
+  User.findOne({_id: req.user._id}).exec (err, user) ->
+    if err
+      return next(err)
+    if !user
+      return res.status(404).json({ message: 'User not found.' })
+    token = user.apiToken
+    if !token
+      return res.json({ hasToken: false })
+    res.json({
+      hasToken: true,
+      preview: token.slice(0, 4) + '...' + token.slice(-4),
+      createdAt: user.apiTokenCreatedAt or null
+    })
+
 router.post '/token', (req, res, next) ->
   if !req.isAuthenticated()
     return res.status(401).json({ message: 'Login required to generate a token.' })
@@ -198,6 +216,7 @@ router.post '/token', (req, res, next) ->
     if !user
       return res.status(404).json({ message: 'User not found.' })
     user.apiToken = token
+    user.apiTokenCreatedAt = new Date()
     user.save (err) ->
       if err
         return next(err)
@@ -212,6 +231,7 @@ router.delete '/token', (req, res, next) ->
     if !user
       return res.status(404).json({ message: 'User not found.' })
     user.apiToken = undefined
+    user.apiTokenCreatedAt = undefined
     user.save (err) ->
       if err
         return next(err)
