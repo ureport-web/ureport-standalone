@@ -18,11 +18,16 @@ When a build is closed, UReport evaluates all enabled notification rules for tha
 Quarantined tests are excluded from alert evaluation — known-flaky tests do not trigger false alarms.
 :::
 
+Each recipient gets **one email per build run**, even when several of their rules match. It lists every rule that matched, and the matching tests once each.
+
 **The email contains:**
 - The name of the rule(s) that triggered
-- Build metadata — product, type, team, browser, version, platform, stage
+- Build metadata — product, type, team, browser, version, platform, stage, and any extras
 - Test result summary — total, pass, fail, skip counts
+- The tests that triggered the rule(s) with their status — the first 50 when more match
 - A direct link to view the build in UReport
+
+Test names, rule names and build fields are shown as plain text, so names containing characters such as `<Button>` appear as written.
 
 ---
 
@@ -97,19 +102,23 @@ If you use the raw API and upload tests incrementally while another run is still
 
 ## Email Setup
 
-Notifications require SMTP to be configured. Go to **Administration → System Settings → Notification Settings**. UReport uses Gmail SMTP for sending notification emails.
+Notifications require SMTP to be configured. Go to **Administration → System Settings → Notification Settings**.
 
 | Setting | Description |
 |---|---|
-| **Email (sender)** | The Gmail address used to send notification emails |
-| **Password** | The Gmail app password — not your account password. Generate one in Google Account → Security → App Passwords. |
-| **Frontend URL** | The public URL of your UReport instance, used to generate the "View Results" link in the email |
+| **Email Provider** | **Gmail**, **Outlook / Office 365**, or **Custom SMTP**. Gmail and Outlook fill in the server, port and encryption for you. |
+| **SMTP Host / Port / Secure** | Custom SMTP only: your mail server, its port, and whether to use TLS from the start (usually port 465). |
+| **Email (sender)** | The address used to send notification emails |
+| **Password** | The account's password. For Gmail this must be an app password — not your account password. Generate one in Google Account → Security → App Passwords. Required for Gmail and Outlook; optional for Custom SMTP. |
+| **Frontend URL** | The public URL of your UReport instance, used to generate the "View Results" link in the email. Without it the email has no link. |
 
 :::warning
-Using your main Google account password will not work. You must use a Gmail App Password generated specifically for UReport.
+For Gmail, using your main Google account password will not work. You must use a Gmail App Password generated specifically for UReport.
 :::
 
-If email is not configured, rules are still evaluated but no emails are sent. The server logs: `Email not configured, skipping build notification email`.
+Changes to the sender, password, host, port or encryption take effect on the next email — no server restart is needed. The same settings are used for registration confirmation and assignment emails.
+
+If email is not configured, rules are still evaluated but no emails are sent. The server logs: `[notifications] Email not configured, skipping build notification email` (or `Email password not configured` when the password is missing for Gmail or Outlook).
 
 ---
 

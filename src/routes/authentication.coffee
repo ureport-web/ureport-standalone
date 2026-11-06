@@ -5,7 +5,7 @@ passport = require('passport')
 async = require('async');
 crypto = require('crypto');
 signature = require('cookie-signature');
-nodemailer = require('nodemailer')
+buildTransport = require('../utils/email_transport')
 mongoose = require('mongoose')
 getSystemSetting = require('../utils/getSystemSetting')
 sendConfirmationEmail = require('../utils/send_confirmation_email')
@@ -257,18 +257,17 @@ router.post '/forgot', (req, res, next) ->
                     done(err, token, user)
         (token, user, done) ->
             getSystemSetting req, "SYSTEM_SETTING", false, (setting) ->
-                if !setting?.notification?.email?.user or !setting?.notification?.email?.password
+                emailConfig = setting?.notification?.email
+                if !emailConfig?.user
                     logger.info("Email not configured, skipping password reset email")
                     return done(null)
-                sender = setting.notification.email.user
+                if !emailConfig.password and (emailConfig.provider or 'gmail') != 'smtp'
+                    logger.info("Email password not configured, skipping password reset email")
+                    return done(null)
+                sender = emailConfig.user
                 baseUrl = setting.notification.url or (req.protocol + '://' + req.get('host'))
                 resetUrl = baseUrl + '/reset-password/' + token
-                transporter = nodemailer.createTransport(
-                    service: 'Gmail'
-                    auth:
-                        user: sender
-                        pass: setting.notification.email.password
-                )
+                transporter = buildTransport(emailConfig)
                 mailOptions =
                     from: sender
                     to: user.email

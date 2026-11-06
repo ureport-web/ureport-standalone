@@ -41,7 +41,7 @@ validateLicense = (key) ->
       isCommunity: payload.plan is 'community'
     }
   catch err
-    { valid: false, licensee: null, seats: 3, lanes: null, dashboards: null, plan: 'community', features: [], expiresAt: null, isCommunity: true, error: err.message }  # lanes/dashboards set to null: limits removed
+    { valid: false, licensee: null, seats: 5, lanes: null, dashboards: null, plan: 'community', features: [], expiresAt: null, isCommunity: true, error: err.message }  # lanes/dashboards set to null: limits removed
 
 getLicenseState = -> _state or validateLicense(null)
 invalidateCache  = -> _state = null
