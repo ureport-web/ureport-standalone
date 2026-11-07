@@ -99,6 +99,16 @@ autoHealSettingsSchema = new Schema(
     new_failures_only:       { type: Boolean, default: true }
     max_prior_failures:      { type: Number, default: 3 }  # skip test if failed in last N consecutive builds; 0 = disabled
     max_signals_per_trigger: { type: Number, default: 10 }
+    # Failures whose error message matches any rule never open a signal
+    exclude_rules: [Schema(
+      {
+        pattern:    { type: String }
+        match_type: { type: String, enum: ['contains', 'equals', 'regex'], default: 'contains' }
+      }
+      { _id: false }
+    )]
+    # Extra guidance copied onto each signal for external consumers
+    additional_instructions: { type: String, default: '' }
   }
   { _id: false }
 )

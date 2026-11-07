@@ -52,6 +52,21 @@ repo_path: /tmp/ureport-agent-workspace
 
 # Max minutes to wait for a single gemini -p invocation (default: 30)
 # gemini_cli_timeout_minutes: 30
+
+# Self-hosted GitHub Enterprise / GitLab (see "Self-hosted Git" below)
+# git_hosts:
+#   git.mycompany.com:
+#     provider: github
+
+# ── Security (all optional, see "Security Options" below) ─────────────────────
+# signing_secret: your-secret-here
+# allowed_run_prefixes:
+#   - npx playwright test
+#   - npm test
+# accept_job_types:
+#   - heal
+#   - rerun
+# audit_log: ./ureport-agent-audit.log
 ```
 
 ### Configuration Reference
@@ -63,6 +78,97 @@ repo_path: /tmp/ureport-agent-workspace
 | `repo_path` | No | `./workspace` | Root directory where the agent clones repositories. One subdirectory per product lane. |
 | `claude_cli_timeout_minutes` | No | `30` | Maximum minutes to wait for a single `claude --print` invocation to complete. |
 | `gemini_cli_timeout_minutes` | No | `30` | Maximum minutes to wait for a single `gemini -p` invocation to complete. |
+| `git_hosts` | No | — | Maps self-hosted git hostnames to a provider so the Create PR stage can open PRs there. See [Self-hosted Git](#self-hosted-git). |
+| `signing_secret` | No | — | Shared secret used to verify that jobs really come from your UReport server. See [Security Options](#security-options). |
+| `allowed_run_prefixes` | No | — | List of command prefixes the agent may run for Verify and Rerun. Anything else is blocked. |
+| `accept_job_types` | No | `heal`, `rerun` | Job types this agent accepts. Set to one value to restrict the agent. |
+| `audit_log` | No | — | File path. When set, the agent appends one JSON line per job received, rejected, blocked and finished. |
+
+### Self-hosted Git
+
+The Create PR stage works with `github.com`, `gitlab.com` and `bitbucket.org` out of the box. For a self-hosted **GitHub Enterprise** or **self-managed GitLab**, tell the agent which provider a hostname uses:
+
+```yaml
+git_hosts:
+  git.mycompany.com:
+    provider: github
+  gitlab.mycompany.com:
+    provider: gitlab
+    api_url: https://gitlab.mycompany.com/api/v4
+```
+
+| Field | Required | Description |
+|---|---|---|
+| *(key)* | Yes | Hostname exactly as it appears in the playbook's Git Remote URL, without a port. |
+| `provider` | Yes | `github` or `gitlab`. |
+| `api_url` | No | API base URL. Defaults to `https://<host>/api/v3` (GitHub) or `https://<host>/api/v4` (GitLab). Set it explicitly if the server uses a custom port or path. |
+
+Notes:
+- This is configured on the agent machine only, never in the playbook. The playbook's API token is sent to the API host configured here, so it is deliberately not something a playbook can change.
+- An invalid entry stops the agent at startup with `invalid config: git_hosts.<host>: ...`.
+- Bitbucket Server / Data Center and Azure DevOps are not supported.
+
+### Security Options
+
+All four are optional and independent, and the agent works with none of them set. They protect the machine the agent runs on, because the agent executes commands from jobs sent by the server.
+
+| Setting | When not set |
+|---|---|
+| `signing_secret` | Every job is accepted, with no signature check. |
+| `allowed_run_prefixes` | Any Verify or Rerun command is allowed (command substitution is still blocked). |
+| `accept_job_types` | Both `heal` and `rerun` jobs are accepted. |
+| `audit_log` | **No audit log is written.** There is no default file. |
+
+**`signing_secret` — verify jobs come from your server**
+
+When set, the agent only runs a job whose message carries a valid HMAC-SHA256 signature made with the same secret. The server signs jobs with the `HEAL_SIGNING_SECRET` environment variable, so both must hold the **same value**:
+
+```yaml
+signing_secret: a-long-random-string
+```
+
+A job with a missing or wrong signature is rejected and logged (`invalid signature`). Leave `signing_secret` out and the agent accepts every job, as before. If you set it on the agent but not on the server, every job is rejected.
+
+**`allowed_run_prefixes` — limit what commands can run**
+
+```yaml
+allowed_run_prefixes:
+  - npx playwright test
+  - npm test
+```
+
+- Applies to the commands the agent runs for the **Verify** stage and for **Rerun**. If a command does not start with one of the prefixes, it is blocked and the job reports the reason.
+- The check is a plain "starts with" match. It does not stop a command from chaining more commands after an allowed prefix (for example `npm test && other-command`), so treat it as a guard against mistakes and unexpected commands, not as a sandbox.
+- It does not apply to the playbook's **Install Command** or to the AI provider's own actions in the workspace.
+- Leave it out and any Verify or Rerun command is allowed.
+
+Commands containing a backtick or `$(...)` (command substitution) or a null character are **always** blocked, with or without this setting.
+
+**`accept_job_types` — restrict what the agent does**
+
+```yaml
+accept_job_types:
+  - rerun
+```
+
+Allowed values are `heal` and `rerun`. The default is both. A job of a type that is not listed is ignored and logged. Use it, for example, to make a shared CI machine run reruns only. The agent also reports its accepted types to the server when it connects.
+
+**`audit_log` — keep a record of what ran**
+
+```yaml
+audit_log: ./ureport-agent-audit.log
+```
+
+The agent appends one JSON object per line. A relative path is resolved against the folder you start the agent from.
+
+| `event` | When | Other fields |
+|---|---|---|
+| `job_received` | A job passed the checks and was accepted | `type`, `signal_id`, `mode` (heal jobs) |
+| `job_rejected` | Invalid signature, or job type not in `accept_job_types` | `reason`, `signal_id` |
+| `command_blocked` | A Verify or Rerun command failed the allowlist | `stage`, `reason`, `cmd` |
+| `job_result` | The job finished | `type`, `signal_id`, `status` |
+
+Every line also has a `ts` ISO timestamp. If the log can't be written, the agent prints a warning and keeps running. The file is never rotated or trimmed by the agent.
 
 ### Environment Variables
 
@@ -240,6 +346,12 @@ No connected agent was available at dispatch time. Either connect a global agent
 **Rerun signal stays `no_agent`**
 Rerun jobs are sent only to your personal agent. Go to **My Agent** (`/agent`), generate a token, and start the agent with it.
 
+**`heal_job REJECTED — invalid signature`**
+`signing_secret` in `ureport-agent.yml` does not match `HEAL_SIGNING_SECRET` on the UReport server, or only one of them is set. Make both the same value, or remove `signing_secret` from the agent.
+
+**Verify or Rerun reports `command does not match any allowed prefix`**
+The command does not start with any entry in `allowed_run_prefixes`. Add the prefix to the list or change the command in the playbook.
+
 **`GEMINI_API_KEY env var not set`**
 Set `GEMINI_API_KEY` in the shell environment before starting the agent (only needed for `gemini-cli` playbooks).
 
@@ -247,7 +359,16 @@ Set `GEMINI_API_KEY` in the shell environment before starting the agent (only ne
 Add a Git Remote URL to the Checkout stage in the playbook configuration.
 
 **PR creation fails with `GitHub API 422`**
-The fix branch may already exist remotely from a previous run. Delete the stale branch from GitHub or change the branch prefix in the playbook.
+The fix branch may already exist remotely from a previous run. Delete the stale branch from GitHub or change the branch prefix in the playbook. The same applies to GitLab and Bitbucket errors about an existing branch or merge request.
+
+**`Unsupported git host "<host>"`**
+The remote URL's host is not github.com, gitlab.com or bitbucket.org. For a self-hosted GitHub Enterprise or GitLab, add the host to `git_hosts` in `ureport-agent.yml` (see [Self-hosted Git](#self-hosted-git)) and restart the agent. The check runs before anything is pushed.
+
+**`No git remote found. Set the repo URL in the playbook's Checkout settings.`**
+The Create PR stage found no repository URL. Set **Git Remote URL** in the playbook's Checkout stage.
+
+**Bitbucket PR created without reviewers**
+Check the agent log for `Could not read default reviewers`. The token needs repository read permission as well as pull request write, and default reviewers must be configured on the repository or its project.
 
 **`Agent did not call finish() within turn limit`**
 Agent Delegation hit the 20-turn limit without completing. Use a more specific prompt, or switch to Guided mode for predictable pipelines.

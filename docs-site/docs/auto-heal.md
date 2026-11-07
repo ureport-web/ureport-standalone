@@ -195,9 +195,11 @@ All placeholders are resolved by the plugin before dispatching.
 | `{test.error_message}` | Last error message |
 | `{test.stack_trace}` | Stack trace |
 | `{test.tags}` | All tags, space-joined |
-| `{test.tags[0]}` | First tag |
+| `{test.tags[0]}` | First tag (`[1]` is the second, and so on; empty when there is no such tag) |
 | `{test.components}` | All components, space-joined |
+| `{test.components[0]}` | First component |
 | `{test.teams}` | All teams, space-joined |
+| `{test.teams[0]}` | First team |
 | `{test.customRelation.KEY}` | Any custom relation field |
 | `{test.info.KEY}` | Any raw test info field |
 
@@ -228,13 +230,29 @@ Commits the changes, pushes the fix branch, and opens a pull request.
 |---|---|
 | **PR Title Template** | Title of the PR. Supports `{test.name}` and other test placeholders. Default: `fix: auto-heal {test.name}`. |
 | **Target Branch** | Branch the PR merges into (default: `main`). |
-| **API Token** | GitHub personal access token (repo scope) or Bitbucket app password. Stored in the playbook, not on the agent. |
+| **API Token** | Personal access token for the git host: GitHub (repo scope), GitLab (`api` scope), or a Bitbucket app password / repository access token. Stored in the playbook, not on the agent. |
 | **Username** | Bitbucket only — required when using a Bitbucket app password. Leave blank for repository access tokens. |
 | **Create PR even if test still fails** | Opens a `[WIP]` PR if the Verify stage fails. Useful to capture partial progress. |
 
-The provider is **auto-detected** from the remote URL:
-- `github.com` → GitHub API
-- `bitbucket.org` → Bitbucket API
+The provider is **auto-detected** from the Git Remote URL (HTTPS, `ssh://` and `git@host:path` forms all work). Nothing is selected in the playbook:
+
+| Remote host | Opens a | Notes |
+|---|---|---|
+| `github.com` | GitHub pull request | |
+| `gitlab.com` | GitLab merge request | Nested groups (`group/subgroup/project`) are supported. |
+| `bitbucket.org` | Bitbucket Cloud pull request | The repository's **default reviewers** are added automatically (see below). |
+| Your own GitHub Enterprise or self-managed GitLab host | Same as above | Add the host to `git_hosts` in the agent's `ureport-agent.yml`. See [Self-hosted Git](./ureport-agent#self-hosted-git). |
+
+If the remote host is not recognised, the agent stops **before** pushing anything and reports `Unsupported git host "<host>"`, so no stray branch is left behind. Bitbucket Server / Data Center and Azure DevOps are not supported.
+
+#### Default reviewers (Bitbucket Cloud)
+
+Bitbucket does not add default reviewers to pull requests created through its API, so the agent looks them up (repository and project level) and adds them to the PR. You do not configure anything in the playbook.
+
+- The user that owns the API token is left out, because Bitbucket does not allow the author to review their own PR.
+- If no default reviewers are configured, or they can't be read, the PR is still created without reviewers. A reviewer problem never fails the heal.
+- Reading default reviewers needs **repository read** permission on the token in addition to pull request write. Without it the agent log shows `Could not read default reviewers (403)` and the PR has no reviewers.
+- GitHub and GitLab PRs are created without reviewers.
 
 The PR body includes the AI analysis, a diff summary, the original error, and a link back to the UReport signal.
 
@@ -304,6 +322,10 @@ From the **Launches** page: open a build, find a failing test, click the **Auto 
 
 The signal appears immediately in the **Signals** tab with status `pending` → `queued` as the job is dispatched.
 
+:::info Open external signal for the same test
+If the lane uses `external` dispatch and the test already has an `open` signal that no consumer has claimed, the manual trigger hands **that** signal to the agent instead of creating a duplicate (the response is `200`, not `201`). Two cases are refused with `409`: an external consumer claimed the signal in the meantime, or no agent is connected — in that case the signal is left `open` for your consumer.
+:::
+
 The **Auto Heal** button is visible when at least one agent is connected — either a global agent or your own personal agent.
 
 ### Auto-Trigger
@@ -321,16 +343,19 @@ Auto-Heal can fire automatically when a build completes. It runs **after auto-tr
 | **Max Prior Failures** | 3 | Skip a test if it failed in this many consecutive prior builds (likely a real bug, not a flaky fix candidate). Set to 0 to disable. |
 | **Exclude Quarantined** | off | Skip tests that are currently quarantined. |
 | **Max Signals per Trigger** | 10 | Cap on how many signals to create per build completion event. |
+| **Skip failures whose error message matches** | none | List of rules. A failure whose error message matches any rule never opens a signal. Each rule is `Contains`, `Equals` or `Regex`; matching ignores case and looks at the error message only (not the stack trace). Example: `Contains` + `Fail to generate token`. Regex rules are checked when you save the lane, and an invalid one is skipped at run time with a warning in the server log. Applies to both dispatch modes. Manual heal from test detail is not affected. |
+| **Additional instructions** | — | External dispatch mode only. Free text copied onto every signal as `additionalInstructions` for your consumer to pass to its AI. Agent mode takes its instructions from the playbook. |
 
 #### Filtering Order
 
 On each build completion, auto-trigger determines the **final status per test UID** — when a test has multiple runs (retries), only the last run counts. Then it applies these exclusions in order:
 
 1. **Final status is not FAIL** — tests that ultimately passed (including via rerun) are excluded.
-2. **Active auto-triage coverage** — excluded if the test has a non-expired auto-triage record (`is_auto_triaged: true`) **and** the current failure fingerprint matches the investigated pattern. See [Triage exclusion rules](#triage-exclusion-rules) below.
-3. **Quarantined** — excluded if `exclude_quarantined` is on and the test is currently quarantined.
-4. **Not a new failure** — excluded if `new_failures_only` is on and the test's final status in the previous build (same lane) was also FAIL.
-5. **Persistent failure** — excluded if `max_prior_failures > 0` and the test failed in all of the last N consecutive builds.
+2. **Error message rule** — excluded if the error message matches one of the lane's "skip failures whose error message matches" rules.
+3. **Active auto-triage coverage** — excluded if the test has a non-expired auto-triage record (`is_auto_triaged: true`) **and** the current failure fingerprint matches the investigated pattern. See [Triage exclusion rules](#triage-exclusion-rules) below.
+4. **Quarantined** — excluded if `exclude_quarantined` is on and the test is currently quarantined.
+5. **Not a new failure** — excluded if `new_failures_only` is on and the test's final status in the previous build (same lane) was also FAIL.
+6. **Persistent failure** — excluded if `max_prior_failures > 0` and the test failed in all of the last N consecutive builds.
 
 #### Triage Exclusion Rules
 
@@ -409,6 +434,7 @@ Each signal in the response includes everything your system needs to process the
 | `affectedTestUids` | Other tests in the same error group (same root cause) |
 | `failureSnapshot.errorMessage` | Error message captured at trigger time |
 | `failureSnapshot.stackTrace` | Stack trace captured at trigger time |
+| `additionalInstructions` | The lane's additional instructions at trigger time, or `null` when none are set. Pass it to your AI along with the failure context. |
 | `laneHistory` | Array of `{ buildNumber, status, startTime }` for the last 10 prior builds in this lane — tells you whether this is a new regression or a recurring failure |
 
 #### Reading `laneHistory`

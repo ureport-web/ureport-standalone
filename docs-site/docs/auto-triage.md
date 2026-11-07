@@ -47,7 +47,7 @@ Auto-triage is configured per product/type from the **Launches page**. Click the
 |---|---|---|
 | **Enabled** | Off | Master switch. Auto-triage does not run unless this is on. |
 | **Review TTL (days)** | 5 | How long a message or stack trace match remains valid. After this many days, the auto-triage record expires and the test becomes eligible for re-triage. Range: 1–365. |
-| **Source age limit (days)** | 90 | Controls two things: (1) how far back to look for source investigations when matching new failures, and (2) how old an existing triage record can be before it no longer counts as active coverage — the test becomes eligible for re-triage and **Auto-Heal signals**. Records with permanent TTL (`-1`) are always covered regardless of age. Range: 1–180. |
+| **Source age limit (days)** | 30 | Controls two things: (1) how far back to look for source investigations when matching new failures, and (2) how old an existing triage record can be before it no longer counts as active coverage — the test becomes eligible for re-triage and **Auto-Heal signals**. Records with permanent TTL (`-1`) are always covered regardless of age. Range: 1–180. |
 
 :::info Source age limit vs Analysis Since Day
 These two settings form a hierarchy:
@@ -116,7 +116,19 @@ Auto-triage builds its match maps from existing **InvestigatedTest** records for
 
 An expired auto-triage record means the match confidence window has closed. Using it as a source would silently re-triage tests that should be reviewed manually — so it is excluded from the match pool.
 
-Expiry applies only to the source pool. A test that has an active (non-expired) auto-triage record is still considered investigated — it won't be re-triaged until its own TTL expires.
+Expiry applies only to the source pool. A test that has an active (non-expired) auto-triage record is still considered investigated — it won't be re-triaged until its own TTL expires, or until the record is older than the **Source age limit**, whichever comes first. Records with permanent TTL (`-1`) never lapse.
+
+### When is a test already investigated?
+
+The automatic trigger and the manual trigger use the same rule. A failing test is skipped (already investigated) when it has an investigation that is:
+
+| Existing investigation | Covers the test? |
+|---|---|
+| Permanent (`ttl: -1`), any age | Yes |
+| Manual, newer than the source age limit | Yes |
+| Manual, older than the source age limit | No — stale, the test can be auto-triaged again |
+| Auto-triage, TTL not elapsed and newer than the source age limit | Yes |
+| Auto-triage, TTL elapsed, or older than the source age limit | No |
 
 ---
 
@@ -127,7 +139,7 @@ Runs automatically after every build's status calculation:
 1. **Build completes** — status is calculated
 2. **Failing tests identified** — all tests with `status = FAIL` are collected
 3. **Rerun exclusion** — tests that passed on retry (`status = PASS, is_rerun = true`) are excluded
-4. **Coverage check** — tests that already have a valid (non-expired) investigation are skipped
+4. **Coverage check** — tests that already have a valid investigation are skipped (see [When is a test already investigated?](#when-is-a-test-already-investigated))
 5. **Match and create** — eligible tests are matched against the source pool; matches result in auto-triage records being created or refreshed
 
 Auto-triage is fire-and-forget — it never blocks the build result.
@@ -180,7 +192,7 @@ Auto-triage skips tests with `status = PASS, is_rerun = true`. If a test failed 
 
 | Source UID | Type | Token | Error message | Caused by | Tracking | TTL |
 |---|---|---|---|---|---|---|
-| checkout/pay-btn | Manual | — | `Expected element .pay-btn to be visible` | UI regression | PROJ-1234 | n/a (permanent) |
+| checkout/pay-btn | Manual | — | `Expected element .pay-btn to be visible` | UI regression | PROJ-1234 | n/a (valid while within the source age limit) |
 | auth/login-flow | Auto-triage | `tok_abc123` | — | Infra: auth service down | OPS-777 | -1 (permanent) |
 | search/results-count | Auto-triage | — | `AssertionError: expected 10 but got 0` | Data seed missing | QA-42 | Expires in 3 days |
 
@@ -200,7 +212,7 @@ Auto-triage skips tests with `status = PASS, is_rerun = true`. If a test failed 
 - **search/pagination** — no token; message matches `search/results-count`. Source is auto-triage with 3 days remaining — not expired. Type: `exact`. Auto-triage created: cause = "Data seed missing", tracking = QA-42, TTL = 5 days.
 - **auth/logout** — already investigated (active manual record). Skipped entirely.
 
-**After 5 days:** The `cart/add-item` and `search/pagination` auto-triage records expire. On the next build where these tests fail, they are re-evaluated. If `checkout/pay-btn`'s manual investigation still exists and the error message is the same, they will be re-triaged automatically.
+**After 5 days:** The `cart/add-item` and `search/pagination` auto-triage records expire. On the next build where these tests fail, they are re-evaluated. If `checkout/pay-btn`'s manual investigation still exists, is still within the source age limit (90 days here), and the error message is the same, they will be re-triaged automatically.
 
 `checkout/confirm` is not affected — its token match is permanent.
 

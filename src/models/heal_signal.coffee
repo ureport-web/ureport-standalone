@@ -37,6 +37,9 @@ healSignalSchema = new Schema(
     { _id: false }
   )
 
+  # Lane-level guidance for external consumers (set at trigger time)
+  additional_instructions: String
+
   # Recent pass/fail history for this test uid in this lane (last 10 prior builds, newest first)
   lane_history: [Schema(
     {
