@@ -37,6 +37,9 @@ healSignalSchema = new Schema(
     { _id: false }
   )
 
+  # Lane-level guidance for external consumers (set at trigger time)
+  additional_instructions: String
+
   # Recent pass/fail history for this test uid in this lane (last 10 prior builds, newest first)
   lane_history: [Schema(
     {
@@ -91,6 +94,7 @@ healSignalSchema = new Schema(
       affected_component: String
       severity:           String  # P1 | P2 | P3
       evidence:           String
+      tracking_url:       String  # Jira/GitHub issue URL, set from bug_tracking_url on PUT
     }
     { _id: false }
   )

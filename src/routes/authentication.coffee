@@ -5,7 +5,7 @@ passport = require('passport')
 async = require('async');
 crypto = require('crypto');
 signature = require('cookie-signature');
-nodemailer = require('nodemailer')
+buildTransport = require('../utils/email_transport')
 mongoose = require('mongoose')
 getSystemSetting = require('../utils/getSystemSetting')
 sendConfirmationEmail = require('../utils/send_confirmation_email')
@@ -188,6 +188,24 @@ router.post '/logout', (req, res, next) ->
     req.session.destroy (err) ->
         res.json { msg: 'You are log out' }
 
+# Token status for the account page. Never returns the full secret, only a masked preview.
+router.get '/token', (req, res, next) ->
+  if !req.isAuthenticated()
+    return res.status(401).json({ message: 'Login required.' })
+  User.findOne({_id: req.user._id}).exec (err, user) ->
+    if err
+      return next(err)
+    if !user
+      return res.status(404).json({ message: 'User not found.' })
+    token = user.apiToken
+    if !token
+      return res.json({ hasToken: false })
+    res.json({
+      hasToken: true,
+      preview: token.slice(0, 4) + '...' + token.slice(-4),
+      createdAt: user.apiTokenCreatedAt or null
+    })
+
 router.post '/token', (req, res, next) ->
   if !req.isAuthenticated()
     return res.status(401).json({ message: 'Login required to generate a token.' })
@@ -198,6 +216,7 @@ router.post '/token', (req, res, next) ->
     if !user
       return res.status(404).json({ message: 'User not found.' })
     user.apiToken = token
+    user.apiTokenCreatedAt = new Date()
     user.save (err) ->
       if err
         return next(err)
@@ -212,6 +231,7 @@ router.delete '/token', (req, res, next) ->
     if !user
       return res.status(404).json({ message: 'User not found.' })
     user.apiToken = undefined
+    user.apiTokenCreatedAt = undefined
     user.save (err) ->
       if err
         return next(err)
@@ -237,18 +257,17 @@ router.post '/forgot', (req, res, next) ->
                     done(err, token, user)
         (token, user, done) ->
             getSystemSetting req, "SYSTEM_SETTING", false, (setting) ->
-                if !setting?.notification?.email?.user or !setting?.notification?.email?.password
+                emailConfig = setting?.notification?.email
+                if !emailConfig?.user
                     logger.info("Email not configured, skipping password reset email")
                     return done(null)
-                sender = setting.notification.email.user
+                if !emailConfig.password and (emailConfig.provider or 'gmail') != 'smtp'
+                    logger.info("Email password not configured, skipping password reset email")
+                    return done(null)
+                sender = emailConfig.user
                 baseUrl = setting.notification.url or (req.protocol + '://' + req.get('host'))
                 resetUrl = baseUrl + '/reset-password/' + token
-                transporter = nodemailer.createTransport(
-                    service: 'Gmail'
-                    auth:
-                        user: sender
-                        pass: setting.notification.email.password
-                )
+                transporter = buildTransport(emailConfig)
                 mailOptions =
                     from: sender
                     to: user.email

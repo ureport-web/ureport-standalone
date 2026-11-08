@@ -253,6 +253,8 @@ router.put '/reset-password/:username', (req, res, next) ->
       return next(err)
     if !user
       return res.status(404).json({ error: 'User not found' })
+    if user.has_password == false
+      return res.status(400).json({ error: 'This account uses SSO. Its password is managed by the identity provider.' })
     user.password = newPassword
     user.save (err) ->
       if err
@@ -269,6 +271,8 @@ router.post '/change-password', (req, res, next) ->
       return next(err)
     if !user
       return res.status(404).json({ error: 'User not found' })
+    if user.has_password == false
+      return res.status(400).json({ error: 'This account uses SSO. Its password is managed by the identity provider.' })
 
     bcrypt.compare currentPassword, user.password, (err, isMatch) ->
       if err

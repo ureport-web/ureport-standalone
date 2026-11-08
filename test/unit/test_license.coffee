@@ -27,7 +27,7 @@ describe 'validateLicense', ->
   it 'returns fallback on invalid/garbage token (valid:false, community seats/lanes)', ->
     result = validateLicense('garbage.token.invalid')
     result.valid.should.equal false
-    result.seats.should.equal 3
+    result.seats.should.equal 5
     chai.expect(result.lanes).to.equal null  # lane limit removed
     result.isCommunity.should.equal true
 

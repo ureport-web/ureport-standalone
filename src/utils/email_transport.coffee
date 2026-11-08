@@ -1,6 +1,5 @@
-# NOTE: The transport logic and PROVIDER_DEFAULTS here are intentionally duplicated in
-# plugins/notifications/send_email.js (inlined for plugin isolation). If you change this
-# file, mirror the same change there and vice versa.
+# Builds the SMTP transport from the saved email settings. Also used by the notifications plugin
+# (plugins/notifications/send_email.js), so a change here changes build notification mail too.
 nodemailer = require('nodemailer')
 
 PROVIDER_DEFAULTS =

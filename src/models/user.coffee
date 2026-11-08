@@ -13,6 +13,7 @@ userSchema = new Schema(
     unique: true,
     sparse: true
   },
+  apiTokenCreatedAt: Date,
   username:{
     type: String,
     unique: true,
