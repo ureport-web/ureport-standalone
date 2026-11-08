@@ -232,6 +232,8 @@ const doc = {
           failure: { type: 'object' },
           test_url: { type: 'string' },
           assign_at: { type: 'string', format: 'date-time' },
+          assigned_by_user: { type: 'string' },
+          assigned_by_username: { type: 'string' },
           comments: { type: 'array', items: { type: 'object' } }
         }
       },
@@ -266,9 +268,278 @@ const doc = {
       },
       Setting: {
         type: 'object',
+        required: ['product', 'type'],
+        description: 'Per product/type setting. (product, type) is unique.',
         properties: {
-          name: { type: 'string' },
-          value: { type: 'object' }
+          _id: { type: 'string' },
+          product: { type: 'string' },
+          type: { type: 'string' },
+          description: { type: 'string' },
+          issue_type: { type: 'object', description: 'Free-form (Mixed).' },
+          product_line: { type: 'object', description: 'Free-form (Mixed).' },
+          component_filter: { type: 'object', description: 'Free-form (Mixed).' },
+          relations_filter: { type: 'object', description: 'Free-form (Mixed).' },
+          default_framework: { type: 'string' },
+          custom_execution_script: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: { _id: { type: 'string' }, name: { type: 'string' }, type: { type: 'string' }, script: { type: 'string' } }
+            }
+          },
+          investigated_setting: {
+            type: 'object',
+            properties: {
+              sharePL: { type: 'array', items: { type: 'object', properties: { product: { type: 'string' }, type: { type: 'string' } } } },
+              customize_state: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: { label: { type: 'string' }, key: { type: 'string' }, color: { type: 'string' }, ttl: { type: 'number' } }
+                }
+              }
+            }
+          },
+          notification: {
+            type: 'object',
+            description: 'Free-form (Mixed). Only notification.rules is read by the notifications plugin (on build completion). On create, rules is stripped when the licence lacks the notifications feature.',
+            properties: {
+              rules: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    enabled: { type: 'boolean', description: 'Only enabled rules are evaluated.' },
+                    scope: {
+                      type: 'object',
+                      description: 'Build must equal every non-empty field.',
+                      properties: {
+                        version: { type: 'string' },
+                        team: { type: 'string' },
+                        browser: { type: 'string' },
+                        device: { type: 'string' },
+                        platform: { type: 'string' },
+                        platform_version: { type: 'string' },
+                        stage: { type: 'string' },
+                        extras: { type: 'object', additionalProperties: { type: 'string' }, description: 'Every key/value must equal the build extras.' }
+                      }
+                    },
+                    filter: {
+                      type: 'object',
+                      properties: {
+                        statuses: { type: 'array', items: { type: 'string' }, default: ['FAIL'] },
+                        search: { type: 'string', description: 'Case-insensitive regex matched against test uid or name.' },
+                        relations: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              type: { type: 'string', description: 'tags, teams, components or a custom relation key.' },
+                              values: { type: 'array', items: { type: 'string' } }
+                            }
+                          }
+                        },
+                        logic: { type: 'string', enum: ['AND', 'OR'], default: 'AND', description: 'How relation conditions combine.' }
+                      }
+                    },
+                    recipients: { type: 'array', items: { type: 'string' }, description: 'User _ids; users without an email are skipped.' }
+                  }
+                }
+              }
+            }
+          },
+          quarantine_rules: {
+            type: 'object',
+            properties: {
+              builds: { type: 'number' },
+              min_builds: { type: 'number' },
+              min_pass_rate: { type: 'number' },
+              max_window_days: { type: 'number' },
+              rules: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    _id: { type: 'string' },
+                    name: { type: 'string' },
+                    enabled: { type: 'boolean' },
+                    scope: {
+                      type: 'object',
+                      properties: {
+                        version: { type: 'string' }, team: { type: 'string' }, browser: { type: 'string' }, device: { type: 'string' },
+                        platform: { type: 'string' }, platform_version: { type: 'string' }, stage: { type: 'string' }, extras: { type: 'object' }
+                      }
+                    },
+                    filter: {
+                      type: 'object',
+                      properties: {
+                        logic: { type: 'string' },
+                        name_pattern: { type: 'string' },
+                        relations: { type: 'array', items: { type: 'object', properties: { type: { type: 'string' }, values: { type: 'array', items: { type: 'string' } } } } }
+                      }
+                    },
+                    threshold: {
+                      type: 'object',
+                      properties: {
+                        conditions: {
+                          type: 'array',
+                          items: { type: 'object', properties: { mode: { type: 'string' }, failures: { type: 'number' }, fail_rate: { type: 'number' } } }
+                        },
+                        resolve_passes: { type: 'number' },
+                        min_pass_rate: { type: 'number' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          auto_triage_settings: {
+            type: 'object',
+            properties: {
+              enabled: { type: 'boolean', default: false },
+              max_source_age_days: { type: 'number', default: 30 },
+              ttl_days: { type: 'number', default: 5 },
+              scope_filter: {
+                type: 'object',
+                properties: {
+                  logic: { type: 'string' },
+                  relations: { type: 'array', items: { type: 'object', properties: { type: { type: 'string' }, values: { type: 'array', items: { type: 'string' } } } } }
+                }
+              }
+            }
+          },
+          auto_heal_settings: {
+            type: 'object',
+            properties: {
+              enabled: { type: 'boolean', default: false },
+              dispatch_mode: { type: 'string', enum: ['agent', 'external'], default: 'agent' },
+              default_playbook_id: { type: 'string', description: 'HealPlaybook _id used by auto-trigger in agent mode.' },
+              exclude_quarantined: { type: 'boolean', default: false },
+              new_failures_only: { type: 'boolean', default: true },
+              max_prior_failures: { type: 'number', default: 3, description: 'Skip a test that failed in the last N consecutive builds; 0 disables.' },
+              max_signals_per_trigger: { type: 'number', default: 10 },
+              exclude_rules: {
+                type: 'array',
+                description: 'Failures whose error message matches any rule never open a signal.',
+                items: {
+                  type: 'object',
+                  properties: {
+                    pattern: { type: 'string' },
+                    match_type: { type: 'string', enum: ['contains', 'equals', 'regex'], default: 'contains' }
+                  }
+                }
+              },
+              additional_instructions: { type: 'string', default: '', description: 'Extra guidance copied onto each signal for external consumers.' }
+            }
+          }
+        }
+      },
+      SystemSetting: {
+        type: 'object',
+        description: 'Singleton document named SYSTEM_SETTING. Secrets are returned as "••••" and a masked or empty secret on write keeps the stored value.',
+        properties: {
+          _id: { type: 'string' },
+          name: { type: 'string', example: 'SYSTEM_SETTING' },
+          analysisSinceDay: { type: 'number', default: 30 },
+          advance_analysis_settings: { type: 'object', description: 'Free-form (Mixed).' },
+          suggested_issue_types: { type: 'object', description: 'Free-form (Mixed).' },
+          notification: {
+            type: 'object',
+            description: 'Free-form (Mixed).',
+            properties: {
+              url: { type: 'string', description: 'Base URL used in reset-password and notification email links.' },
+              email: {
+                type: 'object',
+                description: 'SMTP settings used for all outgoing mail. Email is skipped when user is empty, or when password is empty and provider is not smtp.',
+                properties: {
+                  provider: { type: 'string', enum: ['gmail', 'outlook', 'smtp'], default: 'gmail', description: 'gmail and outlook supply default host/port/secure.' },
+                  user: { type: 'string', description: 'SMTP user, also used as the From address.' },
+                  password: { type: 'string', description: 'Masked on read.' },
+                  host: { type: 'string' },
+                  port: { type: 'number' },
+                  secure: { type: 'boolean' }
+                }
+              }
+            }
+          },
+          issue_tracking: { type: 'object', description: 'Free-form (Mixed).' },
+          tc_management: { type: 'object', description: 'Free-form (Mixed).' },
+          ai: { type: 'object', description: 'Free-form (Mixed). ai.api_key is masked on read.' },
+          license_key: { type: 'string', nullable: true, description: 'Masked on read. A new value is validated and activated; null reverts to community.' },
+          framework_presets: { type: 'object', description: 'Free-form (Mixed).' },
+          audit_retention_days: { type: 'number', default: 90 },
+          sso: { type: 'object', description: 'Per-provider config (shape owned by the SSO plugin). Each provider client_secret is masked on read.' },
+          heal_agent: { type: 'object', description: 'Owned by the auto-heal plugin; not applied by PUT /system/setting/{id}.' }
+        }
+      },
+      Preset: {
+        type: 'object',
+        required: ['name', 'lanes'],
+        properties: {
+          _id: { type: 'string' },
+          name: { type: 'string', description: 'Unique.' },
+          description: { type: 'string' },
+          lanes: {
+            type: 'array',
+            description: 'At least one lane; all lanes must share the same product and type.',
+            items: {
+              type: 'object',
+              properties: {
+                product: { type: 'string' },
+                type: { type: 'string' },
+                version: { type: 'string' },
+                browser: { type: 'string' },
+                platform: { type: 'string' },
+                platform_version: { type: 'string' },
+                team: { type: 'string' },
+                stage: { type: 'string' },
+                device: { type: 'string' },
+                extras: { type: 'object', additionalProperties: { type: 'string' } }
+              }
+            }
+          }
+        }
+      },
+      UserFavorite: {
+        type: 'object',
+        required: ['userid', 'username'],
+        properties: {
+          _id: { type: 'string' },
+          userid: { type: 'string', description: 'Owner user _id.' },
+          username: { type: 'string', description: '2 to 20 characters.' },
+          pinned: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['product', 'type', 'uid'],
+              properties: {
+                product: { type: 'string' }, type: { type: 'string' }, uid: { type: 'string' },
+                originBuild: { type: 'string' }, originDate: { type: 'string', format: 'date-time' }, comments: { type: 'object' }
+              }
+            }
+          },
+          executions: {
+            type: 'array',
+            items: { type: 'object', properties: { name: { type: 'string' }, build: { type: 'string' }, comments: { type: 'object' } } }
+          },
+          ceses: {
+            type: 'array',
+            items: { type: 'object', properties: { _id: { type: 'string' }, name: { type: 'string' }, type: { type: 'string' }, script: { type: 'string' } } }
+          },
+          workspaces: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['name'],
+              properties: {
+                name: { type: 'string' },
+                description: { type: 'string' },
+                product_lines: { type: 'array', items: { type: 'object', properties: { query: { type: 'object' }, bookmark_build: { type: 'object' } } } }
+              }
+            }
+          }
         }
       },
       Dashboard: {
