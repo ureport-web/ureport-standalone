@@ -23,10 +23,8 @@ router.get '/:id',  (req, res, next) ->
  * [create a investigated test object]
 ###
 router.post '/',  (req, res, next) ->
-    action = "CREATE"
     if(req.body._id != undefined)
         condition = { _id: new ObjectId(req.body._id) }
-        action = "UPDATE"
         if (!AccessControl.canAccessUpdateAny(req.user.role,component))
             return res.status(403).json({"error": "You don't have permission to perform this action"})
     else
@@ -46,7 +44,7 @@ router.post '/',  (req, res, next) ->
         (err, invTest) ->
             if err
                 return next(err)
-            registerAudit(req, res, "Mark As Investigated", action)
+            registerAudit(req, res, "Triaged", "Triaged")
             res.json invTest
     )
 
@@ -58,6 +56,18 @@ router.post '/multi',  (req, res, next) ->
         if(err)
           res.json err
         else
+          # one audit record for the whole batch, listing every impacted test
+          tests = (invTests or []).map (t) ->
+              { uid: t.uid, product: t.product, type: t.type, caused_by: t.caused_by, ticket: t.tracking?.track_number }
+          uniqueOf = (key) -> tests.map((t) -> t[key]).filter((v, i, a) -> a.indexOf(v) == i)
+          products = uniqueOf('product')
+          types = uniqueOf('type')
+          registerAudit(req, res, "Triaged", "Triaged", 'test', {
+              uid: uniqueOf('uid').join(', '),
+              product: if products.length == 1 then products[0] else 'UNKNOWN',
+              type: if types.length == 1 then types[0] else 'UNKNOWN',
+              origin: { count: tests.length, tests: tests }
+          })
           res.json invTests
     );
 

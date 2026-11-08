@@ -16,6 +16,7 @@ module.exports = (req, res, audit_type, action, entity_type = 'test', overrides 
             username: if req.user then req.user.username else ""
             user: if req.user then req.user._id else "",
             failure: if req.body.failure then req.body.failure else "",
+            origin: overrides.origin,
             entity_type: entity_type,
             ip: ip
         })

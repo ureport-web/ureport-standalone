@@ -94,6 +94,7 @@ healSignalSchema = new Schema(
       affected_component: String
       severity:           String  # P1 | P2 | P3
       evidence:           String
+      tracking_url:       String  # Jira/GitHub issue URL, set from bug_tracking_url on PUT
     }
     { _id: false }
   )
