@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:public/nextgen/browser/chunk-YZQRQKAI.js
 import{a as _t,b as Tt}from"./chunk-4FOGQTLT.js";import{C as P,O as tt,W as mt,ea as yt,fa as et,h as Y,ja as k,k as vt,ma as C,r as ht,s as gt,t as O,ya as nt,z as Z,za as xt}from"./chunk-BOZ5JNAH.js";import{Bb as z,Cb as N,Db as Q,Dc as bt,Eb as j,Hc as r,Ic as ut,Kb as K,Kc as h,Lb as H,Lc as pt,Mb as st,Mc as q,Nb as L,Pb as v,Pc as g,Qb as w,Qc as ft,Rb as D,Sa as f,Sb as $,Tb as B,U as F,Ub as u,V as m,Vb as p,W as at,Wb as lt,Xb as ct,Yb as dt,_ as s,ac as l,db as y,ea as R,eb as ot,ed as W,fa as A,ga as X,hb as _,ib as rt,jb as I,kd as E,oa as S,od as U,pc as M,sa as d,ua as it,vb as b,wb as T,xb as x}from"./chunk-K2KWOMQT.js";var wt=`
+========
+import{a as _t,b as Tt}from"./chunk-3HCS3MU5.js";import{C as P,O as tt,W as mt,ea as yt,fa as et,h as Y,ja as k,k as vt,ma as C,r as ht,s as gt,t as O,ya as nt,z as Z,za as xt}from"./chunk-PDM76P6X.js";import{Bb as z,Cb as N,Db as Q,Dc as bt,Eb as j,Hc as r,Ic as ut,Kb as K,Kc as h,Lb as H,Lc as pt,Mb as st,Mc as q,Nb as L,Pb as v,Pc as g,Qb as w,Qc as ft,Rb as D,Sa as f,Sb as $,Tb as B,U as F,Ub as u,V as m,Vb as p,W as at,Wb as lt,Xb as ct,Yb as dt,_ as s,ac as l,db as y,ea as R,eb as ot,ed as W,fa as A,ga as X,hb as _,ib as rt,jb as I,kd as E,oa as S,od as U,pc as M,sa as d,ua as it,vb as b,wb as T,xb as x}from"./chunk-OLNYQ364.js";var wt=`
+>>>>>>>> 1600ba0a2da6dc382ad259207be535582545a5c9:public/nextgen/browser/chunk-BOMCIXJI.js
     .p-tabs {
         display: flex;
         flex-direction: column;

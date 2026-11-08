@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:public/nextgen/browser/chunk-UB5UXPQ6.js
 import{a as U}from"./chunk-4UPXHUHI.js";import{a as P}from"./chunk-2P2GC7CV.js";import{ea as N,fa as g,ja as $,ra as G}from"./chunk-BOZ5JNAH.js";import{$b as z,Bb as w,Cb as b,Db as f,Kb as L,Kc as H,Lb as A,Nb as m,Pb as D,Pc as y,Qc as j,Sa as s,Sb as k,Tb as Q,U as v,Ub as a,V as _,Vb as c,W as C,_ as T,ac as r,db as V,ea as h,eb as S,ed as R,fa as u,hb as M,jb as F,kd as q,lb as E,pc as O,rc as x,sa as p,vb as d,wb as B,xb as I}from"./chunk-K2KWOMQT.js";var W=`
+========
+import{a as U}from"./chunk-PT3Y6PWH.js";import{a as P}from"./chunk-MVH6MBWV.js";import{ea as N,fa as g,ja as $,ra as G}from"./chunk-PDM76P6X.js";import{$b as z,Bb as w,Cb as b,Db as f,Kb as L,Kc as H,Lb as A,Nb as m,Pb as D,Pc as y,Qc as j,Sa as s,Sb as k,Tb as Q,U as v,Ub as a,V as _,Vb as c,W as C,_ as T,ac as r,db as V,ea as h,eb as S,ed as R,fa as u,hb as M,jb as F,kd as q,lb as E,pc as O,rc as x,sa as p,vb as d,wb as B,xb as I}from"./chunk-OLNYQ364.js";var W=`
+>>>>>>>> 1600ba0a2da6dc382ad259207be535582545a5c9:public/nextgen/browser/chunk-XGHQ3F4Z.js
     .p-toggleswitch {
         display: inline-block;
         width: dt('toggleswitch.width');

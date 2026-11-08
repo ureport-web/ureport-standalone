@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:public/nextgen/browser/chunk-2H4PDRZ5.js
 import{a as ue}from"./chunk-4CGX4SYQ.js";import{a as pe}from"./chunk-MJXHH3DI.js";import{d as M}from"./chunk-2HLEMV3H.js";import{c as de,d as V,f as $,g as L,h as U}from"./chunk-U3QXCCPG.js";import{W as se,fa as T,ja as le,ma as F,r as y,s as Q,t as P,ya as he}from"./chunk-BOZ5JNAH.js";import{$c as ae,Bb as a,Cb as Z,Db as ee,Eb as C,Hc as p,Ib as K,Jb as S,Kc as E,Mc as j,Nb as O,Pb as l,Qb as x,Rb as H,Sa as f,Sb as ne,U as g,Ub as oe,V as q,Vb as te,W as G,Zb as ie,_ as r,ac as d,cd as ce,db as _,eb as z,ed as re,ga as N,hb as A,ib as J,jb as v,kd as D,lb as B,oa as W,pc as w,rc as b,sa as m,vb as u,wb as X,xb as Y}from"./chunk-K2KWOMQT.js";var fe=`
+========
+import{a as ue}from"./chunk-PCNVJURZ.js";import{a as pe}from"./chunk-CXDU6WI2.js";import{d as M}from"./chunk-2HLEMV3H.js";import{c as de,d as V,f as $,g as L,h as U}from"./chunk-2XOTB77B.js";import{W as se,fa as T,ja as le,ma as F,r as y,s as Q,t as P,ya as he}from"./chunk-PDM76P6X.js";import{$c as ae,Bb as a,Cb as Z,Db as ee,Eb as C,Hc as p,Ib as K,Jb as S,Kc as E,Mc as j,Nb as O,Pb as l,Qb as x,Rb as H,Sa as f,Sb as ne,U as g,Ub as oe,V as q,Vb as te,W as G,Zb as ie,_ as r,ac as d,cd as ce,db as _,eb as z,ed as re,ga as N,hb as A,ib as J,jb as v,kd as D,lb as B,oa as W,pc as w,rc as b,sa as m,vb as u,wb as X,xb as Y}from"./chunk-OLNYQ364.js";var fe=`
+>>>>>>>> 1600ba0a2da6dc382ad259207be535582545a5c9:public/nextgen/browser/chunk-M2KNONSR.js
     .p-accordionpanel {
         display: flex;
         flex-direction: column;
