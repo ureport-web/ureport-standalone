@@ -21,7 +21,11 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
 
 # Install node modules
+# The `prepare` script runs on `npm ci`; copy its file first so the hook
+# installer exists inside the image (it exits immediately when
+# NODE_ENV=production, which is the case here).
 COPY package.json package-lock.json ./
+COPY scripts/husky-install.js ./scripts/husky-install.js
 RUN npm ci
 
 # Copy application code
