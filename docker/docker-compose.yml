@@ -1,0 +1,48 @@
+# Release stack: 8080, no database port published, healthchecks.
+# Dockerfile stays at the repository root; the build context is the repo.
+#   docker compose -f docker/docker-compose.yml up -d --build --wait
+name: ureport-standalone
+
+services:
+  mongodb:
+    image: mongo:6
+    # Planned, not enabled: publish the database for Compass on 27018.
+    # Normal stack -> 27018, E2E stack -> 27019 (see docker-compose.e2e.yml).
+    # ports:
+    #   - "127.0.0.1:27018:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand('ping').ok ? 0 : 1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=docker
+      - DBHost=${DBHost:-mongodb://mongodb:27017/ureport}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-changeme}
+      - DEMO_PASSWORD=${DEMO_PASSWORD:-1234}
+    entrypoint: ["/bin/sh", "/app/docker/docker-entrypoint.sh"]
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:'+(process.env.PORT||8080)+'/api/version').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+volumes:
+  mongo_data:

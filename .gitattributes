@@ -1,0 +1,8 @@
+# Normalise line endings so shell scripts survive a Windows checkout.
+# core.autocrlf=true rewrites text files to CRLF on checkout, which breaks
+# /bin/sh ("set: Illegal option -") when the script is copied into a Linux image.
+* text=auto
+*.sh text eol=lf
+
+# Git hooks must stay LF so sh can run them on every platform.
+.husky/** text eol=lf

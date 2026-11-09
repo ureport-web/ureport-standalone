@@ -4,6 +4,8 @@ node_modules/
 # Enterprise plugins — installed at runtime, never committed
 plugins/*/
 
-package-lock.json
+docker-compose.override.yml
 
 .husky/post-commit
+log/access.log
+log/app.log

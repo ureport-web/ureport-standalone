@@ -327,27 +327,50 @@ if (config !== undefined) {
   const mcp = require("./src/routes/mcp");
 
   const shared = require("./src/routes/shared/shared");
-  const loginLimiter = rateLimit({
+
+  // E2E / load-testing switch. A full Playwright run issues thousands of calls
+  // from one IP and legitimately trips the per-IP limits (200 logins and 1000
+  // API calls per 15 minutes), which then look like product failures.
+  //
+  // Guard rails: opt-in (defaults off), refused when NODE_ENV=production, and
+  // never set in the shipped compose file.
+  const isProduction = process.env.NODE_ENV === "production";
+  const disabledRequested = process.env.UREPORT_DISABLE_RATE_LIMIT === "true";
+  if (disabledRequested && isProduction) {
+    console.warn(
+      "[rate-limit] UREPORT_DISABLE_RATE_LIMIT=true is IGNORED because NODE_ENV=production — limits stay active",
+    );
+  }
+  const rateLimitingDisabled = disabledRequested && !isProduction;
+  if (rateLimitingDisabled) {
+    console.warn(
+      `[rate-limit] DISABLED via UREPORT_DISABLE_RATE_LIMIT=true (NODE_ENV=${process.env.NODE_ENV || "unset"}) — testing only`,
+    );
+  }
+  const limiter = (options) =>
+    rateLimitingDisabled ? (req, res, next) => next() : rateLimit(options);
+
+  const loginLimiter = limiter({
     windowMs: 15 * 60 * 1000,
     max: process.env.UREPORT_IS_DEMO === "true" ? 30 : 200,
     standardHeaders: true,
     legacyHeaders: false,
   });
-  const forgotLimiter = rateLimit({
+  const forgotLimiter = limiter({
     windowMs: 15 * 60 * 1000,
     max: 5,
     standardHeaders: true,
     legacyHeaders: false,
   });
   // General API rate limiter — catch-all to prevent bulk scraping/spam
-  const apiLimiter = rateLimit({
+  const apiLimiter = limiter({
     windowMs: 15 * 60 * 1000,
     max: 1000,
     standardHeaders: true,
     legacyHeaders: false,
   });
   // Share token endpoints — no session auth, limit brute-force attempts
-  const sharedLimiter = rateLimit({
+  const sharedLimiter = limiter({
     windowMs: 15 * 60 * 1000,
     max: 120,
     standardHeaders: true,

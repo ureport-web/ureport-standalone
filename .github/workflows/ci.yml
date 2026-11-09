@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main, test-automation]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api-tests:
+    name: API tests (mocha)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # config/test.json points at mongodb://localhost:27017/ureport_test,
+    # so the service container has to publish 27017 on the runner.
+    services:
+      mongo:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm test
+
+  container-smoke:
+    name: Container smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Uses docker/docker-compose.yml only. The local override is gone, so this
+      # is exactly the configuration customers run: port 8080, no database port.
+      - name: Build and start the release stack
+        run: docker compose -f docker/docker-compose.yml up -d --build --wait
+
+      - name: App answers on 8080
+        run: curl -fsS --retry 10 --retry-delay 3 http://localhost:8080/api/version
+
+      # /api/version is static — it answers even when the database is
+      # unreachable, so on its own it would pass on an unusable app. Assert the
+      # seeded data is really there, through the container's own Mongo.
+      - name: Database was initialised
+        run: |
+          docker compose -f docker/docker-compose.yml exec -T mongodb mongosh --quiet \
+            --eval "quit(db.getSiblingDB('ureport').users.countDocuments() > 0 ? 0 : 1)"
+
+      # public/nextgen is tracked, so a 200 here proves the built UI actually
+      # made it into the image and is being served by Express.
+      - name: Serves the bundled UI
+        run: curl -fsS http://localhost:8080/nextgen/
+
+      - name: Container logs
+        if: failure()
+        run: docker compose -f docker/docker-compose.yml logs --no-color
+
+      - name: Tear down
+        if: always()
+        run: docker compose -f docker/docker-compose.yml down -v
