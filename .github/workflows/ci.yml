@@ -47,10 +47,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Uses docker-compose.yml only. The local override is gitignored, so this
+      # Uses docker/docker-compose.yml only. The local override is gone, so this
       # is exactly the configuration customers run: port 8080, no database port.
       - name: Build and start the release stack
-        run: docker compose up -d --build --wait
+        run: docker compose -f docker/docker-compose.yml up -d --build --wait
 
       - name: App answers on 8080
         run: curl -fsS --retry 10 --retry-delay 3 http://localhost:8080/api/version
@@ -60,7 +60,7 @@ jobs:
       # seeded data is really there, through the container's own Mongo.
       - name: Database was initialised
         run: |
-          docker compose exec -T mongodb mongosh --quiet \
+          docker compose -f docker/docker-compose.yml exec -T mongodb mongosh --quiet \
             --eval "quit(db.getSiblingDB('ureport').users.countDocuments() > 0 ? 0 : 1)"
 
       # public/nextgen is tracked, so a 200 here proves the built UI actually
@@ -70,8 +70,8 @@ jobs:
 
       - name: Container logs
         if: failure()
-        run: docker compose logs --no-color
+        run: docker compose -f docker/docker-compose.yml logs --no-color
 
       - name: Tear down
         if: always()
-        run: docker compose down -v
+        run: docker compose -f docker/docker-compose.yml down -v
