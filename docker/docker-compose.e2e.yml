@@ -1,0 +1,61 @@
+# E2E / test stack — feeds the Angular dev server.
+#
+# The dev server (`npm start`, :4300) proxies /api to http://localhost:4100, so
+# this stack publishes 4100 and the suite runs against the fresh, seeded data
+# while the normal stack keeps 8080 for browsing.
+#
+#   docker compose -f docker/docker-compose.e2e.yml up -d --build --wait
+#   npx playwright test                      # from ureport-frontend-nextgen
+#   docker compose -f docker/docker-compose.e2e.yml down -v   # wipe the data
+#
+# Differences from the release file:
+#   * its own Mongo volume, so the dev dataset is untouched
+#   * seeds the demo data on start, so timestamps are always fresh
+#   * rate limiting disabled (local only; refused when NODE_ENV=production)
+#   * published on 4100, which the dev server already proxies to
+name: ureport-e2e
+
+services:
+  mongodb:
+    image: mongo:6
+    # Planned, not enabled: publish the test database for Compass on 27019.
+    # Normal stack -> 27018 (see docker-compose.yml), E2E stack -> 27019.
+    # ports:
+    #   - "127.0.0.1:27019:27017"
+    volumes:
+      - e2e_mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand('ping').ok ? 0 : 1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "4100:8080"
+    environment:
+      - NODE_ENV=docker
+      - DBHost=mongodb://mongodb:27017/ureport
+      - ADMIN_EMAIL=admin@example.com
+      - ADMIN_PASSWORD=changeme
+      - DEMO_PASSWORD=1234
+      - UREPORT_DISABLE_RATE_LIMIT=true
+      - UREPORT_SEED_ON_START=true
+    entrypoint: ["/bin/sh", "/app/docker/docker-entrypoint.sh"]
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:'+(process.env.PORT||8080)+'/api/version').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      # the seed runs before the server starts
+      start_period: 180s
+
+volumes:
+  e2e_mongo_data:
