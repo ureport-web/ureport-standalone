@@ -495,6 +495,7 @@ Optional fields by status:
 | `error_detail` | Error description (for `error`) |
 | `external_ref` | Any external reference (ticket ID, PR mirror URL, etc.) |
 | `rerun_passed` | `true` if your system ran the test and it passed. UReport marks the test as PASS with `is_rerun=true`. Required (and only valid) with `completed`. |
+| `completion_reason` | Optional, only valid with `completed`: `flaky` (passed on retry, intermittent) or `not_reproducible` (could not reproduce the failure). Shown next to the status in signal detail; put the explanation in `agent_analysis`. |
 | `ai_provider` | AI provider name (informational, shown in signal detail) |
 | `ai_model` | AI model name (informational, shown in signal detail) |
 | `input_tokens` | Token count (informational, shown in signal detail) |

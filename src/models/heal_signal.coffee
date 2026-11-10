@@ -40,6 +40,11 @@ healSignalSchema = new Schema(
   # Lane-level guidance for external consumers (set at trigger time)
   additional_instructions: String
 
+  # Why an external consumer completed the signal without a code change
+  completion_reason:
+    type: String
+    enum: ['flaky', 'not_reproducible']
+
   # Recent pass/fail history for this test uid in this lane (last 10 prior builds, newest first)
   lane_history: [Schema(
     {
