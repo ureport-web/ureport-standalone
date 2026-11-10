@@ -90,9 +90,22 @@ autoTriageSettingsSchema = new Schema(
   { _id: false }
 )
 
+# Auto-heal runs for a build only when `enabled` is on and at least one enabled entry of `scopes` matches it.
+# An empty `scopes` list means nothing runs (same as an empty rules list for notifications and quarantine);
+# an entry with a blank scope matches every lane of the product/type.
+autoHealScopeSchema = new Schema(
+  {
+    name:    { type: String }
+    enabled: { type: Boolean, default: true }
+    scope:   quarantineScopeSchema
+  }
+  { _id: false }
+)
+
 autoHealSettingsSchema = new Schema(
   {
     enabled:               { type: Boolean, default: false }
+    scopes:                [autoHealScopeSchema]
     dispatch_mode:         { type: String, default: 'agent' }  # 'agent' | 'external'
     default_playbook_id:   { type: Schema.Types.ObjectId, ref: 'HealPlaybook' }  # used by auto-trigger in agent mode
     exclude_quarantined:     { type: Boolean, default: false }

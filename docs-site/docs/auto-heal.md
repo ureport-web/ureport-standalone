@@ -312,6 +312,10 @@ Go to **Tests → Auto-Heal → Playbooks** tab.
 
 Operators can view playbooks but cannot create, edit, or delete them.
 
+In the playbook editor, **Test run** shows what the playbook would send to an agent for a real failing test, using your unsaved edits: your template on the left, the same text with that test's values filled in on the right. Nothing is saved or dispatched.
+
+Ready-made settings for Playwright, Jest, Vitest and Pytest are in [Playbook Examples](./auto-heal-examples).
+
 ---
 
 ## Triggering Auto-Heal

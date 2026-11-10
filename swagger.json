@@ -647,7 +647,25 @@
           }
         },
         "security": [],
-        "requestBody": {}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "identifier"
+                ],
+                "properties": {
+                  "identifier": {
+                    "type": "string",
+                    "description": "Email address (contains @) or username"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/reset/{token}": {
@@ -806,7 +824,34 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filter": {
+                    "type": "string",
+                    "description": "Username regex fragment (escaped)"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "active",
+                      "rejected"
+                    ]
+                  },
+                  "sort": {
+                    "type": "object",
+                    "description": "Mongo sort spec, default { username: desc }"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/user/total": {
@@ -3443,7 +3488,58 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "team": {
+                    "type": "string"
+                  },
+                  "browser": {
+                    "type": "string"
+                  },
+                  "device": {
+                    "type": "string"
+                  },
+                  "platform": {
+                    "type": "string"
+                  },
+                  "platform_version": {
+                    "type": "string"
+                  },
+                  "stage": {
+                    "type": "string"
+                  },
+                  "extras": {
+                    "type": "object",
+                    "description": "Key/value pairs, matched as extras.<key>"
+                  },
+                  "untilDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "start_time < untilDate"
+                  },
+                  "sort": {
+                    "type": "object",
+                    "description": "Mongo sort spec, default { start_time: desc }"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/test/by-uid/{uid}": {
@@ -5101,7 +5197,32 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "filter": {
+                    "type": "string",
+                    "description": "Regex matched against uid"
+                  },
+                  "sort": {
+                    "type": "object",
+                    "description": "Mongo sort spec, default { uid: desc }"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/investigated_test/{id}": {
@@ -5613,7 +5734,32 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filter": {
+                    "type": "string",
+                    "description": "Text matched (escaped regex) against uid and tracking.track_number"
+                  },
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "sort": {
+                    "type": "object",
+                    "description": "Mongo sort spec, default { create_at: desc }"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/assignment/{id}": {
@@ -6160,7 +6306,45 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "product",
+                  "type"
+                ],
+                "properties": {
+                  "product": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or, e.g. [{ product: X }]"
+                  },
+                  "type": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or, e.g. [{ product: X }]"
+                  },
+                  "after": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Default: now"
+                  },
+                  "state": {
+                    "type": "string",
+                    "default": "OPEN"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/assignment": {
@@ -7694,7 +7878,33 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "since": {
+                    "description": "Look-back window: Nd string (e.g. 7d), number of days, or a date string. Default 7 days.",
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "default": 20
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/analytics/global-unstable-count": {
@@ -7721,7 +7931,29 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "since": {
+                    "description": "Look-back window: Nd string (e.g. 7d), number of days, or a date string. Default 7 days.",
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/dashboard/{id}": {
@@ -10162,7 +10394,104 @@
             "bearerAuth": []
           }
         ],
-        "requestBody": {}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "product",
+                  "type"
+                ],
+                "properties": {
+                  "product": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or, e.g. [{ product: X }]"
+                  },
+                  "type": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "range": {
+                    "type": "integer",
+                    "default": 5,
+                    "description": "Max builds returned"
+                  },
+                  "is_archive": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "since": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Lower bound on start_time"
+                  },
+                  "after": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Upper bound on start_time"
+                  },
+                  "version": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "team": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "browser": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "device": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "platform": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "platform_version": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "stage": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/shared/build/search": {

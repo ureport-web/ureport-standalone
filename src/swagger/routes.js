@@ -129,7 +129,7 @@ router.post('/forgot', (req, res) => {
     #swagger.security = []
     #swagger.requestBody = {
       required: true,
-      content: { 'application/json': { schema: { type: 'object', required: ['identifier'], properties: { identifier: { type: 'string', description: 'Email address (contains "@") or username' } } } } }
+      content: { 'application/json': { schema: { type: 'object', required: ['identifier'], properties: { identifier: { type: 'string', description: 'Email address (contains @) or username' } } } } }
     }
     #swagger.responses[200] = { description: '{ success: true } when processed, or { msg } when no such account exists', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, msg: { type: 'string' } } } } } }
     #swagger.responses[400] = { description: 'Account uses SSO (has_password is false)', content: { 'application/json': { schema: { type: 'object', properties: { msg: { type: 'string' } } } } } }
@@ -172,7 +172,7 @@ router.post('/user/{page}/{perPage}', (req, res) => {
     #swagger.parameters['perPage'] = { in: 'path', required: true, schema: { type: 'integer' }, description: 'Page size, max 50' }
     #swagger.requestBody = {
       required: false,
-      content: { 'application/json': { schema: { type: 'object', properties: { filter: { type: 'string', description: 'Username regex fragment (escaped)' }, status: { type: 'string', enum: ['pending', 'active', 'rejected'] }, sort: { type: 'object', description: 'Mongo sort spec, default { username: "desc" }' } } } } }
+      content: { 'application/json': { schema: { type: 'object', properties: { filter: { type: 'string', description: 'Username regex fragment (escaped)' }, status: { type: 'string', enum: ['pending', 'active', 'rejected'] }, sort: { type: 'object', description: 'Mongo sort spec, default { username: desc }' } } } } }
     }
     #swagger.responses[200] = { description: 'Array of users (a negative page returns { error: true, message } with 200)', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/User' } } } } }
     #swagger.responses[403] = { description: 'Forbidden (insufficient role)', content: { 'application/json': { schema: { type: 'object', properties: { error: { type: 'string' } } } } } }
@@ -1382,7 +1382,7 @@ router.post('/build/{page}/{perPage}', (req, res) => {
               },
               sort: {
                 type: 'object',
-                description: 'Mongo sort spec, default { start_time: "desc" }'
+                description: 'Mongo sort spec, default { start_time: desc }'
               }
             }
           }
@@ -2358,7 +2358,7 @@ router.post('/test_relation/{page}/{perPage}', (req, res) => {
               filter: { type: 'string', description: 'Regex matched against uid' },
               sort: {
                 type: 'object',
-                description: 'Mongo sort spec, default { uid: "desc" }'
+                description: 'Mongo sort spec, default { uid: desc }'
               }
             }
           }
@@ -2691,7 +2691,7 @@ router.post('/investigated_test/{page}/{perPage}', (req, res) => {
               type: { type: 'string' },
               sort: {
                 type: 'object',
-                description: 'Mongo sort spec, default { create_at: "desc" }'
+                description: 'Mongo sort spec, default { create_at: desc }'
               }
             }
           }
@@ -2790,7 +2790,7 @@ router.post('/assignment/filter', (req, res) => {
     #swagger.description = 'Any authenticated user. Sorted by assign_at descending. Only assignments with assign_at >= after (default: now) are returned.'
     #swagger.requestBody = {
       required: true,
-      content: { 'application/json': { schema: { type: 'object', required: ['product', 'type'], properties: { product: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or, e.g. [{ "product": "X" }]' }, type: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or, e.g. [{ "product": "X" }]' }, after: { type: 'string', format: 'date-time', description: 'Default: now' }, state: { type: 'string', default: 'OPEN' } } } } }
+      content: { 'application/json': { schema: { type: 'object', required: ['product', 'type'], properties: { product: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or, e.g. [{ product: X }]' }, type: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or, e.g. [{ product: X }]' }, after: { type: 'string', format: 'date-time', description: 'Default: now' }, state: { type: 'string', default: 'OPEN' } } } } }
     }
     #swagger.responses[200] = { description: 'Assignments', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Assignment' } } } } }
     #swagger.responses[400] = { description: 'Product or Type missing', content: { 'application/json': { schema: { type: 'object', properties: { error: { type: 'string' } } } } } }
@@ -3348,7 +3348,7 @@ router.post('/analytics/global-top-failures', (req, res) => {
           schema: {
             type: 'object',
             properties: {
-              since: { description: "Look-back window: 'Nd' string (e.g. '7d'), number of days, or a date string. Default 7 days.", oneOf: [{ type: 'string' }, { type: 'number' }] },
+              since: { description: 'Look-back window: Nd string (e.g. 7d), number of days, or a date string. Default 7 days.', oneOf: [{ type: 'string' }, { type: 'number' }] },
               limit: { type: 'integer', default: 20 }
             }
           }
@@ -3400,7 +3400,7 @@ router.post('/analytics/global-unstable-count', (req, res) => {
           schema: {
             type: 'object',
             properties: {
-              since: { description: "Look-back window: 'Nd' string (e.g. '7d'), number of days, or a date string. Default 7 days.", oneOf: [{ type: 'string' }, { type: 'number' }] }
+              since: { description: 'Look-back window: Nd string (e.g. 7d), number of days, or a date string. Default 7 days.', oneOf: [{ type: 'string' }, { type: 'number' }] }
             }
           }
         }
@@ -4211,7 +4211,7 @@ router.post('/shared/build/filter', (req, res) => {
     #swagger.security = [{ bearerAuth: [] }]
     #swagger.requestBody = {
       required: true,
-      content: { 'application/json': { schema: { type: 'object', required: ['product', 'type'], properties: { product: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or, e.g. [{ "product": "X" }]' }, type: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, range: { type: 'integer', default: 5, description: 'Max builds returned' }, is_archive: { type: 'boolean', default: false }, since: { type: 'string', format: 'date-time', description: 'Lower bound on start_time' }, after: { type: 'string', format: 'date-time', description: 'Upper bound on start_time' }, version: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, team: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, browser: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, device: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, platform: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, platform_version: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, stage: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' } } } } }
+      content: { 'application/json': { schema: { type: 'object', required: ['product', 'type'], properties: { product: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or, e.g. [{ product: X }]' }, type: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, range: { type: 'integer', default: 5, description: 'Max builds returned' }, is_archive: { type: 'boolean', default: false }, since: { type: 'string', format: 'date-time', description: 'Lower bound on start_time' }, after: { type: 'string', format: 'date-time', description: 'Upper bound on start_time' }, version: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, team: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, browser: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, device: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, platform: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, platform_version: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' }, stage: { type: 'array', items: { type: 'object' }, description: 'Array of Mongo conditions used as $or' } } } } }
     }
     #swagger.responses[200] = { description: 'Builds sorted by start_time descending', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Build' } } } } }
     #swagger.responses[400] = { description: 'Product or Type missing', content: { 'application/json': { schema: { type: 'object', properties: { error: { type: 'string' } } } } } }
