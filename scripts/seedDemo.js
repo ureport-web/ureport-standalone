@@ -2,8 +2,8 @@
 
 require("coffee-script/register");
 
-const env = process.env.NODE_ENV || "dev";
-process.env.NODE_ENV = env;
+// Always the "seed" environment, so the database comes from config/seed.json and never from dev or production.
+process.env.NODE_ENV = "seed";
 
 const mongoose = require("mongoose");
 const config = require("config");
@@ -13,11 +13,13 @@ const Test = require("../src/models/test");
 const TestRelation = require("../src/models/test_relation");
 const Dashboard = require("../src/models/dashboard");
 const Setting = require("../src/models/setting");
-const SystemSetting = require("../src/models/system_setting");
 const InvestigatedTest = require("../src/models/investigated_test");
 const QuarantinedTest = require("../src/models/quarantined_test");
 const Preset = require("../src/models/preset");
 const AiAnalysis = require("../src/models/ai_analysis");
+const User = require("../src/models/user");
+const { seedHealDemo, NOVA, LEGACY } = require("./seedHealDemo");
+const demoUsers = require("../data/users");
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -2421,7 +2423,7 @@ async function seedQuarantinedTests() {
 // ─── Presets ──────────────────────────────────────────────────────────────────
 
 async function seedPresets() {
-  await Preset.deleteMany({});
+  await Preset.deleteMany({ "lanes.product": { $in: [PRODUCT, ORION_PRODUCT] } });
   const presets = [
     {
       name: "All Suites",
@@ -2572,29 +2574,57 @@ async function confirm(question) {
   });
 }
 
+/** The operator account lives in data/users.js with admin; a database that was initialised before it was added gets it here. */
+async function ensureOperator() {
+  const operator = demoUsers.find((u) => u.role === "operator");
+  if (!operator) return;
+  if (await User.findOne({ username: operator.username })) {
+    console.log(`\n  ✓ user ${operator.username} already exists`);
+    return;
+  }
+  await User.create(operator);
+  console.log(`\n  ✓ user ${operator.username} (operator) created`);
+}
+
+/** The seed wipes collections, so it only runs against a local database unless --allow-remote is passed. */
+function isLocalHost(uri) {
+  const m = /^mongodb(?:\+srv)?:\/\/(?:[^@/]*@)?([^/?]+)/.exec(uri);
+  if (!m) return false;
+  return m[1].split(",").every((h) => /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(h));
+}
+
+const maskCredentials = (uri) => uri.replace(/(:\/\/[^:/@]+:)[^@]+@/, "$1***@");
+
 async function main() {
-  const dbHost =
-    process.env.NODE_ENV === "production" ? process.env.DBHost : config.DBHost;
+  const dbHost = config.DBHost;
 
   if (!dbHost) {
     console.error("DBHost is not set.");
     process.exit(1);
   }
 
+  if (!isLocalHost(dbHost) && !process.argv.includes("--allow-remote")) {
+    console.error(`\nRefusing to seed a non-local database: ${maskCredentials(dbHost)}`);
+    console.error("The seed clears collections (tests and presets entirely). Point DBHost at localhost, or pass --allow-remote if you really mean it.");
+    process.exit(1);
+  }
+
   console.log("\n⚠️  Demo seed script");
   console.log("─────────────────────────────────────────");
-  console.log(`  DB:      ${dbHost}`);
-  console.log(`  Products: ${PRODUCT}, ${ORION_PRODUCT}`);
+  console.log(`  DB:      ${maskCredentials(dbHost)}`);
+  console.log(`  Products: ${PRODUCT}, ${ORION_PRODUCT}, ${NOVA}, ${LEGACY}`);
   console.log("\n  Collections that will be modified:");
   console.log("    • builds         — cleared for product, then re-seeded");
-  console.log("    • tests          — fully cleared, then re-seeded");
+  console.log("    • tests          — cleared for the products' builds, then re-seeded");
   console.log("    • testrelations  — cleared for product, then re-seeded");
   console.log("    • investigatedtests — cleared for product, then re-seeded");
   console.log("    • quarantinedtests  — cleared for product, then re-seeded");
   console.log("    • settings       — cleared for product, then re-seeded");
   console.log("    • dashboards     — cleared for user+name pattern, then re-seeded");
-  console.log("    • presets          — cleared, then re-seeded");
+  console.log("    • presets          — cleared for the products' lanes, then re-seeded");
   console.log("    • aianalysis       — cleared for product, then re-seeded");
+  console.log(`    • ${NOVA} / ${LEGACY}: builds, tests, relations, settings, quarantine, heal playbook / signals / exclusions, preset — cleared, then re-seeded`);
+  console.log("    • users          — the operator account is added when it is missing; nothing else is changed");
   console.log("─────────────────────────────────────────");
 
   const autoConfirm = process.argv.includes("--yes") || process.env.SEED_AUTO_CONFIRM === "true";
@@ -2612,14 +2642,14 @@ async function main() {
   mongoose.set("useCreateIndex", true);
 
   console.log("\nClearing existing demo data...");
-  // Reset license to community so demo always starts unlicensed
-  await SystemSetting.updateOne({ name: "SYSTEM_SETTING" }, { $unset: { license_key: "" } });
+  // Tests carry no product, only their build, so they are found through the seed products' builds
+  const seedBuildIds = await Build.find({ product: { $in: [PRODUCT, ORION_PRODUCT] } }).distinct("_id");
+  await Test.deleteMany({ build: { $in: seedBuildIds } });
   await Build.deleteMany({ product: { $in: [PRODUCT, ORION_PRODUCT] } });
-  await Test.deleteMany({});
   console.log("  ✓ Cleared builds and tests");
   await QuarantinedTest.deleteMany({ product: { $in: [PRODUCT, ORION_PRODUCT] } });
   console.log("  ✓ Cleared quarantined tests");
-  await Preset.deleteMany({});
+  await Preset.deleteMany({ "lanes.product": { $in: [PRODUCT, ORION_PRODUCT] } });
   await AiAnalysis.deleteMany({ product: { $in: [PRODUCT, ORION_PRODUCT] } });
   console.log("  ✓ Cleared presets and AI analysis");
 
@@ -2681,6 +2711,8 @@ async function main() {
   await seedDashboards();
   await seedPresets();
   await seedAiAnalysis();
+  await seedHealDemo({ generateTestData, uid2name, QUARANTINE_RULES });
+  await ensureOperator();
 
   const acmeBuildCount = await Build.countDocuments({ product: PRODUCT });
   const orionBuildCount = await Build.countDocuments({ product: ORION_PRODUCT });

@@ -306,6 +306,7 @@ const doc = {
             properties: {
               rules: {
                 type: 'array',
+                description: 'No rules, or no enabled rule, means no notification is sent. A rule whose scope is blank matches every lane of the product/type.',
                 items: {
                   type: 'object',
                   properties: {
@@ -358,6 +359,7 @@ const doc = {
               max_window_days: { type: 'number' },
               rules: {
                 type: 'array',
+                description: 'No rules, or no enabled rule, means quarantine does nothing for this product/type. A rule whose scope is blank matches every lane.',
                 items: {
                   type: 'object',
                   properties: {
@@ -412,17 +414,41 @@ const doc = {
           },
           auto_heal_settings: {
             type: 'object',
+            description: 'Auto-heal runs for a build only when enabled is true and at least one enabled entry of scopes matches the build. An empty scopes list means nothing runs; an entry with a blank scope matches every lane of the product/type.',
             properties: {
               enabled: { type: 'boolean', default: false },
+              scopes: {
+                type: 'array',
+                description: 'Lanes auto-heal is allowed to run for. Empty list: nothing runs. Same scope matching as notification and quarantine rules.',
+                items: {
+                  type: 'object',
+                  properties: {
+                    name: { type: 'string' },
+                    enabled: { type: 'boolean', default: true, description: 'Only enabled scopes are evaluated.' },
+                    scope: {
+                      type: 'object',
+                      description: 'Build must equal every non-empty field; a blank scope matches every lane.',
+                      properties: {
+                        version: { type: 'string' }, team: { type: 'string' }, browser: { type: 'string' }, device: { type: 'string' },
+                        platform: { type: 'string' }, platform_version: { type: 'string' }, stage: { type: 'string' },
+                        extras: { type: 'object', additionalProperties: { type: 'string' }, description: 'Every key/value must equal the build extras.' }
+                      }
+                    }
+                  }
+                }
+              },
               dispatch_mode: { type: 'string', enum: ['agent', 'external'], default: 'agent' },
               default_playbook_id: { type: 'string', description: 'HealPlaybook _id used by auto-trigger in agent mode.' },
               exclude_quarantined: { type: 'boolean', default: false },
               new_failures_only: { type: 'boolean', default: true },
+              dedup_days: { type: 'number', default: 7, description: 'Days a signal for the same test, error and lane blocks a new one (1-90). A signal with an open PR blocks until it expires.' },
+              max_failure_rate: { type: 'number', default: 0, description: 'Skip the whole build when more than this percent of its tests fail (likely an outage); 0 disables.' },
               max_prior_failures: { type: 'number', default: 3, description: 'Skip a test that failed in the last N consecutive builds; 0 disables.' },
               max_signals_per_trigger: { type: 'number', default: 10 },
               exclude_rules: {
                 type: 'array',
-                description: 'Failures whose error message matches any rule never open a signal.',
+                deprecated: true,
+                description: 'No longer used by auto-trigger. Exclusions are managed with /ai/heal/exclusions.',
                 items: {
                   type: 'object',
                   properties: {
@@ -557,6 +583,37 @@ const doc = {
           name: { type: 'string' },
           widgets: { type: 'array', items: { type: 'object' } },
           is_public: { type: 'boolean', default: false }
+        }
+      },
+      HealExclusionScope: {
+        type: 'object',
+        description: 'Lane of a build. A rule or a lane applies to a build that equals every non-empty field; a blank scope matches every lane.',
+        properties: {
+          version: { type: 'string' }, team: { type: 'string' }, browser: { type: 'string' }, device: { type: 'string' },
+          platform: { type: 'string' }, platform_version: { type: 'string' }, stage: { type: 'string' },
+          extras: { type: 'object', additionalProperties: { type: 'string' }, description: 'Every key/value must equal the build extras.' }
+        }
+      },
+      HealExclusion: {
+        type: 'object',
+        description: 'A test auto-heal must not open signals for.',
+        properties: {
+          id:             { type: 'string' },
+          product:        { type: 'string' },
+          type:           { type: 'string' },
+          scope:          { '$ref': '#/components/schemas/HealExclusionScope' },
+          target:         { type: 'string', enum: ['error', 'uid', 'path'], description: 'What the rule looks at: the error message, the test uid, or the test file / path.' },
+          match:          { type: 'string', enum: ['equals', 'contains', 'starts_with', 'ends_with', 'regex'] },
+          value:          { type: 'string' },
+          reason:         { type: 'string' },
+          source:         { type: 'string', enum: ['user', 'agent'] },
+          createdBy:      { type: 'string', nullable: true },
+          createdAt:      { type: 'string', format: 'date-time' },
+          sourceSignalId: { type: 'string', nullable: true, description: 'The external signal that led an agent to add the rule.' },
+          expiresAt:      { type: 'string', format: 'date-time', nullable: true },
+          expired:        { type: 'boolean' },
+          lastMatchedAt:  { type: 'string', format: 'date-time', nullable: true, description: 'Last time the rule kept a failure from getting a signal.' },
+          matchCount:     { type: 'integer', description: 'How many failures the rule has kept from getting a signal, over all builds.' }
         }
       },
       HealPlaybook: {
