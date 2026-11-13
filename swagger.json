@@ -19852,6 +19852,16 @@
                 "type": "boolean",
                 "default": true
               },
+              "dedup_days": {
+                "type": "number",
+                "default": 7,
+                "description": "Days a signal for the same test, error and lane blocks a new one (1-90). A signal with an open PR blocks until it expires."
+              },
+              "max_failure_rate": {
+                "type": "number",
+                "default": 0,
+                "description": "Skip the whole build when more than this percent of its tests fail (likely an outage); 0 disables."
+              },
               "max_prior_failures": {
                 "type": "number",
                 "default": 3,

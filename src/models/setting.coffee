@@ -110,6 +110,8 @@ autoHealSettingsSchema = new Schema(
     default_playbook_id:   { type: Schema.Types.ObjectId, ref: 'HealPlaybook' }  # used by auto-trigger in agent mode
     exclude_quarantined:     { type: Boolean, default: false }
     new_failures_only:       { type: Boolean, default: true }
+    dedup_days:              { type: Number, default: 7 }  # days a signal for the same test and error blocks a new one; an open PR blocks until the signal expires
+    max_failure_rate:        { type: Number, default: 0 }  # skip the build when more than this % of its tests fail (likely an outage); 0 = disabled
     max_prior_failures:      { type: Number, default: 3 }  # skip test if failed in last N consecutive builds; 0 = disabled
     max_signals_per_trigger: { type: Number, default: 10 }
     # Failures whose error message matches any rule never open a signal

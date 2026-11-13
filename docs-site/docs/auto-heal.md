@@ -394,24 +394,26 @@ Auto-Heal can fire automatically when a build completes. It runs **after auto-tr
 | **Playbook for auto-trigger** | — | Agent mode only, required. The playbook used when auto-heal fires on build complete. Manual heal from test detail always uses agent mode, whatever this says. |
 | **Lanes** | none | Lane scopes. Auto-heal only runs on builds that match an **enabled** scope, so with none turned on it runs on nothing. A scope has an optional name and any of version, team, browser, device, platform, platform version, stage and extras. A blank scope matches every lane of the product and type; every field you set has to equal the build's value. A scope can be turned off without deleting it. Manual heal from test detail ignores scopes. |
 | **New failures only** | on | Only trigger for tests that **passed** in the previous build — skips known persistent failures. |
-| **Not quarantined** | off | Skip tests that are currently quarantined. |
+| **Not quarantined** | off | Skip tests that are already quarantined when the build finishes. A test that this same build pushes into quarantine can still get one signal; it is skipped from the next build on. |
+| **Don't repeat the same failure for N days** | 7 | Cooldown (1–90 days). A test with the same error in the same lane is skipped while it has a signal that is in progress, claimed or closed (completed, bug confirmed, test failed) within this many days. A signal with an open PR blocks until the signal itself expires, whatever this says. A different error is a new problem and is not blocked. |
+| **Skip build if more than N% fail** | 0 (off) | Mass-failure guard. When more than this percent of a build's tests fail, the environment is probably down, so auto-heal skips the whole build instead of opening a signal per test. Counts every failing test of the build, before exclusion rules. Needs the build's test total; if it is missing the guard does nothing. |
 | **Skip if failed in last N builds in a row** | 3 | Shown when **New failures only** is off. Skip a test if it failed in this many consecutive prior builds (likely a real bug, not a flaky fix candidate). Set to 0 to disable. |
 | **Exclusions** | none | Tests that never open a signal: by error message, test UID, or file / path. See [Exclusion rules](#exclusion-rules). Applies to both dispatch modes. Manual heal from test detail is not affected. |
 | **Additional instructions** | — | External dispatch mode only. Markdown, copied onto every signal as `additionalInstructions` for your consumer to pass to its AI. Agent mode takes its instructions from the playbook. |
 | **Max signals per analysis** | 10 | Cap (1–50) on how many signals one analysis (one build completion event) creates. This is **not** a total for the lane. See the note below. |
 
 :::warning Max signals is per analysis, not per lane
-The limit applies to a single build analysis. Every build that completes in the lane is analysed on its own and can create up to this many signals. If 5 builds complete in the same lane with the limit set to 5, you can end up with up to 25 signals. Signals from earlier builds are not counted, and each signal runs one AI agent. The only de-duplication is per test: a test with the same error that already has a signal in the last 7 days is skipped. To control cost, use a low limit together with **New failures only**, **Skip if failed in last N builds** and a narrow lane scope.
+The limit applies to a single build analysis. Every build that completes in the lane is analysed on its own and can create up to this many signals. If 5 builds complete in the same lane with the limit set to 5, you can end up with up to 25 signals. Signals from earlier builds are not counted, and each signal runs one AI agent. The only de-duplication is per test: a test with the same error that already has a signal within the cooldown (7 days by default, see **Don't repeat the same failure for N days**) is skipped. To control cost, use a low limit together with **New failures only**, **Skip if failed in last N builds** and a narrow lane scope.
 :::
 
 #### Filtering Order
 
 On each build completion, auto-trigger determines the **final status per test UID** — when a test has multiple runs (retries), only the last run counts. Then it applies these exclusions in order:
 
-1. **Final status is not FAIL** — tests that ultimately passed (including via rerun) are excluded.
+1. **Final status is not FAIL** — tests that ultimately passed (including via rerun) are excluded. Before anything else, the whole build is skipped if more than **Skip build if more than N% fail** of its tests failed.
 2. **Exclusion rule** — excluded if an active [exclusion rule](#exclusion-rules) of the product and type covers this build's lane and matches the test.
 3. **Active auto-triage coverage** — excluded if the test has a non-expired auto-triage record (`is_auto_triaged: true`) **and** the current failure fingerprint matches the investigated pattern. See [Triage exclusion rules](#triage-exclusion-rules) below.
-4. **Quarantined** — excluded if `exclude_quarantined` is on and the test is currently quarantined.
+4. **Quarantined** — excluded if `exclude_quarantined` is on and the test is already quarantined when the build finishes (quarantine evaluated by this same build is not seen yet).
 5. **Not a new failure** — excluded if `new_failures_only` is on and the test's final status in the previous build (same lane) was also FAIL.
 6. **Persistent failure** — excluded if `max_prior_failures > 0` and the test failed in all of the last N consecutive builds.
 

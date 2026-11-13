@@ -21,10 +21,10 @@ No local Node.js or MongoDB install required — everything is bundled.
 ```bash
 git clone https://github.com/ureport-web/ureport-standalone.git
 cd ureport-standalone
-docker compose up --build -d --wait
+docker-compose up --build
 ```
 
-`--build` compiles the app image from the included `Dockerfile` — no pre-built image to pull. `-d` runs it in the background and `--wait` returns only once both containers report healthy.
+`--build` compiles the app image from the included `Dockerfile` — no pre-built image to pull.
 
 The container entrypoint automatically runs `initialize.js` on every start, which seeds the default admin and demo accounts if the database is empty (safe no-op if already initialized).
 
@@ -37,7 +37,7 @@ Copy `.env.example` to `.env` and edit before the first startup:
 ```bash
 cp .env.example .env
 # edit .env, then:
-docker compose up --build -d --wait
+docker-compose up --build
 ```
 
 ```bash title=".env"
@@ -88,7 +88,7 @@ Set `DBHost` in `.env` to your MongoDB URI. The bundled `mongodb` service in `do
 
 ### What do I need before installing?
 
-- **Node.js 22+** — runtime for the server
+- **Node.js 18+** — runtime for the server
 - **MongoDB 3+** — database (local, Atlas, or AWS DocumentDB)
 
 ### How do I get UReport running without Docker?
@@ -221,7 +221,7 @@ Yes. These environment variables take precedence over the config files:
 | `PORT` | `config.PORT` | Falls back to 3000 if neither is set |
 | `NODE_ENV` | (selects config file) | Defaults to `dev` |
 | `ADMIN_EMAIL` | Admin seed email | Docker only — applied on first startup |
-| `ADMIN_PASSWORD` | Admin seed password | Docker only — applied on first startup |
+| `ADMIN_PASSWORD` | Admin seed password | Docker only — applied on first startup. With `NODE_ENV=production`, `initialize` refuses to create the admin and operator while it is unset or `changeme`; other environments only warn |
 | `DEMO_PASSWORD` | Demo user seed password | Docker only — applied on first startup |
 | `REDIS_URL` | Redis/Valkey URL | e.g. `redis://localhost:6379` |
 | `VALKEY_URL` | Valkey URL (converted to redis://) | Alternative to REDIS_URL |
