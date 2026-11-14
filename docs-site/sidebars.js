@@ -27,6 +27,7 @@ const sidebars = {
       collapsible: false,
       items: [
         'auto-heal',
+        'auto-heal-examples',
         'auto-triage',
         'notifications',
       ],

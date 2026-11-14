@@ -89,6 +89,7 @@ docker compose -f docker/docker-compose.yml up --build -d --wait
 5. Run `npm start`.
 6. Open `http://localhost:4100` in your browser.
 
+With `NODE_ENV=production`, `npm run initialize` refuses to create the admin and operator while the password is still `changeme`, so set `ADMIN_PASSWORD` first.
 Default credentials: **admin / changeme** (override with `ADMIN_PASSWORD` env var)
 
 ---

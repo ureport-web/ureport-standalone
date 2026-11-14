@@ -13,10 +13,7 @@ matcher = require('./notification_rule_matcher')
 logger = require('./logger')
 
 { extrasToKey } = require('./extras_key')
-
-extractExtras = (arg) ->
-  return {} unless arg?.extras
-  if arg.extras instanceof Map then Object.fromEntries(arg.extras) else arg.extras
+{ extractExtras, matchesScope } = require('./lane_scope')
 
 toScope = (obj) ->
   extrasObj = extractExtras(obj)
@@ -34,20 +31,6 @@ normalizeConditions = (threshold) ->
     threshold.conditions
   else
     [{ mode: 'total', failures: 3 }]
-
-matchesScope = (rule, build) ->
-  scope = rule.scope or {}
-  predefinedMatch = ['version', 'team', 'browser', 'device', 'platform', 'platform_version', 'stage'].every (f) ->
-    return true unless scope[f]
-    build[f] == scope[f]
-  return false unless predefinedMatch
-
-  ruleExtras = scope.extras or {}
-  return true unless Object.keys(ruleExtras).length > 0
-  buildExtras = extractExtras(build)
-  Object.keys(ruleExtras).every (k) ->
-    return true unless ruleExtras[k]
-    buildExtras[k] == ruleExtras[k]
 
 # Determine which UIDs should be quarantined given per-build failure results.
 # condition: { mode, failures, fail_rate }

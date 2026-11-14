@@ -329,7 +329,7 @@ if (config !== undefined) {
   const shared = require("./src/routes/shared/shared");
 
   // E2E / load-testing switch. A full Playwright run issues thousands of calls
-  // from one IP and legitimately trips the per-IP limits (200 logins and 1000
+  // from one IP and legitimately trips the per-IP limits (200 logins and 2000
   // API calls per 15 minutes), which then look like product failures.
   //
   // Guard rails: opt-in (defaults off), refused when NODE_ENV=production, and
@@ -364,8 +364,8 @@ if (config !== undefined) {
   });
   // General API rate limiter — catch-all to prevent bulk scraping/spam
   const apiLimiter = limiter({
-    windowMs: 15 * 60 * 1000,
-    max: 1000,
+    windowMs: 15 * 60 * 2000,
+    max: 2000,
     standardHeaders: true,
     legacyHeaders: false,
   });
