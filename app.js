@@ -364,7 +364,7 @@ if (config !== undefined) {
   });
   // General API rate limiter — catch-all to prevent bulk scraping/spam
   const apiLimiter = limiter({
-    windowMs: 15 * 60 * 2000,
+    windowMs: 15 * 60 * 1000,
     max: 2000,
     standardHeaders: true,
     legacyHeaders: false,
