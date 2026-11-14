@@ -1,11 +1,38 @@
-. ~/.nvm/nvm.sh
+#!/bin/sh
+# Pre-commit: run the backend suite when backend files changed.
+# Portable across macOS/Linux and Windows (Git for Windows runs hooks with sh).
 
-# Only run tests if backend files changed
-BACKEND_CHANGED=$(git diff --cached --name-only | grep -E '^(src/|test/|app\.js|server\.js|package\.json)' || true)
+# nvm is optional: the bash flavour ships nvm.sh, nvm-windows puts node on PATH.
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
+  . "$HOME/.nvm/nvm.sh"
+fi
 
-if [ -n "$BACKEND_CHANGED" ]; then
+# npm exists as `npm` on unix and as `npm.cmd` on Windows.
+if command -v npm >/dev/null 2>&1; then
+  NPM=npm
+elif command -v npm.cmd >/dev/null 2>&1; then
+  NPM=npm.cmd
+else
+  echo "[pre-commit] npm not found — skipping tests." >&2
+  exit 0
+fi
+
+# Detect backend changes without relying on grep (not guaranteed on Windows).
+BACKEND_CHANGED=0
+CHANGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+OLD_IFS=$IFS
+IFS='
+'
+for file in $CHANGED_FILES; do
+  case "$file" in
+    src/*|test/*|app.js|server.js|package.json) BACKEND_CHANGED=1 ;;
+  esac
+done
+IFS=$OLD_IFS
+
+if [ "$BACKEND_CHANGED" = "1" ]; then
   echo "[pre-commit] Backend changes detected, running tests..."
-  npm test
+  "$NPM" test
 else
   echo "[pre-commit] No backend changes, skipping tests."
 fi

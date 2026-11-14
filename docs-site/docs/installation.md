@@ -221,7 +221,7 @@ Yes. These environment variables take precedence over the config files:
 | `PORT` | `config.PORT` | Falls back to 3000 if neither is set |
 | `NODE_ENV` | (selects config file) | Defaults to `dev` |
 | `ADMIN_EMAIL` | Admin seed email | Docker only — applied on first startup |
-| `ADMIN_PASSWORD` | Admin seed password | Docker only — applied on first startup |
+| `ADMIN_PASSWORD` | Admin seed password | Docker only — applied on first startup. With `NODE_ENV=production`, `initialize` refuses to create the admin and operator while it is unset or `changeme`; other environments only warn |
 | `DEMO_PASSWORD` | Demo user seed password | Docker only — applied on first startup |
 | `REDIS_URL` | Redis/Valkey URL | e.g. `redis://localhost:6379` |
 | `VALKEY_URL` | Valkey URL (converted to redis://) | Alternative to REDIS_URL |

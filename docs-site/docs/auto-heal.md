@@ -282,22 +282,62 @@ Agent Delegation skips the checkout stage. The repository must already be cloned
 
 ## Signal Statuses
 
-Each Auto-Heal run creates a **HealSignal** that tracks progress from dispatch to outcome.
+Each Auto-Heal run creates a **HealSignal** that tracks progress from dispatch to outcome. The statuses depend on the dispatch mode of the signal.
 
-| Status | Mode | Meaning |
+### Agent mode
+
+The server sends the job to a connected ureport-agent. The agent reports progress and the final outcome back over the WebSocket.
+
+| Status | Set by | Final? | Meaning |
+|---|---|---|---|
+| `pending` | Server | No | Created, waiting to be dispatched to an agent. |
+| `queued` | Server | No | Sent to the agent, which has not started it yet. |
+| `running` | Agent | No | The agent is executing the pipeline. |
+| `pr_created` | Agent | Yes | A fix was applied, the test passed and a pull request was opened. |
+| `completed` | Agent | Yes | The run finished **without a pull request**. This covers three cases. See [When no pull request is created](#when-no-pull-request-is-created). |
+| `test_failed` | Agent | Yes | A fix was tried and the test still fails. A WIP pull request is opened only if **Create PR even if the test still fails** is on. |
+| `error` | Agent | Yes | The run could not finish. For example a stage failed, or the agent refused the job. `errorDetail` says why. |
+| `timed_out` | Server | Yes | The signal stayed `running` for more than 240 minutes. The watchdog marks it. |
+| `no_agent` | Server | Yes | No connected agent was available at dispatch time. |
+
+`bug_confirmed` is not used in agent mode. The bundled agent never reports it. It exists for [external consumers](#external-consumer-api).
+
+An agent that cannot take a job reports it to the server, and the signal moves to `error` with an explanation. It does not stay `queued`. This happens when the job signature does not match (`signing_secret` on the agent versus `HEAL_SIGNING_SECRET` on the server) or when the job type is not in the agent's `accept_job_types`. A job that arrives while the agent is busy is not refused. It stays `queued` and is sent again when the agent finishes its current job.
+
+### External mode
+
+Your own system claims the signal and reports the outcome through the [External Consumer API](#external-consumer-api). The server and the agent are not involved.
+
+| Status | Set by | Final? | Meaning |
+|---|---|---|---|
+| `open` | Server | No | Created, waiting for an external consumer to claim it. |
+| `claimed` | Consumer (`POST .../claim`) | No | A consumer claimed it and is working on it. Only a `claimed` signal can be updated. |
+| `pr_created` | Consumer (`PUT`) | Yes | A fix was applied and a pull request was opened. Needs `pr_url`. |
+| `completed` | Consumer (`PUT`) | Yes | The test passes and no pull request is needed. Needs `rerun_passed: true`. Optional `completion_reason`. |
+| `test_failed` | Consumer (`PUT`) | Yes | A fix was tried and the test still fails. |
+| `bug_confirmed` | Consumer (`PUT`) | Yes | The failure is a real product bug. Needs `bug_report.summary`. With `bug_tracking_url`, the affected tests are auto-triaged. |
+| `error` | Consumer (`PUT`) | Yes | The consumer could not process the signal. Send `error_detail`. |
+| `timed_out` | Consumer (`PUT`) | Yes | The consumer gave up waiting. |
+
+The server does not time out `open` or `claimed` signals. A consumer that never reports leaves its signal `claimed`.
+
+### When no pull request is created
+
+`completed` means the run ended without a pull request and without an error. Use the signal detail to tell the cases apart:
+
+| Case | Agent mode | External mode |
 |---|---|---|
-| `pending` | Agent | Created, waiting to be dispatched to agent |
-| `queued` | Agent | Dispatched — agent has received it but not started |
-| `running` | Agent | Agent is actively executing the pipeline |
-| `pr_created` | Agent | Fix applied, test passed, PR opened |
-| `test_failed` | Agent | Fix applied but test still failing |
-| `bug_confirmed` | Agent | Agent determined the test reflects a real product bug (delegation mode) |
-| `completed` | Agent | Pipeline completed successfully without a PR stage |
-| `error` | Agent | Pipeline failed at a stage |
-| `timed_out` | Agent | Agent did not respond within the timeout window |
-| `no_agent` | Agent | No connected agent available at dispatch time |
-| `open` | External | Created, waiting for external consumer to claim |
-| `claimed` | External | External consumer has claimed it and is processing |
+| The AI found nothing to change, so the branch is identical to the base branch | `completed`. The Create PR stage shows as skipped, and the AI analysis is on the signal. No branch is pushed. | `completed`, with `rerun_passed: true` if the test passes. |
+| The test passes without a code change (flaky) | `completed`, `completion_reason: flaky`. UReport also marks the test as PASS (rerun pass). | `completed` with `completion_reason: flaky` and `rerun_passed: true`. UReport marks the test as PASS. |
+| The failure cannot be reproduced | `completed` | `completed` with `completion_reason: not_reproducible` |
+| Create PR stage is turned off in the playbook | `completed` | Not applicable |
+| Agent Delegation run where the CLI reports the test passing | `completed`. Changes stay staged, nothing is committed or pushed. | Not applicable |
+| The failure is a real product bug | Not reported by the bundled agent | `bug_confirmed` |
+| A fix was tried and the test still fails | `test_failed` | `test_failed` |
+
+The bundled agent sets `completion_reason: flaky` only for the flaky case above. `not_reproducible` is for external consumers.
+
+In agent mode the test is marked PASS only when the agent saw it pass itself (the CLI self-verified, or the Verify stage passed) **and** the AI changed no files. A `completed` run with staged changes, or where the test was never run, leaves the test status unchanged.
 
 ---
 
@@ -311,6 +351,10 @@ Go to **Tests → Auto-Heal → Playbooks** tab.
 - **Active toggle** — Enable or disable a playbook. Disabled playbooks cannot be selected for new heal jobs.
 
 Operators can view playbooks but cannot create, edit, or delete them.
+
+In the playbook editor, **Test run** shows what the playbook would send to an agent for a real failing test, using your unsaved edits: your template on the left, the same text with that test's values filled in on the right. Nothing is saved or dispatched.
+
+Ready-made settings for Playwright, Jest, Vitest and Pytest are in [Playbook Examples](./auto-heal-examples).
 
 ---
 
@@ -332,30 +376,104 @@ The **Auto Heal** button is visible when at least one agent is connected — eit
 
 Auto-Heal can fire automatically when a build completes. It runs **after auto-triage** so that already-triaged tests are excluded before signaling.
 
-**Enable auto-trigger:** Go to **Tests → Settings** for the product/type lane → **Auto-Heal Settings**.
+**Enable auto-trigger:** go to **Settings → Product Lane Settings**, edit the product/type lane, and open the **Auto-Heal** section. The section is split into blocks, each with its own title:
+
+| Block | What it holds |
+|---|---|
+| **Dispatch** | Turn Auto-Heal on, choose the dispatch mode and, for agent mode, the playbook. |
+| **Lanes** | Which builds auto-heal runs on. |
+| **Which failures to heal** | The criteria a failure must meet. |
+| **Exclusions** | Tests that never open a signal. Rules save as soon as you add them. |
+| **Additional instructions** | External dispatch mode only. |
+| **Max signals per analysis** | A cost cap per build analysis. |
 
 | Setting | Default | Description |
 |---|---|---|
-| **Enabled** | off | Turn on auto-trigger for this lane |
+| **Enable Auto-Heal** | off | Turn on auto-trigger for this lane |
 | **Dispatch Mode** | `agent` | `agent` — dispatch to ureport-agent via WebSocket. `external` — create `open` signals for your own consumer to poll and process. |
-| **Default Playbook** | — | Playbook to use when dispatch mode is `agent`. Falls back to any active playbook if not set. |
-| **New Failures Only** | on | Only trigger for tests that **passed** in the previous build — skips known persistent failures. |
-| **Max Prior Failures** | 3 | Skip a test if it failed in this many consecutive prior builds (likely a real bug, not a flaky fix candidate). Set to 0 to disable. |
-| **Exclude Quarantined** | off | Skip tests that are currently quarantined. |
-| **Max Signals per Trigger** | 10 | Cap on how many signals to create per build completion event. |
-| **Skip failures whose error message matches** | none | List of rules. A failure whose error message matches any rule never opens a signal. Each rule is `Contains`, `Equals` or `Regex`; matching ignores case and looks at the error message only (not the stack trace). Example: `Contains` + `Fail to generate token`. Regex rules are checked when you save the lane, and an invalid one is skipped at run time with a warning in the server log. Applies to both dispatch modes. Manual heal from test detail is not affected. |
-| **Additional instructions** | — | External dispatch mode only. Free text copied onto every signal as `additionalInstructions` for your consumer to pass to its AI. Agent mode takes its instructions from the playbook. |
+| **Playbook for auto-trigger** | — | Agent mode only, required. The playbook used when auto-heal fires on build complete. Manual heal from test detail always uses agent mode, whatever this says. |
+| **Lanes** | none | Lane scopes. Auto-heal only runs on builds that match an **enabled** scope, so with none turned on it runs on nothing. A scope has an optional name and any of version, team, browser, device, platform, platform version, stage and extras. A blank scope matches every lane of the product and type; every field you set has to equal the build's value. A scope can be turned off without deleting it. Manual heal from test detail ignores scopes. |
+| **New failures only** | on | Only trigger for tests that **passed** in the previous build — skips known persistent failures. |
+| **Not quarantined** | off | Skip tests that are already quarantined when the build finishes. A test that this same build pushes into quarantine can still get one signal; it is skipped from the next build on. |
+| **Don't repeat the same failure for N days** | 7 | Cooldown (1–90 days). A test with the same error in the same lane is skipped while it has a signal that is in progress, claimed or closed (completed, bug confirmed, test failed) within this many days. A signal with an open PR blocks until the signal itself expires, whatever this says. A different error is a new problem and is not blocked. |
+| **Skip build if more than N% fail** | 0 (off) | Mass-failure guard. When more than this percent of a build's tests fail, the environment is probably down, so auto-heal skips the whole build instead of opening a signal per test. Counts every failing test of the build, before exclusion rules. Needs the build's test total; if it is missing the guard does nothing. |
+| **Skip if failed in last N builds in a row** | 3 | Shown when **New failures only** is off. Skip a test if it failed in this many consecutive prior builds (likely a real bug, not a flaky fix candidate). Set to 0 to disable. |
+| **Exclusions** | none | Tests that never open a signal: by error message, test UID, or file / path. See [Exclusion rules](#exclusion-rules). Applies to both dispatch modes. Manual heal from test detail is not affected. |
+| **Additional instructions** | — | External dispatch mode only. Markdown, copied onto every signal as `additionalInstructions` for your consumer to pass to its AI. Agent mode takes its instructions from the playbook. |
+| **Max signals per analysis** | 10 | Cap (1–50) on how many signals one analysis (one build completion event) creates. This is **not** a total for the lane. See the note below. |
+
+:::warning Max signals is per analysis, not per lane
+The limit applies to a single build analysis. Every build that completes in the lane is analysed on its own and can create up to this many signals. If 5 builds complete in the same lane with the limit set to 5, you can end up with up to 25 signals. Signals from earlier builds are not counted, and each signal runs one AI agent. The only de-duplication is per test: a test with the same error that already has a signal within the cooldown (7 days by default, see **Don't repeat the same failure for N days**) is skipped. To control cost, use a low limit together with **New failures only**, **Skip if failed in last N builds** and a narrow lane scope.
+:::
 
 #### Filtering Order
 
 On each build completion, auto-trigger determines the **final status per test UID** — when a test has multiple runs (retries), only the last run counts. Then it applies these exclusions in order:
 
-1. **Final status is not FAIL** — tests that ultimately passed (including via rerun) are excluded.
-2. **Error message rule** — excluded if the error message matches one of the lane's "skip failures whose error message matches" rules.
+1. **Final status is not FAIL** — tests that ultimately passed (including via rerun) are excluded. Before anything else, the whole build is skipped if more than **Skip build if more than N% fail** of its tests failed.
+2. **Exclusion rule** — excluded if an active [exclusion rule](#exclusion-rules) of the product and type covers this build's lane and matches the test.
 3. **Active auto-triage coverage** — excluded if the test has a non-expired auto-triage record (`is_auto_triaged: true`) **and** the current failure fingerprint matches the investigated pattern. See [Triage exclusion rules](#triage-exclusion-rules) below.
-4. **Quarantined** — excluded if `exclude_quarantined` is on and the test is currently quarantined.
+4. **Quarantined** — excluded if `exclude_quarantined` is on and the test is already quarantined when the build finishes (quarantine evaluated by this same build is not seen yet).
 5. **Not a new failure** — excluded if `new_failures_only` is on and the test's final status in the previous build (same lane) was also FAIL.
 6. **Persistent failure** — excluded if `max_prior_failures > 0` and the test failed in all of the last N consecutive builds.
+
+#### Exclusion Rules
+
+An exclusion rule keeps a test from ever opening a signal. Use one for tests auto-heal cannot fix, for example specs that cannot be rerun in your environment, or a known error that no code change will cure.
+
+**Where to manage them.** In **Settings → Product Lane Settings**, edit the lane, then open the **Exclusions** block of the **Auto-Heal** section. It appears once Auto-Heal is enabled and the lane has been saved. Rules save immediately, separately from the lane's **Save** button.
+
+**From a test.** A failing test's detail panel has **Exclude from auto-heal** (shown whenever the Auto-Heal plugin is installed, even with no agent connected). It opens the same dialog with the test's UID and the lane of that run filled in, so the rule covers exactly that lane. Widen the lane before saving if you want more.
+
+##### What a rule contains
+
+| Field | Meaning |
+|---|---|
+| **What to look at** and **Match** | The target and how to compare it, see below. |
+| **Value** | What to compare with: at most 500 characters, and at least 3 unless the match is `Equals`. |
+| **Reason** | Required, at most 500 characters. Also decides how rules are grouped in the list. |
+| **Expires** | Optional. The rule stops applying at the end of the chosen day. |
+| **Applies to** | The product and type (set from the lane) and, optionally, one lane: version, team, browser, device, platform, platform version, stage and extras, the same lane scope used by auto-heal lanes, quarantine and notifications. Leave every field blank to cover every lane of the product and type. |
+
+| Target | What it looks at | Match options |
+|---|---|---|
+| **Error message** | The failure's error message (not the stack trace) | `Equals`, `Contains`, `Starts with`, `Ends with`, `Regex` |
+| **Test UID** | The test UID, exact and case sensitive | `Equals` |
+| **File / path** | The test's file or path. A rule matches when either one matches; a test with neither is never matched. Backslashes count as slashes, and a leading `/` in the stored path does not matter for `Contains`. | `Equals`, `Contains`, `Starts with`, `Ends with` |
+
+Text matching ignores case, except for the test UID. A UID rule matches one test case, so to exclude a whole spec file use a **File / path** rule. A product and type can have at most 500 rules.
+
+:::warning Regex limits
+`Regex` is only available for error messages, because a crafted pattern can make a regex engine very slow. A regex can be at most 200 characters, repeat counts up to 100, and a product and type can have at most 20 regex rules. These are refused when you save, with the reason: nested repetition such as `(a+)+`, alternation or optional parts inside a repeated group such as `(a|b)+`, backreferences, and lookahead or lookbehind. Every regex match also has a 50 ms time limit: a rule that goes over it is skipped for that build, logged as a warning, and never excludes a test. Prefer `Contains`, `Starts with` or `Ends with` when they are enough.
+:::
+
+##### Preview
+
+While you fill in the dialog, **What this matches now** shows what the rule would exclude in the **latest run of each lane it covers** (up to 10 lanes): how many tests match, how many of those are failing now, the first few matching tests with their status, and, for several lanes, a count per lane. It warns when the rule matches more than a quarter of the tests in the runs it looked at (once there are at least 8). It only sees the latest run of each lane, so a spec that was not in that run does not count, even though the rule still applies to future runs.
+
+##### Working with a long list
+
+- **Groups.** Rules that share a **reason** (and were added by the same kind of source, a user or an agent) are shown as one group, with a header such as "Cannot fix token · 2 rules · by admin · matched 3 failures". Nothing is configured for this: type the same reason to keep a batch together. The match ignores case and surrounding spaces. A group shows its first 10 rules, then **Show the other N rules**. Groups start folded, and a single rule is shown as it is.
+- **Search and filters.** From 6 rules the list gets a search box and filter chips: **All**, **Active**, **Expired**, **Added by agent** and **Not matched yet**, each with a count. The search matches the value, reason, author, target and lane, and every word you type has to match. While you search or filter, every group is open.
+- **Deleting.** A rule has its own delete button. A group's header has one too, which deletes the rules of the group after a single confirmation. With a search or filter on, it deletes only the rules you can see. You can only delete what you are allowed to, see below.
+
+##### How often a rule has worked
+
+Each rule shows **Matched N failures** and the date it last matched, or **Not matched yet**. This is counted by auto-trigger every time a build is processed. "Not matched yet" does not mean the rule is wrong: no build may have failed with a matching test since it was created, auto-heal may be off, or no enabled lane may have covered the build. The server log also records how many failures were excluded in each build.
+
+##### Who can do what
+
+Only an admin can create a rule that can match many tests (error message or file / path), edit a rule, or delete a rule that someone else made, which includes every rule an agent added. Any signed-in user can exclude a single test by UID and delete the rules they made themselves.
+
+##### External consumers
+
+An external consumer can add a rule for the test of a signal it claimed, see [4. Exclude a test that cannot be healed](#4-exclude-a-test-that-cannot-be-healed-optional). These rules show **Added by agent** in the list.
+
+If the rules cannot be read when a build completes, that build is skipped and an error is logged, so tests meant to be excluded never reach an AI by accident.
+
+:::note
+The older per-lane "skip failures whose error message matches" list is no longer used. Recreate those rules as **Error message** exclusions.
+:::
 
 #### Triage Exclusion Rules
 
@@ -401,6 +519,38 @@ Go to **Tests → Auto-Heal → Signals** tab. Each row shows:
 Click the **detail icon** on any signal to open the full signal view — including per-stage output, AI analysis, the diff, test output, and history of previous signals for the same test.
 
 Admins can delete signals. Operators have read-only access.
+
+### On the Launches Page
+
+A test row shows what auto-heal did with it:
+
+| Icon | Meaning |
+|---|---|
+| Heart, green | The latest signal completed or created a PR |
+| Heart, blue | A signal is in flight: pending, queued, running, or (external mode) open or claimed |
+| Heart, orange | A bug was confirmed |
+| Heart, red | The latest signal failed, errored, timed out or found no agent |
+| Heart, faded | The signal is from an earlier build, not this one |
+| Heart with a minus, grey | An [exclusion rule](#exclusion-rules) covers this failing test, so auto-heal opened no signal. Hover to read the rule's reason |
+
+Hover a heart to see the status. A completed signal also shows its reason when it has one, for example "Completed · Flaky". A test never shows both for the same run. If it has a signal for this run, only the heart shows: a user started auto-heal by hand (manual heals ignore rules), or the rule was added after the signal. The grey heart shows only when the test has no signal, or its latest signal is from an earlier build. For the same reason, the **Excluded** filter leaves those tests out.
+
+The **Auto Heal** filter in the launches toolbar lists the tests of the launch that match one of these:
+
+| Filter | Shows |
+|---|---|
+| *(nothing selected)* | The default: every test, with or without auto-heal. Click the selected button again to go back to this |
+| **All** | Tests that have any signal, whatever its status |
+| **Active** | Signals in flight, including external ones that are open or claimed |
+| **PR / Fix** | A PR was created, or the signal completed with no reason |
+| **Failed** | Test failed, error, timed out, no agent |
+| **Bug Confirmed** | The agent confirmed a product bug |
+| **Flaky** | Completed as flaky |
+| **Not Reproducible** | Completed as not reproducible |
+| **Never Healed** | Failing tests with no signal, and not excluded. These are the ones auto-heal has not looked at yet |
+| **Excluded** | Failing tests an exclusion rule covers |
+
+Every option except **Never Healed** and **Excluded** looks at the test's latest signal. The filter shows once the launch has at least one signal or one excluded test.
 
 ---
 
@@ -491,6 +641,7 @@ Optional fields by status:
 | `error_detail` | Error description (for `error`) |
 | `external_ref` | Any external reference (ticket ID, PR mirror URL, etc.) |
 | `rerun_passed` | `true` if your system ran the test and it passed. UReport marks the test as PASS with `is_rerun=true`. Required (and only valid) with `completed`. |
+| `completion_reason` | Optional, only valid with `completed`: `flaky` (passed on retry, intermittent) or `not_reproducible` (could not reproduce the failure). Shown next to the status in signal detail; put the explanation in `agent_analysis`. |
 | `ai_provider` | AI provider name (informational, shown in signal detail) |
 | `ai_model` | AI model name (informational, shown in signal detail) |
 | `input_tokens` | Token count (informational, shown in signal detail) |
@@ -499,6 +650,17 @@ Optional fields by status:
 #### Auto-Triage on Bug Confirmed
 
 When you report `status: bug_confirmed` with a `bug_tracking_url`, UReport automatically creates InvestigatedTest records for the primary test and all `affectedTestUids`, linking them to the tracking URL. This prevents auto-trigger from re-signaling the same known bug on the next build.
+
+### 4. Exclude a Test That Cannot Be Healed (optional)
+
+If your system finds that a test cannot be auto-healed, it can stop UReport from raising signals for it again:
+
+```
+POST /api/ai/heal/signals/:id/exclude
+{ "reason": "Needs a manual environment change" }
+```
+
+The signal must be `external` and `claimed`. UReport builds the rule itself: this test (UID), in the exact lane of the signal's build, so your system cannot widen it. The rule is marked as added by an agent, links back to the signal, never expires, and can only be deleted by an admin. Asking twice returns the same rule (`created: false`). The signal stays `claimed`, so report its outcome with `PUT /api/ai/heal/signals/:id` as usual.
 
 ---
 
@@ -610,6 +772,9 @@ The server-side watchdog runs every 5 minutes and marks any rerun signal stuck i
 | Trigger Auto-Heal on a test | ✓ | ✓ |
 | View signals | ✓ | ✓ |
 | Delete signals | ✓ | — |
+| Exclude a single test (UID) from auto-heal | ✓ | ✓ |
+| Create / edit exclusion rules on error message or file / path | ✓ | — |
+| Delete exclusion rules | ✓ | own rules only |
 | Create / edit / delete rerun configs | ✓ | ✓ (own only) |
 | Trigger rerun | ✓ | ✓ |
 | Access /auto-heal page | ✓ | ✓ |

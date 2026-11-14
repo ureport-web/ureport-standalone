@@ -647,7 +647,25 @@
           }
         },
         "security": [],
-        "requestBody": {}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "identifier"
+                ],
+                "properties": {
+                  "identifier": {
+                    "type": "string",
+                    "description": "Email address (contains @) or username"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/reset/{token}": {
@@ -806,7 +824,34 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filter": {
+                    "type": "string",
+                    "description": "Username regex fragment (escaped)"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "active",
+                      "rejected"
+                    ]
+                  },
+                  "sort": {
+                    "type": "object",
+                    "description": "Mongo sort spec, default { username: desc }"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/user/total": {
@@ -3443,7 +3488,58 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "team": {
+                    "type": "string"
+                  },
+                  "browser": {
+                    "type": "string"
+                  },
+                  "device": {
+                    "type": "string"
+                  },
+                  "platform": {
+                    "type": "string"
+                  },
+                  "platform_version": {
+                    "type": "string"
+                  },
+                  "stage": {
+                    "type": "string"
+                  },
+                  "extras": {
+                    "type": "object",
+                    "description": "Key/value pairs, matched as extras.<key>"
+                  },
+                  "untilDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "start_time < untilDate"
+                  },
+                  "sort": {
+                    "type": "object",
+                    "description": "Mongo sort spec, default { start_time: desc }"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/test/by-uid/{uid}": {
@@ -5101,7 +5197,32 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "filter": {
+                    "type": "string",
+                    "description": "Regex matched against uid"
+                  },
+                  "sort": {
+                    "type": "object",
+                    "description": "Mongo sort spec, default { uid: desc }"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/investigated_test/{id}": {
@@ -5613,7 +5734,32 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filter": {
+                    "type": "string",
+                    "description": "Text matched (escaped regex) against uid and tracking.track_number"
+                  },
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "sort": {
+                    "type": "object",
+                    "description": "Mongo sort spec, default { create_at: desc }"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/assignment/{id}": {
@@ -6160,7 +6306,45 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "product",
+                  "type"
+                ],
+                "properties": {
+                  "product": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or, e.g. [{ product: X }]"
+                  },
+                  "type": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or, e.g. [{ product: X }]"
+                  },
+                  "after": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Default: now"
+                  },
+                  "state": {
+                    "type": "string",
+                    "default": "OPEN"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/assignment": {
@@ -7694,7 +7878,33 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "since": {
+                    "description": "Look-back window: Nd string (e.g. 7d), number of days, or a date string. Default 7 days.",
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "default": 20
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/analytics/global-unstable-count": {
@@ -7721,7 +7931,29 @@
             }
           }
         },
-        "requestBody": {}
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "since": {
+                    "description": "Look-back window: Nd string (e.g. 7d), number of days, or a date string. Default 7 days.",
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/dashboard/{id}": {
@@ -10162,7 +10394,104 @@
             "bearerAuth": []
           }
         ],
-        "requestBody": {}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "product",
+                  "type"
+                ],
+                "properties": {
+                  "product": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or, e.g. [{ product: X }]"
+                  },
+                  "type": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "range": {
+                    "type": "integer",
+                    "default": 5,
+                    "description": "Max builds returned"
+                  },
+                  "is_archive": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "since": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Lower bound on start_time"
+                  },
+                  "after": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Upper bound on start_time"
+                  },
+                  "version": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "team": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "browser": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "device": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "platform": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "platform_version": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  },
+                  "stage": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "Array of Mongo conditions used as $or"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/shared/build/search": {
@@ -13724,6 +14053,11 @@
                         "failureGroupId": {
                           "type": "string"
                         },
+                        "lane": {
+                          "type": "object",
+                          "nullable": true,
+                          "description": "Lane of the build that raised the signal (version, team, browser, device, platform, platform_version, stage, extras). Duplicate suppression is per lane; signals from before lanes were stored have none and count for every lane."
+                        },
                         "affectedTestIds": {
                           "type": "array",
                           "items": {
@@ -13820,6 +14154,14 @@
                         },
                         "additionalInstructions": {
                           "type": "string"
+                        },
+                        "completionReason": {
+                          "type": "string",
+                          "enum": [
+                            "flaky",
+                            "not_reproducible"
+                          ],
+                          "description": "Why the signal completed without a code change. Set by external consumers."
                         },
                         "laneHistory": {
                           "type": "array",
@@ -13929,6 +14271,11 @@
                         "failureGroupId": {
                           "type": "string"
                         },
+                        "lane": {
+                          "type": "object",
+                          "nullable": true,
+                          "description": "Lane of the build that raised the signal (version, team, browser, device, platform, platform_version, stage, extras). Duplicate suppression is per lane; signals from before lanes were stored have none and count for every lane."
+                        },
                         "affectedTestIds": {
                           "type": "array",
                           "items": {
@@ -14025,6 +14372,14 @@
                         },
                         "additionalInstructions": {
                           "type": "string"
+                        },
+                        "completionReason": {
+                          "type": "string",
+                          "enum": [
+                            "flaky",
+                            "not_reproducible"
+                          ],
+                          "description": "Why the signal completed without a code change. Set by external consumers."
                         },
                         "laneHistory": {
                           "type": "array",
@@ -14360,6 +14715,228 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Auto-Heal: Signals"
+        ],
+        "summary": "Preview an unsaved playbook for a test (no dispatch)",
+        "description": "Same resolved values as GET /ai/heal/preview, but for a playbook that is not saved yet (the playbook editor Test Run). Nothing is stored, no signal is created and no AI call is made.",
+        "responses": {
+          "200": {
+            "description": "Resolved playbook values (same shape as GET /ai/heal/preview).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mode": {
+                      "type": "string"
+                    },
+                    "checkout": {
+                      "type": "object",
+                      "properties": {
+                        "remote": {
+                          "type": "string"
+                        },
+                        "branchPrefix": {
+                          "type": "string"
+                        },
+                        "baseBranch": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "instructions": {
+                      "type": "string"
+                    },
+                    "runHint": {
+                      "type": "string"
+                    },
+                    "verifyCommand": {
+                      "type": "string"
+                    },
+                    "prTitle": {
+                      "type": "string"
+                    },
+                    "prBaseBranch": {
+                      "type": "string"
+                    },
+                    "prompt": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "testId or playbook missing, or playbook.mode invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Test or build not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "testId",
+                  "playbook"
+                ],
+                "properties": {
+                  "testId": {
+                    "type": "string",
+                    "description": "Test _id."
+                  },
+                  "playbook": {
+                    "type": "object",
+                    "required": [
+                      "mode"
+                    ],
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "guided",
+                          "agent_delegation"
+                        ]
+                      },
+                      "prompt": {
+                        "type": "string",
+                        "description": "Agent delegation prompt."
+                      },
+                      "pipeline": {
+                        "type": "object",
+                        "description": "Guided pipeline: checkout, aiFix, verify, createPr."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/preview-tests": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Signals"
+        ],
+        "summary": "Recent failing tests to pick from for a Test Run",
+        "description": "Failing tests of builds started in the last 14 days, newest first, at most 30.",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Test name contains this text (case-insensitive, literal).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Failing tests.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tests": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "uid": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "product": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "buildNumber": {
+                            "type": "integer"
+                          },
+                          "error": {
+                            "type": "string",
+                            "description": "First 200 characters of the error message."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/ai/heal/signals": {
@@ -14556,6 +15133,11 @@
                           "failureGroupId": {
                             "type": "string"
                           },
+                          "lane": {
+                            "type": "object",
+                            "nullable": true,
+                            "description": "Lane of the build that raised the signal (version, team, browser, device, platform, platform_version, stage, extras). Duplicate suppression is per lane; signals from before lanes were stored have none and count for every lane."
+                          },
                           "affectedTestIds": {
                             "type": "array",
                             "items": {
@@ -14652,6 +15234,14 @@
                           },
                           "additionalInstructions": {
                             "type": "string"
+                          },
+                          "completionReason": {
+                            "type": "string",
+                            "enum": [
+                              "flaky",
+                              "not_reproducible"
+                            ],
+                            "description": "Why the signal completed without a code change. Set by external consumers."
                           },
                           "laneHistory": {
                             "type": "array",
@@ -14784,6 +15374,11 @@
                         "failureGroupId": {
                           "type": "string"
                         },
+                        "lane": {
+                          "type": "object",
+                          "nullable": true,
+                          "description": "Lane of the build that raised the signal (version, team, browser, device, platform, platform_version, stage, extras). Duplicate suppression is per lane; signals from before lanes were stored have none and count for every lane."
+                        },
                         "affectedTestIds": {
                           "type": "array",
                           "items": {
@@ -14880,6 +15475,14 @@
                         },
                         "additionalInstructions": {
                           "type": "string"
+                        },
+                        "completionReason": {
+                          "type": "string",
+                          "enum": [
+                            "flaky",
+                            "not_reproducible"
+                          ],
+                          "description": "Why the signal completed without a code change. Set by external consumers."
                         },
                         "laneHistory": {
                           "type": "array",
@@ -15104,6 +15707,11 @@
                         "failureGroupId": {
                           "type": "string"
                         },
+                        "lane": {
+                          "type": "object",
+                          "nullable": true,
+                          "description": "Lane of the build that raised the signal (version, team, browser, device, platform, platform_version, stage, extras). Duplicate suppression is per lane; signals from before lanes were stored have none and count for every lane."
+                        },
                         "affectedTestIds": {
                           "type": "array",
                           "items": {
@@ -15201,6 +15809,14 @@
                         "additionalInstructions": {
                           "type": "string"
                         },
+                        "completionReason": {
+                          "type": "string",
+                          "enum": [
+                            "flaky",
+                            "not_reproducible"
+                          ],
+                          "description": "Why the signal completed without a code change. Set by external consumers."
+                        },
                         "laneHistory": {
                           "type": "array",
                           "items": {
@@ -15226,7 +15842,7 @@
             }
           },
           "400": {
-            "description": "Invalid status or missing conditional field.",
+            "description": "Invalid status, missing conditional field, or an invalid completion_reason.",
             "content": {
               "application/json": {
                 "schema": {
@@ -15356,6 +15972,14 @@
                     "type": "boolean",
                     "description": "Must be true when status=completed."
                   },
+                  "completion_reason": {
+                    "type": "string",
+                    "enum": [
+                      "flaky",
+                      "not_reproducible"
+                    ],
+                    "description": "Optional, only valid with status=completed. Says why no code change was needed."
+                  },
                   "ai_provider": {
                     "type": "string"
                   },
@@ -15478,6 +16102,11 @@
                         "failureGroupId": {
                           "type": "string"
                         },
+                        "lane": {
+                          "type": "object",
+                          "nullable": true,
+                          "description": "Lane of the build that raised the signal (version, team, browser, device, platform, platform_version, stage, extras). Duplicate suppression is per lane; signals from before lanes were stored have none and count for every lane."
+                        },
                         "affectedTestIds": {
                           "type": "array",
                           "items": {
@@ -15575,6 +16204,14 @@
                         "additionalInstructions": {
                           "type": "string"
                         },
+                        "completionReason": {
+                          "type": "string",
+                          "enum": [
+                            "flaky",
+                            "not_reproducible"
+                          ],
+                          "description": "Why the signal completed without a code change. Set by external consumers."
+                        },
                         "laneHistory": {
                           "type": "array",
                           "items": {
@@ -15662,6 +16299,855 @@
                   "external_ref": {
                     "type": "string",
                     "description": "Optional external reference, e.g. a Jira key."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/exclusions": {
+      "get": {
+        "tags": [
+          "Auto-Heal: Exclusions"
+        ],
+        "summary": "List exclusion rules",
+        "description": "Rules for tests auto-heal must not open signals for, newest first. Expired rules are included and flagged with expired=true.",
+        "parameters": [
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rules.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exclusions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/HealExclusion"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Auto-Heal: Exclusions"
+        ],
+        "summary": "Create an exclusion rule",
+        "description": "target \"uid\" excludes one test (match must be equals, exact and case sensitive) and any signed-in user may create it. Other targets can match many tests and are admin only. \"error\" matches the failure message (equals, contains, starts_with, ends_with, regex). A regex is held to tighter limits because a crafted pattern can make a regex engine very slow: at most 200 characters, repeat counts up to 100, at most 20 regex rules per product and type, and no nested repetition such as (a+)+, alternation or optional parts inside a repeated group, backreferences or lookahead/lookbehind (400 with the reason). Every regex match also has a 50 ms time limit; a rule that exceeds it is skipped for that build and never excludes a test. \"path\" matches the test file or path (equals, contains, starts_with, ends_with; no regex; a test with neither is never matched). Text matching ignores case. Product and type are required; scope narrows the rule to one lane and a blank scope covers every lane of the product and type. An identical active rule is returned with 200 instead of a copy. At most 500 rules per product and type.",
+        "responses": {
+          "200": {
+            "description": "An identical active rule already exists; it is returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exclusion": {
+                      "$ref": "#/components/schemas/HealExclusion"
+                    },
+                    "created": {
+                      "type": "boolean",
+                      "example": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Rule created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exclusion": {
+                      "$ref": "#/components/schemas/HealExclusion"
+                    },
+                    "created": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input, or the product and type already have 500 rules.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only an admin can create a rule that is not a single-test (uid) rule.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "product",
+                  "type",
+                  "target",
+                  "match",
+                  "value",
+                  "reason"
+                ],
+                "properties": {
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "scope": {
+                    "$ref": "#/components/schemas/HealExclusionScope"
+                  },
+                  "target": {
+                    "type": "string",
+                    "enum": [
+                      "error",
+                      "uid",
+                      "path"
+                    ]
+                  },
+                  "match": {
+                    "type": "string",
+                    "enum": [
+                      "equals",
+                      "contains",
+                      "starts_with",
+                      "ends_with",
+                      "regex"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "At least 3 characters unless match is equals. A regex must compile, be at most 200 characters and pass the safety rules described above."
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "expires_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Optional. Must be in the future."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/exclusions/{id}": {
+      "put": {
+        "tags": [
+          "Auto-Heal: Exclusions"
+        ],
+        "summary": "Update an exclusion rule (admin)",
+        "description": "Admin only. Send any of scope, target, match, value, reason, expires_at; the rest keeps its value. Product and type cannot change. Omitting expires_at keeps the expiry, null clears it. The result is validated like a new rule.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exclusion": {
+                      "$ref": "#/components/schemas/HealExclusion"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Admin only.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rule not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Another active rule already does the same.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "scope": {
+                    "$ref": "#/components/schemas/HealExclusionScope"
+                  },
+                  "target": {
+                    "type": "string",
+                    "enum": [
+                      "error",
+                      "uid",
+                      "path"
+                    ]
+                  },
+                  "match": {
+                    "type": "string",
+                    "enum": [
+                      "equals",
+                      "contains",
+                      "starts_with",
+                      "ends_with",
+                      "regex"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "expires_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Auto-Heal: Exclusions"
+        ],
+        "summary": "Delete an exclusion rule",
+        "description": "An admin may delete any rule. A regular user may delete a rule they created themselves, but not one an external consumer added.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deleted": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not allowed to delete this rule.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rule not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/exclusions/preview": {
+      "post": {
+        "tags": [
+          "Auto-Heal: Exclusions"
+        ],
+        "summary": "Preview what an exclusion rule would match",
+        "description": "Saves nothing. Applies the rule, with the same matching as auto-trigger, to the tests of the latest build of each lane the scope covers (at most 10 lanes). Reports how many tests it matches and how many of those fail in that build. reason and expires_at are ignored.",
+        "responses": {
+          "200": {
+            "description": "Match counts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "lanes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "lane": {
+                            "$ref": "#/components/schemas/HealExclusionScope"
+                          },
+                          "buildNumber": {
+                            "type": "integer"
+                          },
+                          "total": {
+                            "type": "integer",
+                            "description": "Distinct tests in the build."
+                          },
+                          "failing": {
+                            "type": "integer",
+                            "description": "Tests whose final status is FAIL."
+                          },
+                          "matched": {
+                            "type": "integer"
+                          },
+                          "matchedFailing": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "failing": {
+                      "type": "integer"
+                    },
+                    "matched": {
+                      "type": "integer"
+                    },
+                    "matchedFailing": {
+                      "type": "integer"
+                    },
+                    "sample": {
+                      "type": "array",
+                      "description": "Up to 10 matched tests.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid rule.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "product",
+                  "type",
+                  "target",
+                  "match",
+                  "value"
+                ],
+                "properties": {
+                  "product": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "scope": {
+                    "$ref": "#/components/schemas/HealExclusionScope"
+                  },
+                  "target": {
+                    "type": "string",
+                    "enum": [
+                      "error",
+                      "uid",
+                      "path"
+                    ]
+                  },
+                  "match": {
+                    "type": "string",
+                    "enum": [
+                      "equals",
+                      "contains",
+                      "starts_with",
+                      "ends_with",
+                      "regex"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/exclusions/applied": {
+      "post": {
+        "tags": [
+          "Auto-Heal: Exclusions"
+        ],
+        "summary": "Failing tests that exclusion rules cover, per build",
+        "description": "Used by the launches page to mark excluded tests. For each build, reports the tests whose final status is FAIL that an active rule covers, using the same lane scope check and matcher as auto-trigger. Reads only; match counts are not changed. Builds with nothing excluded are left out. Any signed-in user.",
+        "responses": {
+          "200": {
+            "description": "Excluded failing tests by build id, then test uid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "excluded": {
+                      "type": "object",
+                      "description": "Keyed by build id; each value is keyed by test uid.",
+                      "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "object",
+                          "properties": {
+                            "ruleId": {
+                              "type": "string",
+                              "description": "The first rule that covers the test."
+                            },
+                            "reason": {
+                              "type": "string",
+                              "description": "Why the rule was added."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "buildIds missing, empty, malformed or more than 50.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "buildIds"
+                ],
+                "properties": {
+                  "buildIds": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 50,
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Build ids. Unknown builds are ignored."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/heal/signals/{id}/exclude": {
+      "post": {
+        "tags": [
+          "Auto-Heal: Signals"
+        ],
+        "summary": "Exclude the test of a claimed signal from auto-heal",
+        "description": "Used by external consumers that find a test cannot be auto-healed. The server builds the rule itself: this test (uid, exact) in the exact lane of the signal build (every lane field and extras), so the consumer cannot widen it. The rule is marked as added by an agent, links to the signal, and only an admin can delete it. The signal stays claimed; report its outcome with PUT /signals/{id}. An identical active rule is returned with 200 instead of a copy.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Signal ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An identical active rule already exists; it is returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exclusion": {
+                      "$ref": "#/components/schemas/HealExclusion"
+                    },
+                    "created": {
+                      "type": "boolean",
+                      "example": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Rule created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exclusion": {
+                      "$ref": "#/components/schemas/HealExclusion"
+                    },
+                    "created": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "reason is missing or too long, or the product and type already have 500 rules.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Signal not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Signal is not external, is not claimed, has no test uid, or its build no longer exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "Why the test cannot be auto-healed."
                   }
                 }
               }
@@ -16929,6 +18415,37 @@
         ],
         "summary": "Match failing tests against existing investigations and optionally create auto-triage records",
         "description": "Matches the supplied failing tests against recent investigations (source pool) of the same product/type. Match priority per test: token, then exact error message, then stack trace. Tests already covered by a valid investigation are skipped. Requires auto_triage_settings.enabled for the product/type. With dryRun (the default) nothing is written; with dryRun=false, an auto-triage InvestigatedTest document is upserted per match (keyed by uid + product + type + is_auto_triaged). Token matches and promoted uids get ttl -1 (permanent); other matches get auto_triage_settings.ttl_days (default 5). Source investigations older than auto_triage_settings.max_source_age_days (default 30) are ignored; fuzzy-match sources (similarity != 100) and expired auto-triage sources are skipped. If auto_triage_settings.scope_filter.relations is set, only tests whose relations match the filter are considered. The same logic also runs automatically on build completion (non-dry-run).",
+        "parameters": [
+          {
+            "name": "dryRun",
+            "in": "query",
+            "required": false,
+            "description": "Defaults to true. Only the literal string false disables dry-run and persists auto-triage records; any other value (or omission) is a dry run.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "enum": {
+                  "type": "array",
+                  "example": [
+                    "true",
+                    "false"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "default": {
+                  "type": "string",
+                  "example": "true"
+                }
+              }
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Evaluation result. matches lists every matched test; created is the number of auto-triage documents upserted (always 0 for a dry run, when there are no matches, or when no tests are eligible). _debug is present for dry runs, and when no source investigations exist; it is omitted on a successful non-dry-run with matches, and when no tests are eligible.",
@@ -17992,6 +19509,7 @@
             "properties": {
               "rules": {
                 "type": "array",
+                "description": "No rules, or no enabled rule, means no notification is sent. A rule whose scope is blank matches every lane of the product/type.",
                 "items": {
                   "type": "object",
                   "properties": {
@@ -18110,6 +19628,7 @@
               },
               "rules": {
                 "type": "array",
+                "description": "No rules, or no enabled rule, means quarantine does nothing for this product/type. A rule whose scope is blank matches every lane.",
                 "items": {
                   "type": "object",
                   "properties": {
@@ -18256,10 +19775,62 @@
           },
           "auto_heal_settings": {
             "type": "object",
+            "description": "Auto-heal runs for a build only when enabled is true and at least one enabled entry of scopes matches the build. An empty scopes list means nothing runs; an entry with a blank scope matches every lane of the product/type.",
             "properties": {
               "enabled": {
                 "type": "boolean",
                 "default": false
+              },
+              "scopes": {
+                "type": "array",
+                "description": "Lanes auto-heal is allowed to run for. Empty list: nothing runs. Same scope matching as notification and quarantine rules.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "enabled": {
+                      "type": "boolean",
+                      "default": true,
+                      "description": "Only enabled scopes are evaluated."
+                    },
+                    "scope": {
+                      "type": "object",
+                      "description": "Build must equal every non-empty field; a blank scope matches every lane.",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "team": {
+                          "type": "string"
+                        },
+                        "browser": {
+                          "type": "string"
+                        },
+                        "device": {
+                          "type": "string"
+                        },
+                        "platform": {
+                          "type": "string"
+                        },
+                        "platform_version": {
+                          "type": "string"
+                        },
+                        "stage": {
+                          "type": "string"
+                        },
+                        "extras": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "description": "Every key/value must equal the build extras."
+                        }
+                      }
+                    }
+                  }
+                }
               },
               "dispatch_mode": {
                 "type": "string",
@@ -18281,6 +19852,16 @@
                 "type": "boolean",
                 "default": true
               },
+              "dedup_days": {
+                "type": "number",
+                "default": 7,
+                "description": "Days a signal for the same test, error and lane blocks a new one (1-90). A signal with an open PR blocks until it expires."
+              },
+              "max_failure_rate": {
+                "type": "number",
+                "default": 0,
+                "description": "Skip the whole build when more than this percent of its tests fail (likely an outage); 0 disables."
+              },
               "max_prior_failures": {
                 "type": "number",
                 "default": 3,
@@ -18292,7 +19873,8 @@
               },
               "exclude_rules": {
                 "type": "array",
-                "description": "Failures whose error message matches any rule never open a signal.",
+                "deprecated": true,
+                "description": "No longer used by auto-trigger. Exclusions are managed with /ai/heal/exclusions.",
                 "items": {
                   "type": "object",
                   "properties": {
@@ -18637,6 +20219,121 @@
           "is_public": {
             "type": "boolean",
             "default": false
+          }
+        }
+      },
+      "HealExclusionScope": {
+        "type": "object",
+        "description": "Lane of a build. A rule or a lane applies to a build that equals every non-empty field; a blank scope matches every lane.",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "team": {
+            "type": "string"
+          },
+          "browser": {
+            "type": "string"
+          },
+          "device": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "platform_version": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string"
+          },
+          "extras": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Every key/value must equal the build extras."
+          }
+        }
+      },
+      "HealExclusion": {
+        "type": "object",
+        "description": "A test auto-heal must not open signals for.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "product": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/HealExclusionScope"
+          },
+          "target": {
+            "type": "string",
+            "enum": [
+              "error",
+              "uid",
+              "path"
+            ],
+            "description": "What the rule looks at: the error message, the test uid, or the test file / path."
+          },
+          "match": {
+            "type": "string",
+            "enum": [
+              "equals",
+              "contains",
+              "starts_with",
+              "ends_with",
+              "regex"
+            ]
+          },
+          "value": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "user",
+              "agent"
+            ]
+          },
+          "createdBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sourceSignalId": {
+            "type": "string",
+            "nullable": true,
+            "description": "The external signal that led an agent to add the rule."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "expired": {
+            "type": "boolean"
+          },
+          "lastMatchedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Last time the rule kept a failure from getting a signal."
+          },
+          "matchCount": {
+            "type": "integer",
+            "description": "How many failures the rule has kept from getting a signal, over all builds."
           }
         }
       },

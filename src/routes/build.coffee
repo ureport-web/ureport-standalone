@@ -14,6 +14,7 @@ AccessControl = require('../utils/ac_grants')
 { escapeRegex, safeRegex } = require('../utils/regex_utils')
 { extrasToKey } = require('../utils/extras_key')
 { requireRole } = require('../utils/route_guards')
+{ matchForLanes } = require('../utils/latest_status_query')
 cache = require('../lib/cache')
 component = 'build'
 
@@ -287,7 +288,7 @@ router.post '/status/latest',  (req, res, next) ->
   if !query or !Array.isArray(query) or query.length is 0
     return res.status(400).json { message: 'query must be a non-empty array' }
 
-  matchQuery = { $or: query }
+  matchQuery = matchForLanes(query)
   if since
     matchQuery.start_time = { '$gte': new Date(since) }
 
@@ -299,9 +300,10 @@ router.post '/status/latest',  (req, res, next) ->
     }
   }
 
+  # Sorted in the (product, type, start_time desc) index order so the newest build of each lane comes first
   Build.aggregate()
   .match(matchQuery)
-  .sort({ start_time: 1 })
+  .sort({ product: 1, type: 1, start_time: -1 })
   .group(
     {
       _id:  {
@@ -316,11 +318,11 @@ router.post '/status/latest',  (req, res, next) ->
         stage: "$stage",
         extras: normalizedExtras
       },
-      product: { $last: "$product"},
-      type: { $last: "$type"},
-      build: { $last: "$build"},
-      status: { $last: "$status"},
-      start_time: { $last: "$start_time"}
+      product: { $first: "$product"},
+      type: { $first: "$type"},
+      build: { $first: "$build"},
+      status: { $first: "$status"},
+      start_time: { $first: "$start_time"}
   })
   .exec((err, cols) ->
     if err

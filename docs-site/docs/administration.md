@@ -80,6 +80,20 @@ Values in Group Filters must match exactly — including casing — with values 
 4. Add groups: Category Name + Values (press Enter to add each value)
 5. Save — the filter appears as a filtering option in Launches and dashboard widgets
 
+### Auto-Heal
+
+The **Auto-Heal** section of a lane decides whether failing tests in that product/type get AI repair signals after each build, and which ones. To open it, go to **Settings → Product Lane Settings**, edit the lane, and scroll to **Auto-Heal**. It is split into blocks: **Dispatch**, **Lanes**, **Which failures to heal**, **Exclusions**, **Additional instructions** (external mode) and **Max signals per analysis**. All settings are described in [Auto-Heal](./auto-heal#auto-trigger).
+
+**Exclusions** keep tests from ever opening a signal, which is how you stop auto-heal spending effort on tests it cannot fix:
+
+- A rule looks at the **error message**, the **test UID** or the **file / path**, and can cover every lane of the product and type or one lane.
+- Every rule has a reason and an optional expiry. Rules added with the same reason are grouped in the list, which also has search and filters once it grows.
+- Rules save as soon as you add them, separately from the lane's **Save** button, and a new lane has to be saved before it can have exclusions.
+- A single failing test can be excluded from its detail panel with **Exclude from auto-heal**.
+- Only an admin can create rules that match many tests; any user can exclude one test by UID.
+
+See [Exclusion rules](./auto-heal#exclusion-rules) for the match options, limits and permissions.
+
 ### Custom States
 
 Custom states are admin-configured labels for failures that don't fit standard issue types — e.g. "Blocked by dependency", "Won't Fix", "Under investigation".
