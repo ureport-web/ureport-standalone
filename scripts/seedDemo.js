@@ -454,6 +454,20 @@ const CUSTOM_META_FRONTEND = {
 
 const ORION_PRODUCT = "Orion";
 
+// Disposable lane for destructive E2E tests. Nothing in it is gold data: the suite
+// purges it, deletes its relations and resolves its quarantine entries so the
+// Acme/Orion demo lanes stay intact.
+const SANDBOX_PRODUCT = "QA Sandbox";
+const SANDBOX_TYPE = "cleanup";
+const SANDBOX_UIDS = [
+  "sandbox/relation-to-delete",
+  "sandbox/quarantine-to-snooze",
+  "sandbox/quarantine-to-resolve",
+];
+const SANDBOX_META = {
+  "sandbox/": { component: "sandbox-service", team: "qa-team", tag: "disposable" },
+};
+
 const ORION_UIDS = [
   "payment/stripe-charge",
   "payment/stripe-refund",
@@ -571,6 +585,7 @@ const STABILITY = {
   frontend: buildStabilityMap(FRONTEND_UIDS, 222),
   e2e: buildStabilityMap(E2E_UIDS, 333),
   integration: buildStabilityMap(ORION_UIDS, 444),
+  sandbox: buildStabilityMap(SANDBOX_UIDS, 555),
 };
 
 // ─── Quarantine rules ─────────────────────────────────────────────────────────
@@ -2422,8 +2437,42 @@ async function seedQuarantinedTests() {
 
 // ─── Presets ──────────────────────────────────────────────────────────────────
 
+async function seedSandboxQuarantine() {
+  await QuarantinedTest.deleteMany({ product: SANDBOX_PRODUCT });
+  const day = 24 * 60 * 60 * 1000;
+  await QuarantinedTest.insertMany([
+    {
+      uid: "sandbox/quarantine-to-snooze",
+      product: SANDBOX_PRODUCT,
+      type: SANDBOX_TYPE,
+      rule_id: QUARANTINE_RULES.consecutiveFailures._id,
+      rule_name: QUARANTINE_RULES.consecutiveFailures.name,
+      quarantined_at: new Date(Date.now() - 12 * day),
+      fail_snapshot: 4,
+      build_snapshot: 10,
+      is_active: true,
+      is_exempt: false,
+      resolved_at: null,
+    },
+    {
+      uid: "sandbox/quarantine-to-resolve",
+      product: SANDBOX_PRODUCT,
+      type: SANDBOX_TYPE,
+      rule_id: QUARANTINE_RULES.highFailRate._id,
+      rule_name: QUARANTINE_RULES.highFailRate.name,
+      quarantined_at: new Date(Date.now() - 20 * day),
+      fail_snapshot: 6,
+      build_snapshot: 10,
+      is_active: true,
+      is_exempt: false,
+      resolved_at: null,
+    },
+  ]);
+  console.log("  QA Sandbox quarantine entries seeded");
+}
+
 async function seedPresets() {
-  await Preset.deleteMany({ "lanes.product": { $in: [PRODUCT, ORION_PRODUCT] } });
+  await Preset.deleteMany({ "lanes.product": { $in: [PRODUCT, ORION_PRODUCT, SANDBOX_PRODUCT] } });
   const presets = [
     {
       name: "All Suites",
@@ -2596,7 +2645,10 @@ function isLocalHost(uri) {
 const maskCredentials = (uri) => uri.replace(/(:\/\/[^:/@]+:)[^@]+@/, "$1***@");
 
 async function main() {
-  const dbHost = config.DBHost;
+  // Same precedence as initialize.js and sessions.coffee: an explicit DBHost env
+  // wins, otherwise the "seed" config (config/seed.json) decides. Containers set
+  // DBHost, which is why the seed has to honour it.
+  const dbHost = process.env.DBHost || config.DBHost;
 
   if (!dbHost) {
     console.error("DBHost is not set.");
@@ -2643,14 +2695,14 @@ async function main() {
 
   console.log("\nClearing existing demo data...");
   // Tests carry no product, only their build, so they are found through the seed products' builds
-  const seedBuildIds = await Build.find({ product: { $in: [PRODUCT, ORION_PRODUCT] } }).distinct("_id");
+  const seedBuildIds = await Build.find({ product: { $in: [PRODUCT, ORION_PRODUCT, SANDBOX_PRODUCT] } }).distinct("_id");
   await Test.deleteMany({ build: { $in: seedBuildIds } });
-  await Build.deleteMany({ product: { $in: [PRODUCT, ORION_PRODUCT] } });
+  await Build.deleteMany({ product: { $in: [PRODUCT, ORION_PRODUCT, SANDBOX_PRODUCT] } });
   console.log("  ✓ Cleared builds and tests");
-  await QuarantinedTest.deleteMany({ product: { $in: [PRODUCT, ORION_PRODUCT] } });
+  await QuarantinedTest.deleteMany({ product: { $in: [PRODUCT, ORION_PRODUCT, SANDBOX_PRODUCT] } });
   console.log("  ✓ Cleared quarantined tests");
-  await Preset.deleteMany({ "lanes.product": { $in: [PRODUCT, ORION_PRODUCT] } });
-  await AiAnalysis.deleteMany({ product: { $in: [PRODUCT, ORION_PRODUCT] } });
+  await Preset.deleteMany({ "lanes.product": { $in: [PRODUCT, ORION_PRODUCT, SANDBOX_PRODUCT] } });
+  await AiAnalysis.deleteMany({ product: { $in: [PRODUCT, ORION_PRODUCT, SANDBOX_PRODUCT] } });
   console.log("  ✓ Cleared presets and AI analysis");
 
   await seedProductLine(
@@ -2681,6 +2733,12 @@ async function main() {
   }
 
   // ── Orion/integration — extras-only lanes (region dimension, no predefined fields) ──
+  await seedProductLine(SANDBOX_PRODUCT, SANDBOX_TYPE, SANDBOX_UIDS, "sandbox", SANDBOX_META, {
+    stage: "CI",
+    platform: "linux",
+    platform_version: "22.04",
+  });
+
   const ORION_EXTRAS_ONLY = [
     { region: "us-east-1" },
     { region: "eu-west-1",      datacenter: "aws"  },
@@ -2707,6 +2765,7 @@ async function main() {
 
   await seedInvestigatedTests();
   await seedQuarantinedTests();
+  await seedSandboxQuarantine();
   await seedSetting();
   await seedDashboards();
   await seedPresets();
