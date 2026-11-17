@@ -2688,8 +2688,8 @@ async function main() {
     }
   }
 
-  console.log(`\nConnecting to ${dbHost}...`);
-  await mongoose.connect(dbHost, { useNewUrlParser: true });
+  console.log(`\nConnecting to ${maskCredentials(dbHost)}...`);
+  await mongoose.connect(dbHost, { useNewUrlParser: true, useUnifiedTopology: true });
   mongoose.set("useFindAndModify", false);
   mongoose.set("useCreateIndex", true);
 
