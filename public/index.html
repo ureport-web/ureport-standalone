@@ -7,7 +7,7 @@
     <title>UReport — Test Automation Reporting & Analytics Platform</title>
     <meta
       name="description"
-      content="UReport is a test automation reporting tool for QA teams. Centralize test executions, visualize pass rates and failure trends, detect flaky tests, and get AI root cause analysis. Works with Playwright, pytest, Jest, Cypress, and more."
+      content="UReport is a test automation reporting tool for QA teams. Centralize test executions, visualize pass rates and failure trends, detect flaky tests, and get AI root cause analysis with your own AI provider. Works with Playwright, pytest, Jest, Cypress, and more."
     />
     <meta
       name="keywords"
@@ -23,7 +23,7 @@
     />
     <meta
       property="og:description"
-      content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis, dashboards and CI/CD integration. Works with Playwright, pytest, Jest and more."
+      content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis and Auto-Heal fix PRs (bring your own AI), dashboards and CI/CD integration. Works with Playwright, Jest, Mocha, Cypress, pytest, TestNG and more."
     />
     <meta
       property="og:image"
@@ -36,7 +36,7 @@
     />
     <meta
       name="twitter:description"
-      content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis, dashboards and CI/CD integration."
+      content="Test automation reporting for QA teams. Flaky test detection, AI root cause analysis and Auto-Heal fix PRs (bring your own AI), dashboards and CI/CD integration."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -159,6 +159,26 @@
         .home-nav-link {
           padding: 0.4rem 0.5rem;
           font-size: 0.8rem;
+          white-space: nowrap;
+        }
+        .home-nav-brand {
+          flex-shrink: 0;
+        }
+        .home-nav-links {
+          min-width: 0;
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+        .home-nav-links::-webkit-scrollbar {
+          display: none;
+        }
+        .home-nav-btn {
+          flex-shrink: 0;
+          white-space: nowrap;
+          position: sticky;
+          right: 0;
+          margin-left: 0.25rem;
+          box-shadow: -8px 0 8px -4px #fff;
         }
       }
 
@@ -177,7 +197,7 @@
         transform: translateX(48px);
       }
       .animate.from-below {
-        transform: translateY(48px);
+        transform: translateY(24px);
       }
       .animate.visible {
         opacity: 1;
@@ -215,6 +235,9 @@
         min-height: auto;
         padding: 80px 2rem 0;
       }
+      .section--alt.section--compact {
+        background: var(--gray-50);
+      }
       .section--compact {
         min-height: auto;
         padding: 80px 2rem;
@@ -239,7 +262,6 @@
         gap: 6px;
         font-size: 12px;
         font-weight: 500;
-        font-family: "DM Mono", monospace;
         color: var(--green);
         background: var(--green-bg);
         border-radius: 100px;
@@ -257,6 +279,7 @@
       }
       .hero-title {
         font-size: clamp(2.2rem, 5vw, 3.4rem);
+        text-wrap: balance;
         font-weight: 300;
         line-height: 1.15;
         letter-spacing: -1.5px;
@@ -273,6 +296,90 @@
         line-height: 1.6;
         max-width: 520px;
         margin: 0 auto 2.5rem;
+      }
+      .hero-flow {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.25rem;
+        width: min(980px, 100vw - 3rem);
+        margin-left: calc(50% - min(490px, 50vw - 1.5rem));
+        text-align: left;
+      }
+      .hero-flow li {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #fff;
+        font-size: 13px;
+        line-height: 1.4;
+        color: var(--gray-600);
+        animation: flow-step 10s infinite;
+        animation-delay: calc(var(--i) * 0.9s);
+      }
+      .hero-flow strong {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--black);
+      }
+      .hero-flow .ai {
+        margin-top: auto;
+        padding-top: 8px;
+        border-top: 1px dashed var(--gray-200);
+        color: var(--green);
+      }
+      .hero-flow .ai::before {
+        content: "With AI: ";
+        font-weight: 500;
+      }
+      .hero-byo {
+        font-size: 13px;
+        color: var(--gray-600);
+        max-width: 520px;
+        margin: 0 auto 2.5rem;
+        line-height: 1.5;
+      }
+      @keyframes flow-step {
+        0%,
+        6% {
+          border-color: var(--border);
+        }
+        12%,
+        86% {
+          border-color: var(--green);
+        }
+        94%,
+        100% {
+          border-color: var(--border);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-flow li {
+          animation: none;
+        }
+        .animate {
+          opacity: 1;
+          transform: none;
+          transition: none;
+        }
+      }
+      @media (max-width: 900px) {
+        .hero-flow {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .hero-flow li:last-child {
+          grid-column: 1 / -1;
+        }
+      }
+      @media (max-width: 480px) {
+        .hero-flow {
+          grid-template-columns: 1fr;
+        }
       }
       .hero-actions {
         display: flex;
@@ -665,14 +772,24 @@
         margin: 0 auto;
         width: 100%;
       }
-      .section-label {
+      .plan-badge {
+        display: inline-block;
         font-size: 11px;
-        font-family: "DM Mono", monospace;
         font-weight: 500;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--gray-400);
-        margin-bottom: 1rem;
+        line-height: 1;
+        padding: 3px 8px;
+        border-radius: 100px;
+        color: var(--amber);
+        background: var(--amber-bg);
+        margin-left: 8px;
+        vertical-align: 1px;
+        white-space: nowrap;
+      }
+      .section-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--green);
+        margin-bottom: 0.75rem;
       }
       .features-grid {
         display: grid;
@@ -1820,9 +1937,20 @@
         margin: 0;
         white-space: pre;
       }
+      .integrations-inner > * {
+        min-width: 0;
+      }
       @media (max-width: 640px) {
         .integrations-inner {
           grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+        .reporters-grid {
+          grid-template-columns: 1fr;
+        }
+        pre {
+          padding: 1rem;
+          font-size: 11.5px;
         }
       }
 
@@ -2335,6 +2463,74 @@
         background: rgba(0, 0, 0, 0.02);
         font-weight: 500;
       }
+      .compare-scroll {
+        margin-top: 2.5rem;
+        overflow-x: auto;
+      }
+      .compare-scroll .compare-table {
+        margin-top: 0;
+      }
+      @media (max-width: 640px) {
+        .compare-scroll {
+          overflow: visible;
+        }
+        .compare-table,
+        .compare-table tbody {
+          display: block;
+        }
+        .compare-table thead {
+          display: none;
+        }
+        .compare-table tbody tr {
+          display: block;
+          background: #fff;
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          padding: 0.75rem 1rem;
+          margin-bottom: 10px;
+        }
+        .compare-table tbody tr:hover {
+          background: #fff;
+        }
+        .compare-table th:first-child,
+        .compare-table td:first-child {
+          width: auto;
+        }
+        .compare-table tbody td {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 1rem;
+          padding: 6px 0;
+          border-bottom: none;
+          text-align: right;
+          font-size: 0.85rem;
+        }
+        .compare-table tbody td:first-child {
+          display: block;
+          text-align: left;
+          font-size: 0.92rem;
+          padding: 0 0 8px;
+          margin-bottom: 4px;
+          border-bottom: 1px solid var(--border);
+        }
+        .compare-table tbody td[data-label]::before {
+          content: attr(data-label);
+          font-size: 0.78rem;
+          color: var(--gray-400);
+          text-align: left;
+        }
+        .compare-table tbody td.col-ureport {
+          background: var(--gray-50);
+          border-radius: 6px;
+          padding: 6px 8px;
+          margin: 0 -8px;
+        }
+        .compare-table tbody td.col-ureport::before {
+          color: var(--black);
+          font-weight: 600;
+        }
+      }
       .cmp-yes {
         color: var(--green);
       }
@@ -2409,6 +2605,7 @@
             <a class="home-nav-link" href="#integrations">Integrations</a>
             <a class="home-nav-link" href="#compare">Compare</a>
             <a class="home-nav-link" href="#pricing">Pricing</a>
+            <a class="home-nav-link" href="#auto-heal">Auto-Heal</a>
             <a class="home-nav-link" href="#faq">FAQ</a>
             <a class="home-nav-link" href="/docs">Docs</a>
             <a
@@ -2425,14 +2622,45 @@
       <section class="section section--hero">
         <div class="hero-center">
           <div class="animate from-below">
-            <div class="hero-badge">Open source core · Self-host or cloud</div>
+            <div class="hero-badge">Open source core. Self-host or cloud.</div>
             <h1 class="hero-title">
-              From test reports to <strong>test intelligence</strong>
+              Run your tests. Know why they fail.
             </h1>
             <p class="hero-tagline">
-              Centralize test executions. Visualize pass rates and failure
-              trends for engineers and leadership to act on — with flaky test
-              quarantine and AI root cause analysis built in.
+              UReport collects results from every CI run so your team can
+              analyze, triage and track each failure. Connect your own AI to
+              speed up analysis and fixes.
+            </p>
+            <ol class="hero-flow" aria-label="How UReport works">
+              <li style="--i: 0">
+                <strong>Run tests</strong>
+                <span class="std">Reporters push results from CI</span>
+              </li>
+              <li style="--i: 1">
+                <strong>Analyze</strong>
+                <span class="std">Run history, trends, flaky detection</span>
+                <span class="ai">Root cause and suggested fix</span>
+              </li>
+              <li style="--i: 2">
+                <strong>Triage</strong>
+                <span class="std">Investigation notes, auto-matched across runs</span>
+                <span class="ai">Confirm or override the verdict</span>
+              </li>
+              <li style="--i: 3">
+                <strong>Track</strong>
+                <span class="std">Assign, quarantine, dashboards</span>
+                <span class="ai">Ask in plain English via MCP</span>
+              </li>
+              <li style="--i: 4">
+                <strong>Fix</strong>
+                <span class="std">Rerun on your agent, fix by hand</span>
+                <span class="ai">Auto-Heal opens a pull request<span class="plan-badge">Paid</span></span>
+              </li>
+            </ol>
+            <p class="hero-byo">
+              AI steps are optional and use
+              your own provider: AWS Bedrock, Claude, OpenAI, Gemini, or a
+              local Ollama model.
             </p>
           </div>
         </div>
@@ -2453,32 +2681,32 @@
                 Carousel auto-adapts to however many <img> tags exist.
               -->
               <img
-                src="assets/hero-screenshot-0.png"
+                src="assets/hero-screenshot-0.webp"
                 alt="UReport overview dashboard"
                 loading="eager"
               />
               <img
-                src="assets/hero-screenshot-1.png"
+                src="assets/hero-screenshot-1.webp"
                 alt="UReport AI failure analysis"
                 loading="lazy"
               />
               <img
-                src="assets/hero-screenshot-2.png"
+                src="assets/hero-screenshot-2.webp"
                 alt="UReport quarantine and flaky tests"
                 loading="lazy"
               />
               <img
-                src="assets/hero-screenshot-3.png"
+                src="assets/hero-screenshot-3.webp"
                 alt="UReport build history and trends"
                 loading="lazy"
               />
               <img
-                src="assets/hero-screenshot-4.png"
+                src="assets/hero-screenshot-4.webp"
                 alt="UReport build history and trends"
                 loading="lazy"
               />
               <img
-                src="assets/hero-screenshot-5.png"
+                src="assets/hero-screenshot-5.webp"
                 alt="UReport build history and trends"
                 loading="lazy"
               />
@@ -2514,13 +2742,14 @@
 
       <section class="section section--alt section--features-tab" id="features">
         <div class="features-tab-inner">
-          <div class="section-label">Built for every role</div>
           <h2 class="section-headline">
-            The right answers for <strong>every role</strong> on your team
+            The right answers for every role on your team
           </h2>
           <p class="section-desc">
             The moment your automation runs regularly in CI, different questions
-            emerge. Here's how UReport answers each of them.
+            emerge. Here's how UReport answers each of them. Features marked
+            <span class="plan-badge" style="margin-left: 0">Paid</span> need a
+            paid plan; everything else is free in the Community tier.
           </p>
           <div class="features-tab-layout">
             <div class="features-tab-list">
@@ -2596,6 +2825,14 @@
                     >
                       <div class="persona-feature-name">
                         Flaky tests. Isolated automatically.
+                      </div>
+                    </div>
+                    <div
+                      class="persona-feature"
+                      onclick="setPersonaFeature(this, 4)"
+                    >
+                      <div class="persona-feature-name">
+                        Failing test to pull request. <span class="plan-badge">Paid</span>
                       </div>
                     </div>
                   </div>
@@ -2681,11 +2918,12 @@
                   <!-- Mock 1: AI Root Cause -->
                   <div class="persona-feature-mock hidden">
                     <p class="persona-feature-mock-desc">
-                      Click "Analyse with AI" on any failing test. The LLM reads
-                      the error, stack trace, and prior run data — returning a
-                      category, confidence score, plain-English explanation, and
-                      a suggested fix. Cached by error fingerprint so sibling
-                      tests get instant answers.
+                      Click "Analyse with AI" on any failing test. UReport sends
+                      the error, stack trace, and prior run data to the model
+                      you configure — AWS Bedrock, Claude, OpenAI, Gemini, or a
+                      local Ollama — and shows the category, confidence score,
+                      explanation, and suggested fix. Cached by error
+                      fingerprint so sibling tests get instant answers.
                     </p>
                     <div class="mock-ai-panel">
                       <div class="mock-ai-test-row">
@@ -2752,7 +2990,10 @@
                     <p class="persona-feature-mock-desc">
                       Triage a failure once. UReport auto-matches it across
                       every future run — your team sees "known issue" instead of
-                      re-reading the same stack trace.
+                      re-reading the same stack trace. With Auto-Triage
+                      <span class="plan-badge" style="margin-left: 0">Paid</span>,
+                      the investigation also carries over to other tests that
+                      share the same token, error message, or stack trace.
                     </p>
                     <div class="mock-investigation">
                       <div class="mock-inv-header">
@@ -2831,6 +3072,44 @@
                       </div>
                     </div>
                   </div>
+                  <!-- Mock 4: Auto-Heal -->
+                  <div class="persona-feature-mock hidden">
+                    <p class="persona-feature-mock-desc">
+                      Auto-Heal hands a failing test to an agent on your
+                      machine. It checks out the repo, applies a fix with
+                      your own AI tool, verifies the test passes, and opens a pull request —
+                      no manual steps.
+                    </p>
+                    <div class="mock-launches">
+                      <div class="mock-toolbar">
+                        <div class="mock-filter-pill">
+                          <i class="fas fa-robot"></i> Guided playbook
+                        </div>
+                        <div class="mock-pass-badge">pr_created</div>
+                      </div>
+                      <div class="mock-test-row">
+                        <i class="fas fa-times-circle mock-status-icon fail"></i>
+                        <span class="mock-test-name">Payment — 3DS redirect</span>
+                      </div>
+                      <div class="mock-test-row pass">
+                        <i class="fas fa-check-circle mock-status-icon pass"></i>
+                        <span class="mock-test-name">Checkout repo on agent</span>
+                      </div>
+                      <div class="mock-test-row pass">
+                        <i class="fas fa-check-circle mock-status-icon pass"></i>
+                        <span class="mock-test-name">AI fix applied</span>
+                      </div>
+                      <div class="mock-test-row pass">
+                        <i class="fas fa-check-circle mock-status-icon pass"></i>
+                        <span class="mock-test-name">Test verified — passing</span>
+                      </div>
+                      <div class="mock-test-row pass">
+                        <i class="fas fa-code-branch mock-status-icon pass"></i>
+                        <span class="mock-test-name">Pull request opened</span>
+                        <span class="mock-health-badge green">PR #482</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -2882,7 +3161,7 @@
                       onclick="setPersonaFeature(this, 2)"
                     >
                       <div class="persona-feature-name">
-                        Know the moment something breaks.
+                        Know the moment something breaks. <span class="plan-badge">Paid</span>
                       </div>
                     </div>
                     <div
@@ -2890,7 +3169,23 @@
                       onclick="setPersonaFeature(this, 3)"
                     >
                       <div class="persona-feature-name">
-                        Compare what matters.
+                        See where builds diverge.
+                      </div>
+                    </div>
+                    <div
+                      class="persona-feature"
+                      onclick="setPersonaFeature(this, 4)"
+                    >
+                      <div class="persona-feature-name">
+                        Every failure has an owner.
+                      </div>
+                    </div>
+                    <div
+                      class="persona-feature"
+                      onclick="setPersonaFeature(this, 5)"
+                    >
+                      <div class="persona-feature-name">
+                        Four ways to read your results.
                       </div>
                     </div>
                   </div>
@@ -3141,6 +3436,77 @@
                       </div>
                     </div>
                   </div>
+                  <!-- Mock 4: Assignment -->
+                  <div class="persona-feature-mock hidden">
+                    <p class="persona-feature-mock-desc">
+                      Assign a failing test to a teammate with a note. The
+                      assignment is tied to that exact failure — it carries over
+                      when the same failure repeats, and drops away when the
+                      failure changes.
+                    </p>
+                    <div class="mock-investigation">
+                      <div class="mock-inv-header">
+                        <div class="mock-inv-badge">Assigned · OPEN</div>
+                        <div class="mock-inv-auto">
+                          <i class="fas fa-envelope"></i> Assignee notified
+                        </div>
+                      </div>
+                      <div class="mock-inv-test">Checkout — guest user</div>
+                      <div class="mock-inv-note">
+                        <div class="mock-inv-note-label">Note:</div>
+                        <div class="mock-inv-note-body">
+                          Intermittent 502 from the cart service. Please check
+                          the staging deploy before the release cut.
+                        </div>
+                      </div>
+                      <div class="mock-inv-meta">
+                        <span class="mock-tag green">Carried over · 2 builds</span
+                        ><span class="mock-tag">Bulk assign supported</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Mock 5: Explorer views -->
+                  <div class="persona-feature-mock hidden">
+                    <p class="persona-feature-mock-desc">
+                      Switch between tree, list, build comparison, and timeline
+                      views of the same results — from suite hierarchy down to a
+                      slider-based time range.
+                    </p>
+                    <div class="mock-launches">
+                      <div class="mock-toolbar">
+                        <div class="mock-filter-pill">
+                          <i class="fas fa-sitemap"></i> Tree
+                        </div>
+                        <div class="mock-filter-pill">
+                          <i class="fas fa-list"></i> List
+                        </div>
+                        <div class="mock-filter-pill">
+                          <i class="fas fa-columns"></i> Compare
+                        </div>
+                        <div class="mock-filter-pill">
+                          <i class="fas fa-stream"></i> Timeline
+                        </div>
+                      </div>
+                      <div class="mock-test-row">
+                        <i class="fas fa-folder-open mock-status-icon skip"></i>
+                        <span class="mock-test-name">checkout/</span>
+                        <span class="mock-health-badge amber">2 failing</span>
+                      </div>
+                      <div class="mock-test-row">
+                        <i class="fas fa-times-circle mock-status-icon fail"></i>
+                        <span class="mock-test-name">&nbsp;&nbsp;Payment — 3DS redirect</span>
+                      </div>
+                      <div class="mock-test-row pass">
+                        <i class="fas fa-check-circle mock-status-icon pass"></i>
+                        <span class="mock-test-name">&nbsp;&nbsp;Checkout — guest user</span>
+                      </div>
+                      <div class="mock-test-row pass">
+                        <i class="fas fa-folder mock-status-icon pass"></i>
+                        <span class="mock-test-name">login/</span>
+                        <span class="mock-health-badge green">All passing</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -3181,6 +3547,14 @@
                     >
                       <div class="persona-feature-name">
                         Shareable dashboards. No login required.
+                      </div>
+                    </div>
+                    <div
+                      class="persona-feature"
+                      onclick="setPersonaFeature(this, 2)"
+                    >
+                      <div class="persona-feature-name">
+                        Enterprise-ready access control. <span class="plan-badge">Paid</span>
                       </div>
                     </div>
                   </div>
@@ -3265,6 +3639,41 @@
                       </div>
                     </div>
                   </div>
+                  <!-- Mock 2: Access control -->
+                  <div class="persona-feature-mock hidden">
+                    <p class="persona-feature-mock-desc">
+                      Role-based access for admins, operators and viewers, an
+                      approval workflow for new users, audit logging, and SSO
+                      through an installable plugin — on your infrastructure.
+                    </p>
+                    <div class="mock-launches">
+                      <div class="mock-toolbar">
+                        <div class="mock-filter-pill">
+                          <i class="fas fa-user-shield"></i> Access
+                        </div>
+                        <div class="mock-pass-badge">SSO on</div>
+                      </div>
+                      <div class="mock-test-row">
+                        <i class="fas fa-user-cog mock-status-icon pass"></i>
+                        <span class="mock-test-name">Admin</span>
+                        <span class="mock-health-badge green">Full control</span>
+                      </div>
+                      <div class="mock-test-row">
+                        <i class="fas fa-user-edit mock-status-icon pass"></i>
+                        <span class="mock-test-name">Operator</span>
+                        <span class="mock-health-badge green">Triage &amp; assign</span>
+                      </div>
+                      <div class="mock-test-row">
+                        <i class="fas fa-user mock-status-icon skip"></i>
+                        <span class="mock-test-name">Viewer</span>
+                        <span class="mock-health-badge amber">Read only</span>
+                      </div>
+                      <div class="mock-rules-desc-bar">
+                        <i class="fas fa-info-circle"></i> New users wait for
+                        admin approval · every change is audit-logged
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -3275,9 +3684,9 @@
       <section class="section" id="mcp">
         <div class="mcp-inner">
           <div class="mcp-text animate from-below">
-            <div class="section-label">MCP · Model Context Protocol</div>
+            <div class="section-label">Model Context Protocol (MCP)</div>
             <h2 class="section-headline">
-              Query your test data<br /><strong>in plain English</strong>
+              Query your test data<br />in plain English
             </h2>
             <p>
               Connect Claude or Cursor to UReport via MCP. Ask questions about
@@ -3336,12 +3745,11 @@
         </div>
       </section>
 
-      <section class="section section--compact" id="integrations">
+      <section class="section section--alt section--compact" id="integrations">
         <div class="integrations-inner">
           <div class="integrations-text">
-            <div class="section-label">Integrations</div>
             <h2 class="section-headline">
-              Works with your <strong>existing stack</strong>
+              Works with your existing stack
             </h2>
             <p class="section-desc">
               Five official reporters push results automatically from CI — zero
@@ -3368,7 +3776,7 @@
               </div>
               <div class="reporter-card">
                 <div class="reporter-card-top">
-                  <span class="reporter-name">Mocha</span
+                  <span class="reporter-name">Mocha / Cypress</span
                   ><span class="reporter-lang">JS / TS</span>
                 </div>
                 <code class="reporter-install"
@@ -3422,14 +3830,14 @@ reporter: [
         </div>
       </section>
 
-      <section class="section section--alt" id="compare">
+      <section class="section" id="compare">
         <div class="compare-inner">
-          <div class="section-label">How we compare</div>
           <h2 class="section-headline">UReport vs the alternatives</h2>
           <p class="section-desc">
             Every tool has a sweet spot. Here's how UReport stacks up against
             the most common alternatives in the test reporting space.
           </p>
+          <div class="compare-scroll">
           <table class="compare-table">
             <thead>
               <tr>
@@ -3443,77 +3851,98 @@ reporter: [
             <tbody>
               <tr>
                 <td>Persistent build history &amp; trends</td>
-                <td class="col-ureport cmp-yes">✓</td>
-                <td class="cmp-no">—</td>
-                <td class="cmp-yes">✓</td>
-                <td class="cmp-yes">✓</td>
+                <td data-label="UReport" class="col-ureport cmp-yes">✓</td>
+                <td data-label="Allure" class="cmp-no">—</td>
+                <td data-label="ReportPortal" class="cmp-yes">✓</td>
+                <td data-label="Currents" class="cmp-yes">✓</td>
               </tr>
               <tr>
-                <td>AI root cause analysis</td>
-                <td class="col-ureport cmp-yes">✓</td>
-                <td class="cmp-no">—</td>
-                <td class="cmp-no">—</td>
-                <td class="cmp-part">Partial</td>
+                <td>AI root cause analysis (your own model)</td>
+                <td data-label="UReport" class="col-ureport cmp-yes">✓</td>
+                <td data-label="Allure" class="cmp-no">—</td>
+                <td data-label="ReportPortal" class="cmp-no">—</td>
+                <td data-label="Currents" class="cmp-part">Partial</td>
               </tr>
               <tr>
                 <td>Flaky test quarantine</td>
-                <td class="col-ureport cmp-yes">✓</td>
-                <td class="cmp-no">—</td>
-                <td class="cmp-part">Partial</td>
-                <td class="cmp-yes">✓</td>
+                <td data-label="UReport" class="col-ureport cmp-yes">✓</td>
+                <td data-label="Allure" class="cmp-no">—</td>
+                <td data-label="ReportPortal" class="cmp-part">Partial</td>
+                <td data-label="Currents" class="cmp-yes">✓</td>
               </tr>
               <tr>
                 <td>Self-host (your infra, your data)</td>
-                <td class="col-ureport cmp-yes">✓</td>
-                <td class="cmp-yes">✓</td>
-                <td class="cmp-yes">✓</td>
-                <td class="cmp-no">—</td>
+                <td data-label="UReport" class="col-ureport cmp-yes">✓</td>
+                <td data-label="Allure" class="cmp-yes">✓</td>
+                <td data-label="ReportPortal" class="cmp-yes">✓</td>
+                <td data-label="Currents" class="cmp-no">—</td>
               </tr>
               <tr>
                 <td>Open source · free community tier</td>
-                <td class="col-ureport cmp-yes">✓</td>
-                <td class="cmp-yes">✓</td>
-                <td class="cmp-yes">✓</td>
-                <td class="cmp-no">—</td>
+                <td data-label="UReport" class="col-ureport cmp-yes">✓</td>
+                <td data-label="Allure" class="cmp-yes">✓</td>
+                <td data-label="ReportPortal" class="cmp-yes">✓</td>
+                <td data-label="Currents" class="cmp-no">—</td>
               </tr>
               <tr>
                 <td>Multi-framework support</td>
-                <td class="col-ureport cmp-yes">✓</td>
-                <td class="cmp-yes">✓</td>
-                <td class="cmp-yes">✓</td>
-                <td class="cmp-part">Cypress-first</td>
+                <td data-label="UReport" class="col-ureport cmp-yes">✓</td>
+                <td data-label="Allure" class="cmp-yes">✓</td>
+                <td data-label="ReportPortal" class="cmp-yes">✓</td>
+                <td data-label="Currents" class="cmp-part">Cypress-first</td>
               </tr>
               <tr>
                 <td>Dashboard sharing</td>
-                <td class="col-ureport cmp-yes">✓</td>
-                <td class="cmp-no">—</td>
-                <td class="cmp-part">Partial</td>
-                <td class="cmp-no">—</td>
+                <td data-label="UReport" class="col-ureport cmp-yes">✓</td>
+                <td data-label="Allure" class="cmp-no">—</td>
+                <td data-label="ReportPortal" class="cmp-part">Partial</td>
+                <td data-label="Currents" class="cmp-no">—</td>
               </tr>
               <tr>
                 <td>MCP — query via Claude / Cursor</td>
-                <td class="col-ureport cmp-yes">✓</td>
-                <td class="cmp-no">—</td>
-                <td class="cmp-no">—</td>
-                <td class="cmp-no">—</td>
+                <td data-label="UReport" class="col-ureport cmp-yes">✓</td>
+                <td data-label="Allure" class="cmp-no">—</td>
+                <td data-label="ReportPortal" class="cmp-no">—</td>
+                <td data-label="Currents" class="cmp-no">—</td>
               </tr>
               <tr>
                 <td>Simple setup (&lt;2 min self-host)</td>
-                <td class="col-ureport cmp-yes">✓</td>
-                <td class="cmp-yes">✓</td>
-                <td class="cmp-no">Complex</td>
-                <td class="cmp-yes">Cloud only</td>
+                <td data-label="UReport" class="col-ureport cmp-yes">✓</td>
+                <td data-label="Allure" class="cmp-yes">✓</td>
+                <td data-label="ReportPortal" class="cmp-part">Complex</td>
+                <td data-label="Currents" class="cmp-part">Cloud only</td>
+              </tr>
+              <tr>
+                <td>AI fix → pull request (Auto-Heal, paid plan)</td>
+                <td data-label="UReport" class="col-ureport cmp-yes">✓</td>
+                <td data-label="Allure" class="cmp-no">—</td>
+                <td data-label="ReportPortal" class="cmp-no">—</td>
+                <td data-label="Currents" class="cmp-no">—</td>
+              </tr>
+              <tr>
+                <td>Auto-Triage across tests (paid plan)</td>
+                <td data-label="UReport" class="col-ureport cmp-yes">✓</td>
+                <td data-label="Allure" class="cmp-no">—</td>
+                <td data-label="ReportPortal" class="cmp-part">Partial</td>
+                <td data-label="Currents" class="cmp-no">—</td>
+              </tr>
+              <tr>
+                <td>Test assignment &amp; ownership</td>
+                <td data-label="UReport" class="col-ureport cmp-yes">✓</td>
+                <td data-label="Allure" class="cmp-no">—</td>
+                <td data-label="ReportPortal" class="cmp-no">—</td>
+                <td data-label="Currents" class="cmp-no">—</td>
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
       </section>
 
-      <section class="section section--compact" id="pricing">
+      <section class="section section--alt section--compact" id="pricing">
         <div class="pricing-inner">
-          <div class="section-label">Pricing</div>
           <h2 class="section-headline">
-            Start free, <strong>scale when ready</strong>
+            Start free, scale when ready
           </h2>
           <p class="section-desc">
             Two ways to run UReport. Full plan details, seats, and checkout
@@ -3554,9 +3983,80 @@ reporter: [
         </div>
       </section>
 
+      <section class="section section--compact" id="auto-heal">
+        <div class="integrations-inner">
+          <div class="integrations-text">
+            <div class="section-label">
+              Auto-Heal with ureport-agent<span class="plan-badge">Paid plan</span>
+            </div>
+            <h2 class="section-headline">
+              From failing test to pull request
+            </h2>
+            <p class="section-desc">
+              A lightweight agent runs on your machine or CI server, receives
+              heal jobs over WebSocket, and works in your own repository with
+              your own AI tool (Gemini CLI or Claude CLI) and your own keys.
+              You review the result — everything before it is autonomous.
+            </p>
+            <p class="section-desc">
+              Auto-Heal is part of the paid plans. Reporting, analysis,
+              dashboards and quarantine stay free in the Community tier.
+            </p>
+            <div class="reporters-grid">
+              <div class="reporter-card">
+                <div class="reporter-card-top">
+                  <span class="reporter-name">Guided playbook</span>
+                </div>
+                <code class="reporter-install">checkout → fix → verify → PR</code>
+              </div>
+              <div class="reporter-card">
+                <div class="reporter-card-top">
+                  <span class="reporter-name">Agent delegation</span>
+                </div>
+                <code class="reporter-install">Claude explores and fixes</code>
+              </div>
+              <div class="reporter-card">
+                <div class="reporter-card-top">
+                  <span class="reporter-name">External consumer</span>
+                </div>
+                <code class="reporter-install">poll the signals API</code>
+              </div>
+              <div class="reporter-card">
+                <div class="reporter-card-top">
+                  <span class="reporter-name">Rerun</span>
+                </div>
+                <code class="reporter-install">no AI, your agent</code>
+              </div>
+            </div>
+            <p class="section-desc" style="margin-top: 1.25rem">
+              <a class="section-link" href="/docs/auto-heal">Read the Auto-Heal docs →</a>
+            </p>
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+              <span class="code-title">heal flow</span>
+            </div>
+            <pre>
+Failing test in a build
+  ↓  auto-trigger on build complete
+HealSignal created
+  ↓  heal_job → connected agent
+Agent runs the playbook locally
+  ↓  progress streams back live
+Signal: pr_created
+        test_failed
+        bug_confirmed
+</pre
+            >
+          </div>
+        </div>
+      </section>
+
       <section class="section section--alt" id="faq">
         <div class="faq-inner">
-          <div class="section-label">FAQ</div>
           <h2 class="section-headline">Common questions</h2>
           <div class="faq-list">
             <div class="faq-item">
@@ -3594,11 +4094,27 @@ reporter: [
                 >
               </button>
               <div class="faq-a">
-                Via REST API or one of the official reporters:
-                <strong>ureport-playwright-reporter</strong> for Playwright,
-                with Jest, Cypress, and others supported through the generic
-                API. Results are pushed at the end of each test run — no agent
-                required.
+                Via REST API or one of five official reporters:
+                <strong>Playwright</strong>, <strong>Jest</strong>,
+                <strong>Mocha</strong> (also used for Cypress), <strong>pytest</strong> and
+                <strong>TestNG</strong>. Any other framework can POST to the
+                generic API. Results are pushed at the end of each test run —
+                no agent required (the optional ureport-agent is only for
+                Auto-Heal and reruns).
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-q">
+                Does UReport include AI?<span class="faq-icon">+</span>
+              </button>
+              <div class="faq-a">
+                No. UReport does not run or resell any model. AI analysis and
+                Auto-Heal use the provider you configure — AWS Bedrock, the
+                Anthropic Claude API, OpenAI, Google Gemini, or a local Ollama
+                model — with your own credentials. Results are cached by error
+                fingerprint, so similar failures do not trigger repeat calls.
+                Without a provider configured, everything else still works:
+                reporting, dashboards, quarantine, triage and assignment.
               </div>
             </div>
             <div class="faq-item">
@@ -3708,7 +4224,7 @@ reporter: [
         <div class="cta-inner">
           <div class="animate from-below">
             <h2 class="cta-headline">
-              Ready to replace <strong>your static reports?</strong>
+              Ready to replace your static reports?
             </h2>
             <p class="cta-sub">
               Self-host in under 2 minutes. No credit card, no sign-up — just
