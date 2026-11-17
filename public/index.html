@@ -7,7 +7,7 @@
     <title>UReport — Test Automation Reporting & Analytics Platform</title>
     <meta
       name="description"
-      content="UReport is a test automation reporting tool for QA teams. Centralize test executions, visualize pass rates and failure trends, detect flaky tests, and get AI root cause analysis with your own AI provider. Works with Playwright, pytest, Jest, Cypress, and more."
+      content="UReport is a test automation reporting tool for QA teams. Triage a failure once and UReport matches it automatically when it comes back. Auto-quarantine flaky tests, auto-triage and auto-heal on paid plans. Works with Playwright, pytest, Jest, Cypress, and more."
     />
     <meta
       name="keywords"
@@ -226,7 +226,7 @@
         background: #fff;
         color: var(--black);
         min-height: auto;
-        padding: 100px 2rem 40px;
+        padding: 72px 2rem 40px;
       }
       .section--cta {
         background: #fff;
@@ -294,18 +294,28 @@
         font-weight: 300;
         color: var(--gray-600);
         line-height: 1.6;
-        max-width: 520px;
-        margin: 0 auto 2.5rem;
+        max-width: 600px;
+        margin: 0 auto 1.75rem;
       }
+      .levels-wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 1.5rem 2rem 2rem;
+      }
+      .hero-tier-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--gray-600);
+        margin-bottom: 0.5rem;
+      }
+
       .hero-flow {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 10px;
         list-style: none;
         padding: 0;
-        margin: 0 0 1.25rem;
-        width: min(980px, 100vw - 3rem);
-        margin-left: calc(50% - min(490px, 50vw - 1.5rem));
+        margin: 0 0 1rem;
         text-align: left;
       }
       .hero-flow li {
@@ -350,10 +360,10 @@
           border-color: var(--border);
         }
         12%,
-        86% {
+        30% {
           border-color: var(--green);
         }
-        94%,
+        40%,
         100% {
           border-color: var(--border);
         }
@@ -368,17 +378,12 @@
           transition: none;
         }
       }
-      @media (max-width: 900px) {
-        .hero-flow {
-          grid-template-columns: repeat(2, 1fr);
-        }
-        .hero-flow li:last-child {
-          grid-column: 1 / -1;
-        }
-      }
-      @media (max-width: 480px) {
+      @media (max-width: 760px) {
         .hero-flow {
           grid-template-columns: 1fr;
+        }
+        .levels-wrap {
+          padding: 1rem 1.25rem 1.5rem;
         }
       }
       .hero-actions {
@@ -434,11 +439,6 @@
         margin: 0 auto 1.5rem;
         padding: 0 2rem;
       }
-      .screenshot-cta {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 0 2rem 5rem;
-      }
       .screenshot {
         border: 1px solid var(--border);
         border-radius: 12px;
@@ -484,7 +484,149 @@
         transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
         will-change: transform;
       }
+      .inside-label {
+        text-align: center;
+        margin: 2.5rem auto 1.5rem;
+        padding: 0 1.25rem;
+      }
+      .inside-title {
+        font-size: 22px;
+        font-weight: 400;
+        letter-spacing: -0.4px;
+        margin: 0 0 0.35rem;
+        color: var(--black);
+      }
+      .inside-label p {
+        font-size: 15px;
+        font-weight: 300;
+        color: var(--gray-600);
+        margin: 0;
+      }
+      .hero-scene {
+        position: relative;
+        width: 100%;
+        flex-shrink: 0;
+        min-height: 380px;
+        line-height: 1.5;
+        background: var(--gray-50);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .story-wrap {
+        max-width: 100%;
+      }
+      .hero-scene .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3.5rem;
+        padding: 1.5rem 3rem 2.5rem;
+        opacity: 0;
+        transition: opacity 0.5s;
+        pointer-events: none;
+      }
+      .hero-scene .scene.on {
+        opacity: 1;
+      }
+      .scene-caption {
+        max-width: 280px;
+        text-align: left;
+      }
+      .scene-caption h3 {
+        font-size: 24px;
+        font-weight: 400;
+        letter-spacing: -0.5px;
+        margin: 0 0 0.6rem;
+        color: var(--black);
+      }
+      .scene-caption p {
+        font-size: 15px;
+        font-weight: 300;
+        line-height: 1.6;
+        color: var(--gray-600);
+        margin: 0;
+      }
+      .hero-scene .mock-launches,
+      .hero-scene .mock-ai-panel,
+      .hero-scene .mock-investigation {
+        width: 100%;
+        max-width: 460px;
+        flex-shrink: 1;
+        text-align: left;
+      }
+      /* Triaged uses the app's colour (#32a7d1) and the microscope icon */
+      .hero-scene .mock-status-icon.triaged {
+        color: #32a7d1;
+      }
+      .hero-scene .mock-inv-badge.triaged,
+      .hero-scene .mock-health-badge.triaged {
+        color: #1e7fa3;
+        background: rgba(50, 167, 209, 0.15);
+      }
+      .hero-scene .mock-inv-badge.triaged i {
+        color: #32a7d1;
+        margin-right: 4px;
+      }
+      .hero-scene .scene-reveal {
+        opacity: 0;
+        transform: translateY(8px);
+        transition:
+          opacity 0.5s,
+          transform 0.5s;
+      }
+      .hero-scene .scene.go .scene-reveal {
+        opacity: 1;
+        transform: none;
+      }
+      .hero-scene .scene.on .scene-flash {
+        animation: scene-flash 1.2s 0.6s ease-out 1;
+      }
+      @keyframes scene-flash {
+        0% {
+          background: var(--red-bg);
+        }
+        100% {
+          background: transparent;
+        }
+      }
+      @media (max-width: 760px) {
+        .hero-scene {
+          min-height: 560px;
+        }
+        .hero-scene .scene {
+          flex-direction: column;
+          justify-content: flex-start;
+          gap: 1rem;
+          padding: 1.5rem 2.6rem 2.5rem;
+        }
+        .scene-caption {
+          max-width: none;
+          text-align: center;
+        }
+        .scene-caption h3 {
+          font-size: 20px;
+        }
+        .scene-caption p {
+          font-size: 14px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-scene .scene,
+        .hero-scene .scene-reveal {
+          transition: none;
+        }
+        .hero-scene .scene.on .scene-flash {
+          animation: none;
+        }
+        .hero-scene .scene-reveal {
+          opacity: 1;
+          transform: none;
+        }
+      }
       .carousel-track img {
+        align-self: center;
         width: 100%;
         flex-shrink: 0;
         display: block;
@@ -1954,6 +2096,158 @@
         }
       }
 
+      .heal-demo {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem 1.4rem 1.4rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        min-width: 0;
+      }
+      .heal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-bottom: 0.9rem;
+        margin-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .heal-test {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--black);
+      }
+      .heal-chip {
+        font-size: 12px;
+        font-weight: 500;
+        padding: 3px 10px;
+        border-radius: 100px;
+        color: var(--red);
+        background: var(--red-bg);
+        transition:
+          color 0.4s,
+          background 0.4s;
+      }
+      .heal-demo.done .heal-chip {
+        color: var(--green);
+        background: var(--green-bg);
+      }
+      .heal-steps {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .heal-steps li {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        padding: 0.6rem 0;
+        font-size: 14px;
+        color: var(--gray-600);
+        opacity: 0.35;
+        transition: opacity 0.4s;
+      }
+      .heal-steps li i {
+        width: 18px;
+        text-align: center;
+        color: var(--gray-400);
+        transition: color 0.4s;
+      }
+      .heal-steps li.on {
+        opacity: 1;
+        color: var(--black);
+      }
+      .heal-steps li.on i {
+        color: var(--green);
+      }
+      .heal-steps li:first-child i {
+        color: var(--red);
+      }
+      .heal-steps li b {
+        font-weight: 500;
+      }
+      .heal-diff {
+        margin: 0.6rem 0 0;
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+        background: var(--gray-50);
+        border: 1px solid var(--border);
+        color: var(--gray-600);
+        font-size: 12px;
+        line-height: 1.7;
+        overflow-x: auto;
+        opacity: 0;
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-top: 0;
+        border-width: 0;
+        transition:
+          opacity 0.5s,
+          max-height 0.5s,
+          padding 0.5s,
+          margin 0.5s;
+      }
+      .heal-demo.diff .heal-diff {
+        opacity: 1;
+        max-height: 120px;
+        padding: 0.8rem 1rem;
+        margin-top: 0.6rem;
+        border-width: 1px;
+      }
+      .heal-diff .del {
+        white-space: pre;
+        color: var(--red);
+        background: var(--red-bg);
+        display: block;
+      }
+      .heal-diff .add {
+        white-space: pre;
+        color: var(--green);
+        background: var(--green-bg);
+        display: block;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .heal-steps li,
+        .heal-diff {
+          transition: none;
+        }
+      }
+
+      .cl {
+        display: inline;
+      }
+      .push-line {
+        display: block;
+        margin-top: 0.6rem;
+        color: #5fd3a8;
+      }
+      .push-line b {
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+      }
+      pre.typing .cl {
+        visibility: hidden;
+      }
+      pre.typing .cl.on {
+        visibility: visible;
+      }
+      .mcp-terminal-body.typing .tl-hide {
+        visibility: hidden;
+      }
+      .mcp-caret::after {
+        content: "▍";
+        margin-left: 1px;
+        opacity: 0.7;
+        animation: caret-blink 1s steps(1) infinite;
+      }
+      @keyframes caret-blink {
+        50% {
+          opacity: 0;
+        }
+      }
+
       /* PRICING */
       .pricing-inner {
         max-width: 860px;
@@ -2025,13 +2319,10 @@
         align-items: start;
       }
       .pricing-tier {
-        font-size: 12px;
-        font-family: "DM Mono", monospace;
+        font-size: 14px;
         font-weight: 500;
-        color: var(--gray-400);
+        color: var(--gray-600);
         margin-bottom: 1rem;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
       }
       .pricing-price {
         font-size: 2rem;
@@ -2312,6 +2603,9 @@
         .section--compact {
           padding: 60px 1.25rem;
         }
+        .section--hero {
+          padding: 64px 1.25rem 32px;
+        }
         .views-grid {
           grid-template-columns: 1fr 1fr;
         }
@@ -2557,6 +2851,7 @@
       }
       .faq-q {
         width: 100%;
+        font-family: inherit;
         background: none;
         border: none;
         text-align: left;
@@ -2624,48 +2919,139 @@
           <div class="animate from-below">
             <div class="hero-badge">Open source core. Self-host or cloud.</div>
             <h1 class="hero-title">
-              Run your tests. Know why they fail.
+              Turn test results into decisions.<br />Turn decisions into actions.
             </h1>
             <p class="hero-tagline">
-              UReport collects results from every CI run so your team can
-              analyze, triage and track each failure. Connect your own AI to
-              speed up analysis and fixes.
+              Centralize test executions. Visualize pass rates and failure
+              trends for engineers and leadership to act on. Triage a failure
+              once and UReport matches it whenever it returns, with flaky test
+              quarantine and AI root cause analysis on your own model built
+              in.
             </p>
-            <ol class="hero-flow" aria-label="How UReport works">
-              <li style="--i: 0">
-                <strong>Run tests</strong>
-                <span class="std">Reporters push results from CI</span>
-              </li>
-              <li style="--i: 1">
-                <strong>Analyze</strong>
-                <span class="std">Run history, trends, flaky detection</span>
-                <span class="ai">Root cause and suggested fix</span>
-              </li>
-              <li style="--i: 2">
-                <strong>Triage</strong>
-                <span class="std">Investigation notes, auto-matched across runs</span>
-                <span class="ai">Confirm or override the verdict</span>
-              </li>
-              <li style="--i: 3">
-                <strong>Track</strong>
-                <span class="std">Assign, quarantine, dashboards</span>
-                <span class="ai">Ask in plain English via MCP</span>
-              </li>
-              <li style="--i: 4">
-                <strong>Fix</strong>
-                <span class="std">Rerun on your agent, fix by hand</span>
-                <span class="ai">Auto-Heal opens a pull request<span class="plan-badge">Paid</span></span>
-              </li>
-            </ol>
-            <p class="hero-byo">
-              AI steps are optional and use
-              your own provider: AWS Bedrock, Claude, OpenAI, Gemini, or a
-              local Ollama model.
+            <div class="hero-actions">
+              <a class="btn btn--primary" href="/nextgen/login">Try Demo →</a>
+              <a
+                class="btn btn--ghost"
+                href="https://github.com/ureport-web/ureport-standalone"
+                target="_blank"
+                ><i class="fab fa-github"></i> GitHub</a
+              >
+            </div>
+            <p class="hero-proof">
+              MIT licensed core · Community plan free · Self-host in under 2
+              minutes
             </p>
+
           </div>
         </div>
       </section>
 
+      <div class="screenshot-wrap">
+        <div class="story-wrap animate from-below">
+          <div class="carousel story" id="storyFrame">
+              <div class="hero-scene" id="heroScene" aria-label="Animated example: a test fails, the team triages it once, and the same failure is matched automatically the next day">
+              <div class="scene on">
+                <div class="scene-caption">
+                  <h3>Monday: a test fails</h3>
+                  <p>Results arrive from your CI reporter. Run history shows when it started failing.</p>
+                </div>
+                <div class="mock-launches">
+                  <div class="mock-toolbar">
+                    <div class="mock-filter-pill"><i class="fas fa-layer-group"></i> firefox</div>
+                    <div class="mock-filter-pill"><i class="fas fa-users"></i> team-a</div>
+                    <div class="mock-pass-badge">87%</div>
+                  </div>
+                  <div class="mock-test-row pass">
+                    <i class="fas fa-check-circle mock-status-icon pass"></i>
+                    <span class="mock-test-name">Login flow — happy path</span>
+                  </div>
+                  <div class="mock-test-row fail scene-flash">
+                    <i class="fas fa-times-circle mock-status-icon fail"></i>
+                    <span class="mock-test-name">Payment — 3DS redirect</span>
+                    <span class="mock-health-badge amber">New</span>
+                  </div>
+                  <div class="mock-test-row pass">
+                    <i class="fas fa-check-circle mock-status-icon pass"></i>
+                    <span class="mock-test-name">Checkout — guest user</span>
+                  </div>
+                </div>
+              </div>
+              <div class="scene">
+                <div class="scene-caption">
+                  <h3>Your team triages it once</h3>
+                  <p>Someone investigates, adds a note and a ticket. That is the only time it needs a human.</p>
+                </div>
+                <div class="mock-investigation">
+                  <div class="mock-inv-header">
+                    <div class="mock-inv-badge triaged"><i class="fas fa-microscope"></i> Triaged</div>
+                  </div>
+                  <div class="mock-inv-test">Payment — 3DS redirect</div>
+                  <div class="mock-inv-note scene-reveal">
+                    <div class="mock-inv-note-label">Investigation notes:</div>
+                    <div class="mock-inv-note-body">Stripe webhook race condition. Workaround deployed, monitor next sprint.</div>
+                  </div>
+                  <div class="mock-inv-meta scene-reveal">
+                    <span class="mock-tag green">Ticket PAY-1234</span><span class="mock-tag">Assigned to team-a</span>
+                  </div>
+                </div>
+              </div>
+              <div class="scene">
+                <div class="scene-caption">
+                  <h3>Tuesday: matched automatically</h3>
+                  <p>The same failure comes back and UReport marks it Triaged. Only genuinely new failures need attention, so nobody has to remember which is which.</p>
+                </div>
+                <div class="mock-launches">
+                  <div class="mock-toolbar">
+                    <div class="mock-filter-pill"><i class="fas fa-layer-group"></i> firefox</div>
+                    <div class="mock-filter-pill"><i class="fas fa-users"></i> team-a</div>
+                    <div class="mock-pass-badge">89%</div>
+                  </div>
+                  <div class="mock-test-row fail">
+                    <i class="fas fa-microscope mock-status-icon triaged"></i>
+                    <span class="mock-test-name">Payment — 3DS redirect</span>
+                    <span class="mock-health-badge triaged scene-reveal">Triaged · PAY-1234</span>
+                  </div>
+                  <div class="mock-test-row fail">
+                    <i class="fas fa-times-circle mock-status-icon fail"></i>
+                    <span class="mock-test-name">Cart — promo code</span>
+                    <span class="mock-health-badge amber scene-reveal">New</span>
+                  </div>
+                  <div class="mock-test-row pass">
+                    <i class="fas fa-check-circle mock-status-icon pass"></i>
+                    <span class="mock-test-name">Checkout — guest user</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="carousel-dots" id="storyDots"></div>
+          </div>
+        </div>
+      </div>
+      <div class="levels-wrap">
+        <div class="hero-tier-label">When you are ready for more automation</div>
+        <ol class="hero-flow" aria-label="Automation levels">
+          <li style="--i: 0">
+            <strong>Auto-quarantine</strong>
+            <span class="std">Your rules isolate flaky tests and keep them out of pass rates.</span>
+          </li>
+          <li style="--i: 1">
+            <strong>Auto-Triage<span class="plan-badge">Paid</span></strong>
+            <span class="std">Investigations carry over to other tests with the same error.</span>
+          </li>
+          <li style="--i: 2">
+            <strong>Auto-Heal<span class="plan-badge">Paid</span></strong>
+            <span class="std">An agent opens a fix pull request, using your own AI.</span>
+          </li>
+        </ol>
+        <p class="hero-byo">
+          AI is optional and uses your own provider: AWS Bedrock, Claude,
+          OpenAI, Gemini, or a local Ollama model.
+        </p>
+      </div>
+      <div class="inside-label">
+        <h2 class="inside-title">Inside the app</h2>
+        <p>Real screens from a live UReport instance.</p>
+      </div>
       <div class="screenshot-wrap">
         <div class="screenshot animate from-below">
           <div class="screenshot-bar">
@@ -2725,21 +3111,6 @@
           </div>
         </div>
       </div>
-      <div class="screenshot-cta">
-        <div class="hero-actions" style="justify-content: center">
-          <a class="btn btn--primary" href="/nextgen/login">Try Demo →</a>
-          <a
-            class="btn btn--ghost"
-            href="https://github.com/ureport-web/ureport-standalone"
-            target="_blank"
-            ><i class="fab fa-github"></i> GitHub</a
-          >
-        </div>
-        <p class="hero-proof" style="text-align: center; margin-top: 0.75rem">
-          MIT licensed core · Community plan free · Self-host in under 2 minutes
-        </p>
-      </div>
-
       <section class="section section--alt section--features-tab" id="features">
         <div class="features-tab-inner">
           <h2 class="section-headline">
@@ -3811,19 +4182,20 @@
               <span class="code-title">playwright.config.ts</span>
             </div>
             <pre>
-// 1. Install the reporter
-// npm i -D ureport-playwright-reporter
-
-reporter: [
-  ['ureport-playwright-reporter', {
-    serverUrl: 'https://your.ureportlab.com',
-    product:   'my-app',
-    token:     process.env.UREPORT_TOKEN,
-  }]
-],
-
-// 2. Run your tests — results push automatically
-// npx playwright test
+<span class="cl">// 1. Install the reporter</span>
+<span class="cl">// npm i -D ureport-playwright-reporter</span>
+<span class="cl"> </span>
+<span class="cl">reporter: [</span>
+<span class="cl">  ['ureport-playwright-reporter', {</span>
+<span class="cl">    serverUrl: 'https://your.ureportlab.com',</span>
+<span class="cl">    product:   'my-app',</span>
+<span class="cl">    token:     process.env.UREPORT_TOKEN,</span>
+<span class="cl">  }]</span>
+<span class="cl">],</span>
+<span class="cl"> </span>
+<span class="cl">// 2. Run your tests — results push automatically</span>
+<span class="cl">// npx playwright test</span>
+<span class="cl push-line" id="pushLine">✓ <b id="pushCount">1,284</b> results pushed to my-app</span>
 </pre
             >
           </div>
@@ -4032,25 +4404,19 @@ reporter: [
               <a class="section-link" href="/docs/auto-heal">Read the Auto-Heal docs →</a>
             </p>
           </div>
-          <div class="code-block">
-            <div class="code-header">
-              <div class="dot dot-r"></div>
-              <div class="dot dot-y"></div>
-              <div class="dot dot-g"></div>
-              <span class="code-title">heal flow</span>
+          <div class="heal-demo" id="healDemo" aria-label="Auto-Heal example: a failing test becomes a pull request">
+            <div class="heal-head">
+              <span class="heal-test">Payment — 3DS redirect</span>
+              <span class="heal-chip" id="healChip">Failing</span>
             </div>
-            <pre>
-Failing test in a build
-  ↓  auto-trigger on build complete
-HealSignal created
-  ↓  heal_job → connected agent
-Agent runs the playbook locally
-  ↓  progress streams back live
-Signal: pr_created
-        test_failed
-        bug_confirmed
-</pre
-            >
+            <ul class="heal-steps">
+              <li><i class="fas fa-times-circle"></i>Failure captured from build #1482</li>
+              <li><i class="fas fa-search"></i>AI finds the root cause: webhook timeout</li>
+              <li><i class="fas fa-laptop-code"></i>Agent checks out the repo on your machine</li>
+              <li><i class="fas fa-wrench"></i>Fix applied, test passes on verify</li>
+              <li><i class="fas fa-code-branch"></i>Pull request opened <b>#482</b></li>
+            </ul>
+            <pre class="heal-diff" aria-hidden="true"><span class="del">- await waitForResponse(url, { timeout: 3000 })</span><span class="add">+ await waitForResponse(url, { timeout: 8000 })</span></pre>
           </div>
         </div>
       </section>
@@ -4224,7 +4590,7 @@ Signal: pr_created
         <div class="cta-inner">
           <div class="animate from-below">
             <h2 class="cta-headline">
-              Ready to replace your static reports?
+              Ready to turn test results into decisions?
             </h2>
             <p class="cta-sub">
               Self-host in under 2 minutes. No credit card, no sign-up — just
@@ -4328,6 +4694,147 @@ Signal: pr_created
         observer.observe(el);
       });
 
+
+      // Auto-Heal demo: runs while visible, shows the final state if motion is reduced
+      (function () {
+        var demo = document.getElementById("healDemo");
+        if (!demo) return;
+        var rows = demo.querySelectorAll(".heal-steps li");
+        var chip = document.getElementById("healChip");
+        var timers = [];
+        function later(fn, ms) {
+          timers.push(setTimeout(fn, ms));
+        }
+        function reset() {
+          rows.forEach(function (r, i) {
+            r.classList.toggle("on", i === 0);
+          });
+          demo.classList.remove("diff", "done");
+          chip.textContent = "Failing";
+        }
+        function showAll() {
+          rows.forEach(function (r) {
+            r.classList.add("on");
+          });
+          demo.classList.add("diff", "done");
+          chip.textContent = "Fixed";
+        }
+        function run() {
+          reset();
+          [1, 2, 3, 4].forEach(function (i) {
+            later(function () {
+              rows[i].classList.add("on");
+              if (i === 3) demo.classList.add("diff");
+              if (i === 4) {
+                demo.classList.add("done");
+                chip.textContent = "Fixed";
+              }
+            }, 1300 * i);
+          });
+          later(run, 9500);
+        }
+        function stop() {
+          timers.forEach(clearTimeout);
+          timers = [];
+        }
+        reset();
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          showAll();
+          return;
+        }
+        new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (e) {
+              stop();
+              if (e.isIntersecting) run();
+            });
+          },
+          { threshold: 0.4 },
+        ).observe(demo);
+      })();
+
+      // Typed reveals (MCP chat, reporter config). Static when motion is reduced.
+      (function () {
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce || !("IntersectionObserver" in window)) return;
+        function once(el, fn) {
+          var io = new IntersectionObserver(
+            function (entries) {
+              if (entries[0].isIntersecting) {
+                io.disconnect();
+                fn();
+              }
+            },
+            { threshold: 0.5 },
+          );
+          io.observe(el);
+        }
+
+        // MCP chat: type the question, then reveal the answer line by line
+        var body = document.querySelector(".mcp-terminal-body");
+        if (body) {
+          var nodes = Array.prototype.slice.call(body.children);
+          var prompt = nodes[0];
+          var promptText = prompt.textContent.replace(/\s+/g, " ").trim();
+          body.classList.add("typing");
+          nodes.forEach(function (n) {
+            n.classList.add("tl-hide");
+          });
+          prompt.textContent = promptText;
+          once(body, function () {
+            prompt.textContent = "";
+            prompt.classList.remove("tl-hide");
+            prompt.classList.add("mcp-caret");
+            var i = 0;
+            var typer = setInterval(function () {
+              prompt.textContent = promptText.slice(0, ++i);
+              if (i >= promptText.length) {
+                clearInterval(typer);
+                prompt.classList.remove("mcp-caret");
+                var k = 1;
+                var rev = setInterval(function () {
+                  if (k >= nodes.length) return clearInterval(rev);
+                  nodes[k].classList.remove("tl-hide");
+                  var wait = nodes[k].tagName === "BR" ? 0 : 1;
+                  k++;
+                  if (!wait && k < nodes.length) {
+                    nodes[k].classList.remove("tl-hide");
+                    k++;
+                  }
+                }, 420);
+              }
+            }, 32);
+          });
+        }
+
+        // Reporter config: reveal lines, then count up the pushed results
+        var pre = document.getElementById("pushLine");
+        pre = pre && pre.closest("pre");
+        if (pre) {
+          var cls = pre.querySelectorAll(".cl");
+          var count = document.getElementById("pushCount");
+          var finalN = 1284;
+          pre.classList.add("typing");
+          count.textContent = "0";
+          once(pre, function () {
+            var i = 0;
+            var iv = setInterval(function () {
+              cls[i].classList.add("on");
+              i++;
+              if (i >= cls.length) {
+                clearInterval(iv);
+                var t0 = performance.now();
+                (function tick(t) {
+                  var f = Math.min((t - t0) / 1200, 1);
+                  count.textContent = Math.round(finalN * f).toLocaleString("en-US");
+                  if (f < 1) requestAnimationFrame(tick);
+                })(t0);
+              }
+            }, 170);
+          });
+        }
+      })();
+
       // Hero carousel
       (function () {
         var track = document.getElementById("heroTrack");
@@ -4354,6 +4861,7 @@ Signal: pr_created
         function goTo(idx) {
           current = (idx + total) % total;
           track.style.transform = "translateX(-" + current * 100 + "%)";
+
           dotsContainer
             .querySelectorAll(".carousel-dot")
             .forEach(function (d, i) {
@@ -4400,10 +4908,10 @@ Signal: pr_created
         var lbCounter = document.getElementById("heroLightboxCounter");
 
         function lbOpen(idx) {
-          lbIndex = (idx + total) % total;
+          lbIndex = (idx + slides.length) % slides.length;
           lbImg.src = slides[lbIndex].src;
           lbImg.alt = slides[lbIndex].alt;
-          lbCounter.textContent = lbIndex + 1 + " / " + total;
+          lbCounter.textContent = lbIndex + 1 + " / " + slides.length;
           lb.classList.add("open");
         }
         function lbClose() {
@@ -4448,6 +4956,76 @@ Signal: pr_created
         });
 
         resetTimer();
+      })();
+
+      // Story frame: loops its own scenes, independent of the screenshots
+      (function () {
+        var frame = document.getElementById("storyFrame");
+        var dots = document.getElementById("storyDots");
+        if (!frame) return;
+        var scenes = frame.querySelectorAll(".scene");
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var MS = 3800;
+        var current = 0;
+        var timer = null;
+        var reveal = null;
+        var visible = true;
+        var hovering = false;
+
+        scenes.forEach(function (_, i) {
+          var b = document.createElement("button");
+          b.className = "carousel-dot" + (i === 0 ? " active" : "");
+          b.setAttribute("aria-label", "Show step " + (i + 1));
+          b.addEventListener("click", function () {
+            show(i);
+            schedule();
+          });
+          dots.appendChild(b);
+        });
+
+        function show(n) {
+          current = (n + scenes.length) % scenes.length;
+          scenes.forEach(function (el, i) {
+            el.classList.toggle("on", i === current);
+            el.classList.remove("go");
+          });
+          dots.querySelectorAll(".carousel-dot").forEach(function (d, i) {
+            d.classList.toggle("active", i === current);
+          });
+          clearTimeout(reveal);
+          reveal = setTimeout(function () {
+            scenes[current].classList.add("go");
+          }, 900);
+        }
+        function schedule() {
+          clearTimeout(timer);
+          if (reduce || !visible || hovering) return;
+          timer = setTimeout(function () {
+            show(current + 1);
+            schedule();
+          }, MS);
+        }
+
+        frame.addEventListener("mouseenter", function () {
+          hovering = true;
+          clearTimeout(timer);
+        });
+        frame.addEventListener("mouseleave", function () {
+          hovering = false;
+          schedule();
+        });
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(
+            function (entries) {
+              visible = entries[0].isIntersecting;
+              if (visible) schedule();
+              else clearTimeout(timer);
+            },
+            { threshold: 0.3 },
+          ).observe(frame);
+        }
+        show(0);
+        schedule();
       })();
 
       // FAQ accordion
