@@ -8,6 +8,7 @@ Test = require('../models/test')
 TestRelation = require('../models/test_relation')
 SystemSetting = require('../models/system_setting')
 Preset = require('../models/preset')
+McpHeal = require('./mcp_heal')
 
 getFrontendUrl = ->
   new Promise((resolve) ->
@@ -357,16 +358,20 @@ createMcpServer = ->
             .select('uid name status is_rerun failure.error_message start_time end_time')
             .exec((err, tests) ->
               if err then return reject(err)
-              items = tests.map((t) ->
-                uid: t.uid
-                name: t.name
-                status: t.status
-                is_rerun: t.is_rerun or false
-                error_message: (t.failure and t.failure.error_message) or null
-                start_time: t.start_time
-                end_time: t.end_time
-              )
-              resolve({ content: [{ type: 'text', text: JSON.stringify(items, null, 2) }] })
+              McpHeal.healForTests(tests, ciExact(product), ciExact(type)).then((heals) ->
+                items = tests.map((t, i) ->
+                  item =
+                    uid: t.uid
+                    name: t.name
+                    status: t.status
+                    is_rerun: t.is_rerun or false
+                    error_message: (t.failure and t.failure.error_message) or null
+                    start_time: t.start_time
+                    end_time: t.end_time
+                  Object.assign(item, heals[i])
+                )
+                resolve({ content: [{ type: 'text', text: JSON.stringify(items, null, 2) }] })
+              , reject)
             )
         )
       )
@@ -578,7 +583,7 @@ createMcpServer = ->
   )
 
   server.tool('get_new_failures',
-    'Find tests that newly failed in the latest build cycle compared to previous cycles for a preset. Requires at least 2 cycles of history. Always call list_presets first to get preset names. IMPORTANT: After presenting the results to the user, always ask: "Would you like me to save an AI analysis prompt for these new failures as a local .md file?" If the user says yes, generate and save a .md file using this exact template:\n\n## Build Context\nPreset: {preset} | Latest build: {latest_build_number} | Compared against: {compared_against}\n\n## New Failures ({total_new_failures} tests)\n\n[Group tests by error_message. For each group:]\n### Group N — X test(s)\nError: "{error_message}"\nStack trace (include the FULL stack_trace text — do NOT truncate, Playwright call logs are essential for diagnosis):\n{full stack_trace}\nTests affected:\n  - {name} [uid: {uid}] — failed in: {failed_in_lanes[].label joined by ", "}{if file: " ({file})"}\n\n> Note: test source code is not included. Paste relevant test file contents if deeper analysis is needed.\n\n## Task\n1. For each group, what is the most likely root cause?\n2. Which groups likely share the same underlying issue?\n3. What should be investigated first (highest impact / easiest fix)?\n4. Which failures look like environment/infra issues vs code bugs vs test flakiness?\n\n## Instructions\n- Reproduce each failure locally by running the affected test(s) or tracing the code path.\n- If you have access to the repository, locate the relevant source files.\n- If the root cause is clear and the fix is safe, apply it directly.\n- If multiple groups share a root cause, fix them together.\n- If reproduction or a fix requires clarification, ask before proceeding.',
+    'Find tests that newly failed in the latest build cycle compared to previous cycles for a preset. Requires at least 2 cycles of history. Always call list_presets first to get preset names. IMPORTANT: After presenting the results to the user, always ask: "Would you like me to save an AI analysis prompt for these new failures as a local .md file?" If the user says yes, generate and save a .md file using this exact template:\n\n## Build Context\nPreset: {preset} | Latest build: {latest_build_number} | Compared against: {compared_against}\n\n## New Failures ({total_new_failures} tests)\n\n[Group tests by error_message. For each group:]\n### Group N — X test(s)\nError: "{error_message}"\nStack trace (include the FULL stack_trace text — do NOT truncate, Playwright call logs are essential for diagnosis):\n{full stack_trace}\nTests affected:\n  - {name} [uid: {uid}] — failed in: {failed_in_lanes[].label joined by ", "}{if file: " ({file})"}\n\n> Note: test source code is not included. Paste relevant test file contents if deeper analysis is needed.\n\n## Task\n1. For each group, what is the most likely root cause?\n2. Which groups likely share the same underlying issue?\n3. What should be investigated first (highest impact / easiest fix)?\n4. Which failures look like environment/infra issues vs code bugs vs test flakiness?\n\n## Instructions\n- Reproduce each failure locally by running the affected test(s) or tracing the code path.\n- If you have access to the repository, locate the relevant source files.\n- If the root cause is clear and the fix is safe, apply it directly.\n- If multiple groups share a root cause, fix them together.\n- If reproduction or a fix requires clarification, ask before proceeding.\n- Each failure may carry heal (the Auto-Heal signal for this run) and heal_history_count. Do not re-fix a test whose heal.status is pr_created (a fix PR exists, see heal.pr_url) or completed (it passed on rerun, usually flaky); list them in the report instead. A bug_confirmed status is a known product bug. In flight statuses (pending, queued, running, open, claimed) mean auto-heal is still working. Call get_heal_signal with heal.signal_id for the details.',
     {
       preset: z.string()
       cycles: z.number().int().min(2).max(5).optional().default(2)
@@ -671,7 +676,14 @@ createMcpServer = ->
                     })
                 )
 
-                buildResult = ->
+                withHeal = (done) ->
+                  if newFailures.length is 0 or latestBuilds.length is 0 then return done()
+                  McpHeal.healForNewFailures(newFailures.map((f) -> f.uid), latestBuildIds, ciExact(latestBuilds[0].product), ciExact(latestBuilds[0].type)).then((heals) ->
+                    newFailures.forEach((f) -> Object.assign(f, heals[f.uid]))
+                    done()
+                  , reject2)
+
+                buildResult = -> withHeal(->
                   resolve2({
                     content: [{
                       type: 'text'
@@ -683,6 +695,7 @@ createMcpServer = ->
                       }, null, 2)
                     }]
                   })
+                )
 
                 missingUids = newFailures.filter((f) -> not f.file and not f.path).map((f) -> f.uid)
                 if missingUids.length is 0
@@ -705,6 +718,8 @@ createMcpServer = ->
         )
       )
   )
+
+  McpHeal.register(server, { ciExact: ciExact })
 
   server
 

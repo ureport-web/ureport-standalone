@@ -20,6 +20,10 @@ healSignalSchema = new Schema(
   playbook_snapshot: Schema.Types.Mixed
 
   triggered_by: { type: String }  # "user:<username>" or "auto"
+  # Who triggered it, and which agent's queue it waits in: 'user' = that user's own agent, 'global' = the
+  # global agent. Each personal agent only takes its owner's signals. Unset on signals from before this.
+  owner_user_id: { type: Schema.Types.ObjectId }
+  agent_scope: { type: String, enum: ['global', 'user'] }
   triggered_at: { type: Date, default: Date.now }
 
   # Dispatch mode and external-consumer fields
@@ -131,6 +135,7 @@ healSignalSchema = new Schema(
 )
 
 healSignalSchema.index({ product: 1, type: 1, triggered_at: -1 })
+healSignalSchema.index({ triggered_at: -1 })
 healSignalSchema.index({ status: 1 })
 healSignalSchema.index({ test_id: 1 })
 healSignalSchema.index({ test_uid: 1 })

@@ -123,7 +123,16 @@ Replace `http://your-ureport-host:4100` with your actual backend URL (local dev:
 | `get_statistics` | Pass/fail counts and average pass rate for builds matching a saved preset. |
 | `search_statistics` | Pass/fail stats using explicit filters (same shape as `search_builds`). |
 | `get_relation_fields` | Discover available tags, components, teams, and custom field keys (e.g. PartnerCode, XrayId) for a product/type before filtering tests. |
-| `get_tests` | Get individual test results for a build. Filters: status, name, tag, component, team, custom field key/value, file, path. Use `custom_value` alone for a broad search across all custom fields (e.g. searching for an XRAY ticket ID). |
+| `get_tests` | Get individual test results for a build. Filters: status, name, tag, component, team, custom field key/value, file, path. Use `custom_value` alone for a broad search across all custom fields (e.g. searching for an XRAY ticket ID). | Each test also carries `heal` (the Auto-Heal signal for that run), `heal_history_count` and `test_marked_pass_by_heal`.
+| `get_new_failures` | Tests that newly failed in the latest build cycle of a preset. Each failure carries `heal` (the Auto-Heal signal for this run) so the AI skips tests that already have a fix PR. |
+| `get_heal_signals` | List Auto-Heal signals, newest first. Filters: product, type, test uid or name, status, dispatch mode, days. |
+| `get_heal_signal` | One Auto-Heal signal in full: error, analysis, diff, test output, bug report, PR link and the last steps. Long text is truncated. |
+| `get_heal_summary` | Auto-Heal for a lane (preset or product and type) over N days: signals by status, flaky self-heals, PRs, auto vs manual, average minutes to finish, top failure groups. |
+| `get_heal_exclusions` | The rules that stop Auto-Heal opening signals for matching failing tests. Explains why a failing test has no signal. |
+
+All MCP tools are read-only. The Auto-Heal tools cannot trigger, change or exclude anything; use the UI or the REST API for that.
+
+The `heal` field follows the same rule as the UI: it is the signal opened for **this** test run. Signals from earlier builds of the same test are only counted in `heal_history_count` (with the newest in `heal_history_latest`). `test_marked_pass_by_heal` is `true` when the test is a rerun that now passes and its heal signal is `completed`, which means auto-heal most likely set the pass. It is inferred, because a person marking a pass by hand looks the same on the test itself. Signals are kept for 90 days.
 
 The AI chains tool calls automatically — for example, it calls `list_presets` to get valid preset names, then `list_builds` to find the latest build, then `get_tests` to fetch failures — without you specifying IDs manually.
 
@@ -136,6 +145,9 @@ The AI chains tool calls automatically — for example, it calls `list_presets` 
 - "Show me tests tagged with Payment Auth/Capture that failed on Safari"
 - "List all builds for product PLAYWRIGHT on STAGE"
 - "Which builds have failures today?"
+- "Which of the new failures already have an auto-heal PR?"
+- "How did auto-heal do on the nightly preset this week?"
+- "Why does this failing test have no auto-heal signal?"
 - "Show me all tests that timed out in the last regression run"
 
 ---
