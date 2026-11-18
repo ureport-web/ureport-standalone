@@ -3115,6 +3115,248 @@ router.delete('/quarantine/{id}', (req, res) => {
   */
 });
 
+// ─── Insights ───────────────────────────────────────────────────────────────────
+
+router.get('/insights/quarantine', (req, res) => {
+  /*
+    #swagger.tags = ['Insights']
+    #swagger.summary = 'Quarantine insights'
+    #swagger.description = 'Requires authentication. Counts and timings of quarantine over a period: how many tests entered and left, how they left, how long stays last, which rules catch what and how often their releases come back, repeat offenders and the longest stays. A stay is counted as entered when it started and as left when it ended inside the period. A community licence may ask for 31 days at most; a longer period answers 403.'
+    #swagger.parameters['since'] = { in: 'query', description: 'Start of the period. Defaults to 7 days before until; ignored when not a valid date.', schema: { type: 'string', format: 'date-time' } }
+    #swagger.parameters['until'] = { in: 'query', description: 'End of the period. Defaults to now; ignored when not a valid date.', schema: { type: 'string', format: 'date-time' } }
+    #swagger.parameters['product'] = { in: 'query', description: 'Narrows everything except byLane.', schema: { type: 'string' } }
+    #swagger.parameters['type'] = { in: 'query', description: 'Narrows everything except byLane.', schema: { type: 'string' } }
+    #swagger.parameters['tz_offset'] = { in: 'query', description: 'Viewer time zone as minutes, the value of JavaScript Date#getTimezoneOffset (UTC minus local). The days of the series follow it. Ignored when not a number within 15 hours; defaults to 0 (UTC).', schema: { type: 'integer', default: 0 } }
+    #swagger.responses[200] = {
+      description: 'Quarantine insights for the period.',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              period: { type: 'object', properties: { since: { type: 'string', format: 'date-time' }, until: { type: 'string', format: 'date-time' } } },
+              activeNow: { type: 'integer', description: 'Tests in quarantine now, whatever the period.' },
+              entered: { type: 'integer', description: 'Stays that started in the period.' },
+              left: { type: 'integer', description: 'Stays that ended in the period.' },
+              net: { type: 'integer', description: 'entered minus left: positive means the quarantine is growing.' },
+              repeatOffenders: { type: 'integer', description: 'Tests in quarantine now that have been quarantined before (cycle above 1).' },
+              exemptNow: { type: 'integer', description: 'Tests exempted from quarantine.' },
+              leftBy: { type: 'object', description: 'How the stays that ended in the period ended.', properties: { auto: { type: 'integer' }, manual: { type: 'integer' }, exempt: { type: 'integer' } } },
+              timeInQuarantine: { type: 'object', description: 'Milliseconds, median and 90th percentile (nearest rank); null with no sample.', properties: {
+                  left: { type: 'object', properties: { count: { type: 'integer' }, medianMs: { type: 'integer', nullable: true }, p90Ms: { type: 'integer', nullable: true } } },
+                  active: { type: 'object', properties: { count: { type: 'integer' }, medianMs: { type: 'integer', nullable: true }, p90Ms: { type: 'integer', nullable: true } } }
+                } },
+              byRule: { type: 'array', description: 'At most 10 rules, most entries first.', items: { type: 'object', properties: { rule: { type: 'string' }, entered: { type: 'integer' }, activeNow: { type: 'integer' } } } },
+              ruleEffectiveness: { type: 'array', description: 'At most 15 rules, most releases first. Of the stays a rule released in the period (exempt ones left out), how many came back: the same test has a later stay, in quarantine now or already ended. A stay released only just now has had no time to come back, so the rate reads low for a short or recent period.', items: { type: 'object', properties: {
+                  rule: { type: 'string' },
+                  released: { type: 'integer', description: 'Stays this rule ended in the period, automatically or by hand.' },
+                  autoRate: { type: 'number', nullable: true, description: 'Percent of those that ended automatically.' },
+                  returned: { type: 'integer', description: 'Of those, how many came back.' },
+                  returnRate: { type: 'number', nullable: true },
+                  medianMs: { type: 'integer', nullable: true, description: 'Median length of those stays.' },
+                  activeNow: { type: 'integer', description: 'Tests in quarantine now under this rule.' }
+                } } },
+              series: { type: 'object', description: 'Stays started and ended per day, or per week when the period is longer than 35 days; empty buckets are present.', properties: {
+                  granularity: { type: 'string', enum: ['day', 'week'] },
+                  buckets: { type: 'array', items: { type: 'object', properties: {
+                      start: { type: 'string', description: 'First day of the bucket, YYYY-MM-DD in the viewer time zone.' },
+                      total: { type: 'integer' },
+                      outcomes: { type: 'object', properties: { entered: { type: 'integer' }, left: { type: 'integer' } } }
+                    } } }
+                } },
+              byLane: { type: 'array', description: 'One row per product and type. Ignores the product and type filters, so every lane is there to compare.', items: { type: 'object', properties: {
+                  product: { type: 'string' }, type: { type: 'string' },
+                  activeNow: { type: 'integer' }, entered: { type: 'integer' }, left: { type: 'integer' }, repeat: { type: 'integer' },
+                  medianMs: { type: 'integer', nullable: true, description: 'Median length of the stays that ended in the period.' }
+                } } },
+              longest: { type: 'array', description: 'The stays in progress that began longest ago, at most 20.', items: { type: 'object', properties: {
+                  id: { type: 'string' }, uid: { type: 'string' }, product: { type: 'string', nullable: true }, type: { type: 'string', nullable: true },
+                  rule: { type: 'string', nullable: true }, cycle: { type: 'integer' }, quarantinedAt: { type: 'string', format: 'date-time' }, ageMs: { type: 'integer', nullable: true }
+                } } },
+              repeat: { type: 'array', description: 'Tests in quarantine now that have been quarantined most often, at most 20.', items: { type: 'object', properties: {
+                  id: { type: 'string' }, uid: { type: 'string' }, product: { type: 'string', nullable: true }, type: { type: 'string', nullable: true },
+                  rule: { type: 'string', nullable: true }, cycle: { type: 'integer' }, quarantinedAt: { type: 'string', format: 'date-time' }, ageMs: { type: 'integer', nullable: true }
+                } } }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[401] = { description: 'Not authenticated.' }
+    #swagger.responses[403] = {
+      description: 'A community licence asked for a period longer than 31 days.',
+      content: { 'application/json': { schema: { type: 'object', properties: { error: { type: 'string' } } } } }
+    }
+  */
+});
+
+router.get('/insights/triage', (req, res) => {
+  /*
+    #swagger.tags = ['Insights']
+    #swagger.summary = 'Triage insights'
+    #swagger.description = 'Requires authentication. A triage has a creation date and no end, so this counts what was created in the period and what is on record now; it says nothing about when a triage ended. An auto-triage with a TTL stays on record after it expires, and is counted as expired from its creation date plus its TTL (the exact check counts from the test run time, so this is approximate). A community licence may ask for 31 days at most; a longer period answers 403.'
+    #swagger.parameters['since'] = { in: 'query', description: 'Start of the period. Defaults to 7 days before until; ignored when not a valid date.', schema: { type: 'string', format: 'date-time' } }
+    #swagger.parameters['until'] = { in: 'query', description: 'End of the period. Defaults to now; ignored when not a valid date.', schema: { type: 'string', format: 'date-time' } }
+    #swagger.parameters['product'] = { in: 'query', description: 'Narrows everything except byLane.', schema: { type: 'string' } }
+    #swagger.parameters['type'] = { in: 'query', description: 'Narrows everything except byLane.', schema: { type: 'string' } }
+    #swagger.parameters['tz_offset'] = { in: 'query', description: 'Viewer time zone as minutes, the value of JavaScript Date#getTimezoneOffset (UTC minus local). The days of the series follow it. Ignored when not a number within 15 hours; defaults to 0 (UTC).', schema: { type: 'integer', default: 0 } }
+    #swagger.responses[200] = {
+      description: 'Triage insights for the period.',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              period: { type: 'object', properties: { since: { type: 'string', format: 'date-time' }, until: { type: 'string', format: 'date-time' } } },
+              onRecord: { type: 'integer', description: 'Triages on record now, whenever they were created.' },
+              triaged: { type: 'integer', description: 'Triages created in the period.' },
+              auto: { type: 'integer', description: 'Of those, the auto-triaged ones.' },
+              autoRate: { type: 'number', nullable: true, description: 'Percent of the triages created in the period that were auto-triaged; null when none were created.' },
+              ticketRate: { type: 'number', nullable: true, description: 'Percent of the triages created in the period with a ticket linked; null when none were created.' },
+              expired: { type: 'integer', description: 'Auto-triages on record that are past their TTL.' },
+              provisional: { type: 'integer', description: 'Auto-triages with a TTL that has not run out yet.' },
+              byMethod: { type: 'object', description: 'The triages created in the period, by how they were made.', properties: { manual: { type: 'integer' }, token: { type: 'integer' }, exact: { type: 'integer' }, stack: { type: 'integer' }, other: { type: 'integer' } } },
+              byCause: { type: 'array', description: 'At most 10 causes of the triages created in the period, most often first.', items: { type: 'object', properties: { cause: { type: 'string' }, count: { type: 'integer' } } } },
+              byUser: { type: 'array', description: 'At most 10 people who triaged by hand in the period, most first. Auto-triages are not counted; a person who cannot be found is "(unknown)".', items: { type: 'object', properties: { user: { type: 'string' }, count: { type: 'integer' } } } },
+              series: { type: 'object', description: 'Triages created per day, or per week when the period is longer than 35 days; empty buckets are present.', properties: {
+                  granularity: { type: 'string', enum: ['day', 'week'] },
+                  buckets: { type: 'array', items: { type: 'object', properties: {
+                      start: { type: 'string', description: 'First day of the bucket, YYYY-MM-DD in the viewer time zone.' },
+                      total: { type: 'integer' },
+                      outcomes: { type: 'object', properties: { manual: { type: 'integer' }, auto: { type: 'integer' } } }
+                    } } }
+                } },
+              byLane: { type: 'array', description: 'One row per product and type. Ignores the product and type filters, so every lane is there to compare.', items: { type: 'object', properties: {
+                  product: { type: 'string' }, type: { type: 'string' },
+                  onRecord: { type: 'integer' }, triaged: { type: 'integer' },
+                  autoRate: { type: 'number', nullable: true }, ticketRate: { type: 'number', nullable: true }, expired: { type: 'integer' }
+                } } },
+              expiring: { type: 'array', description: 'The provisional auto-triages that expire soonest, at most 20.', items: { type: 'object', properties: {
+                  id: { type: 'string' }, uid: { type: 'string' }, product: { type: 'string', nullable: true }, type: { type: 'string', nullable: true },
+                  matchType: { type: 'string', nullable: true }, createdAt: { type: 'string', format: 'date-time' },
+                  expiresAt: { type: 'string', format: 'date-time' }, msLeft: { type: 'integer' }
+                } } }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[401] = { description: 'Not authenticated.' }
+    #swagger.responses[403] = {
+      description: 'A community licence asked for a period longer than 31 days.',
+      content: { 'application/json': { schema: { type: 'object', properties: { error: { type: 'string' } } } } }
+    }
+  */
+});
+
+router.get('/insights/assignment', (req, res) => {
+  /*
+    #swagger.tags = ['Insights']
+    #swagger.summary = 'Assignment insights'
+    #swagger.description = 'Requires authentication. An assignment has the day it was made and a state, but no date for when it was closed, so this counts what was assigned in the period, what is open now and for how long, and never how long one took to resolve. A community licence may ask for 31 days at most; a longer period answers 403.'
+    #swagger.parameters['since'] = { in: 'query', description: 'Start of the period. Defaults to 7 days before until; ignored when not a valid date.', schema: { type: 'string', format: 'date-time' } }
+    #swagger.parameters['until'] = { in: 'query', description: 'End of the period. Defaults to now; ignored when not a valid date.', schema: { type: 'string', format: 'date-time' } }
+    #swagger.parameters['product'] = { in: 'query', description: 'Narrows everything except byLane.', schema: { type: 'string' } }
+    #swagger.parameters['type'] = { in: 'query', description: 'Narrows everything except byLane.', schema: { type: 'string' } }
+    #swagger.parameters['tz_offset'] = { in: 'query', description: 'Viewer time zone as minutes, the value of JavaScript Date#getTimezoneOffset (UTC minus local). The days of the series follow it. Ignored when not a number within 15 hours; defaults to 0 (UTC).', schema: { type: 'integer', default: 0 } }
+    #swagger.responses[200] = {
+      description: 'Assignment insights for the period.',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              period: { type: 'object', properties: { since: { type: 'string', format: 'date-time' }, until: { type: 'string', format: 'date-time' } } },
+              openNow: { type: 'integer', description: 'Open assignments now, whenever they were made.' },
+              assigned: { type: 'integer', description: 'Assignments made in the period.' },
+              resolved: { type: 'integer', description: 'Of those, the ones resolved when the test was triaged (state RESOLVED).' },
+              unassigned: { type: 'integer', description: 'Of those, the ones taken off (state CLOSE, or any other state that is not open).' },
+              overWeek: { type: 'integer', description: 'Open assignments that have waited more than 7 days.' },
+              oldestMs: { type: 'integer', nullable: true, description: 'How long the oldest open assignment has waited.' },
+              assignees: { type: 'integer', description: 'People with open work.' },
+              ageBuckets: { type: 'object', description: 'Open assignments by how long they have waited.', properties: { under3d: { type: 'integer' }, d3to7: { type: 'integer', description: '3 days up to and including 7 days.' }, over7d: { type: 'integer' } } },
+              byAssignee: { type: 'array', description: 'At most 10 people, with the most open work first.', items: { type: 'object', properties: { assignee: { type: 'string' }, open: { type: 'integer' } } } },
+              series: { type: 'object', description: 'Assignments made, by whether they are open, resolved or unassigned today, per day, or per week when the period is longer than 35 days; empty buckets are present.', properties: {
+                  granularity: { type: 'string', enum: ['day', 'week'] },
+                  buckets: { type: 'array', items: { type: 'object', properties: {
+                      start: { type: 'string', description: 'First day of the bucket, YYYY-MM-DD in the viewer time zone.' },
+                      total: { type: 'integer' },
+                      outcomes: { type: 'object', properties: { open: { type: 'integer' }, resolved: { type: 'integer' }, unassigned: { type: 'integer' } } }
+                    } } }
+                } },
+              byLane: { type: 'array', description: 'One row per product and type that has any assignment. Ignores the product and type filters, so every lane is there to compare.', items: { type: 'object', properties: {
+                  product: { type: 'string' }, type: { type: 'string' },
+                  openNow: { type: 'integer' }, assigned: { type: 'integer', description: 'Made in the period.' },
+                  resolvedOnRecord: { type: 'integer', description: 'Resolved assignments on record, whenever they were made.' },
+                  unassignedOnRecord: { type: 'integer', description: 'Unassigned assignments on record, whenever they were made.' },
+                  overWeek: { type: 'integer' },
+                  oldestMs: { type: 'integer', nullable: true }
+                } } },
+              longest: { type: 'array', description: 'The open assignments that have waited longest, at most 20.', items: { type: 'object', properties: {
+                  id: { type: 'string' }, uid: { type: 'string' }, product: { type: 'string', nullable: true }, type: { type: 'string', nullable: true },
+                  assignee: { type: 'string', nullable: true }, assignedBy: { type: 'string', nullable: true },
+                  assignedAt: { type: 'string', format: 'date-time' }, ageMs: { type: 'integer' }
+                } } }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[401] = { description: 'Not authenticated.' }
+    #swagger.responses[403] = {
+      description: 'A community licence asked for a period longer than 31 days.',
+      content: { 'application/json': { schema: { type: 'object', properties: { error: { type: 'string' } } } } }
+    }
+  */
+});
+
+router.get('/insights/overlap', (req, res) => {
+  /*
+    #swagger.tags = ['Insights']
+    #swagger.summary = 'Overlap insights'
+    #swagger.description = 'Requires authentication. Tests that several workflows hold at the same moment: in quarantine, with an open assignment, with a triage in effect (an auto-triage past its TTL does not count). A snapshot of now, so there is no period and no licence limit. A test is told apart by product, type and uid; lane scope is ignored.'
+    #swagger.parameters['product'] = { in: 'query', description: 'Narrows everything except byLane.', schema: { type: 'string' } }
+    #swagger.parameters['type'] = { in: 'query', description: 'Narrows everything except byLane.', schema: { type: 'string' } }
+    #swagger.responses[200] = {
+      description: 'Overlap insights.',
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              asOf: { type: 'string', format: 'date-time' },
+              tests: { type: 'integer', description: 'Distinct tests in at least one of the three areas.' },
+              inQuarantine: { type: 'integer' },
+              assigned: { type: 'integer', description: 'Tests with an open assignment.' },
+              triaged: { type: 'integer', description: 'Tests with a triage in effect.' },
+              inTwoOrMore: { type: 'integer' },
+              inAll: { type: 'integer', description: 'Tests in all three areas.' },
+              quarantinedAndWorked: { type: 'integer', description: 'Tests in quarantine that also have an open assignment or a triage in effect.' },
+              combos: { type: 'object', description: 'Tests per combination of areas; they add up to tests.', properties: {
+                  quarantineOnly: { type: 'integer' }, assignmentOnly: { type: 'integer' }, triageOnly: { type: 'integer' },
+                  quarantineAssignment: { type: 'integer' }, quarantineTriage: { type: 'integer' }, assignmentTriage: { type: 'integer' }, all: { type: 'integer' }
+                } },
+              byLane: { type: 'array', description: 'One row per product and type. Ignores the product and type filters, so every lane is there to compare.', items: { type: 'object', properties: {
+                  product: { type: 'string' }, type: { type: 'string' },
+                  tests: { type: 'integer' }, quarantined: { type: 'integer' }, assigned: { type: 'integer' }, triaged: { type: 'integer' },
+                  multi: { type: 'integer', description: 'In two or more areas.' }, all: { type: 'integer', description: 'In all three.' }
+                } } },
+              crowded: { type: 'array', description: 'Tests in two or more areas, the most areas first and then the longest in quarantine, at most 20.', items: { type: 'object', properties: {
+                  uid: { type: 'string' }, product: { type: 'string', nullable: true }, type: { type: 'string', nullable: true },
+                  areas: { type: 'array', items: { type: 'string', enum: ['quarantine', 'assignment', 'triage'] } },
+                  quarantineAgeMs: { type: 'integer', nullable: true }, rule: { type: 'string', nullable: true }, cycle: { type: 'integer', nullable: true },
+                  assignee: { type: 'string', nullable: true, description: 'Who has the oldest open assignment.' }, assignmentAgeMs: { type: 'integer', nullable: true },
+                  cause: { type: 'string', nullable: true, description: 'The cause of the newest triage.' }
+                } } }
+            }
+          }
+        }
+      }
+    }
+    #swagger.responses[401] = { description: 'Not authenticated.' }
+  */
+});
+
 // ─── Analytics ────────────────────────────────────────────────────────────────
 
 router.post('/analytics/top-failures', (req, res) => {

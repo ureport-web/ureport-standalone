@@ -208,6 +208,7 @@ if (config !== undefined) {
   app.use("/api/assignment", isAuthenticatedMid);
   app.use("/api/tracking", isAuthenticatedMid);
   app.use("/api/quarantine", isAuthenticatedMid);
+  app.use("/api/insights", isAuthenticatedMid);
   app.use("/api/audit", isAuthenticatedMid);
 
   // Block mutating API requests for all users on demo instance.
@@ -260,13 +261,13 @@ if (config !== undefined) {
 
     // Read-only POST paths with dynamic segments (pagination, history, AI analysis).
     const DEMO_POST_ALLOWED_PATTERNS = [
-      /^\/build\/\d+\/\d+\/?$/,             // build pagination
+      /^\/build\/\d+\/\d+\/?$/, // build pagination
       /^\/investigated_test\/\d+\/\d+\/?$/, // investigated_test pagination
-      /^\/test_relation\/\d+\/\d+\/?$/,     // test_relation pagination
-      /^\/user\/\d+\/\d+\/?$/,              // user pagination
-      /^\/test\/history\//,                 // test history by uid
-      /^\/test\/find\/test\//,              // find test by id
-      /^\/ai\/analyze-test\//,              // AI analysis (read-only)
+      /^\/test_relation\/\d+\/\d+\/?$/, // test_relation pagination
+      /^\/user\/\d+\/\d+\/?$/, // user pagination
+      /^\/test\/history\//, // test history by uid
+      /^\/test\/find\/test\//, // find test by id
+      /^\/ai\/analyze-test\//, // AI analysis (read-only)
     ];
 
     app.use("/api", (req, res, next) => {
@@ -322,10 +323,12 @@ if (config !== undefined) {
   const userFav = require("./src/routes/user_favorite");
   const analytics = require("./src/routes/analytics");
   const quarantine = require("./src/routes/quarantined_test");
+  const insights = require("./src/routes/insights");
   const aiAnalysis = require("./src/routes/ai_analysis");
   const preset = require("./src/routes/preset");
   const mcp = require("./src/routes/mcp");
 
+  // list of endpoints for readonly page
   const shared = require("./src/routes/shared/shared");
 
   // E2E / load-testing switch. A full Playwright run issues thousands of calls
@@ -403,6 +406,7 @@ if (config !== undefined) {
   app.use("/api/analytics", isAuthenticatedMid);
   app.use("/api/analytics", analytics);
   app.use("/api/quarantine", quarantine);
+  app.use("/api/insights", insights);
   app.use("/api/preset", isAuthenticatedMid);
   app.use("/api/preset", preset);
   app.use("/api/ai", isAuthenticatedMid);
@@ -466,9 +470,13 @@ if (config !== undefined) {
     if (
       err &&
       (err.name === "CastError" ||
-        /a single String of 12 bytes or a string of 24 hex characters/.test(err.message || ""))
+        /a single String of 12 bytes or a string of 24 hex characters/.test(
+          err.message || "",
+        ))
     ) {
-      return res.status(400).json({ error: err.path ? `Invalid ${err.path}` : "Invalid id" });
+      return res
+        .status(400)
+        .json({ error: err.path ? `Invalid ${err.path}` : "Invalid id" });
     }
     console.error("Internal Error:", err);
     if (err && err.name === "ValidationError") {

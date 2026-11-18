@@ -1,12 +1,12 @@
 ---
 sidebar_position: 7
 title: Quarantine
-description: Automatically suppress flaky tests in UReport with quarantine rules. Define failure thresholds, build windows, and auto-resolve conditions to keep your CI green.
+description: Automatically suppress flaky tests in UReport with quarantine rules. Define failure thresholds, build windows, and auto-resolve conditions to keep your failure list focused.
 ---
 
 # Test Quarantine
 
-Quarantine automatically isolates consistently failing tests so they stop blocking CI. Quarantined tests are excluded from the pass rate calculation — the team can focus on real failures.
+Quarantine automatically isolates consistently failing tests so they stop cluttering the failure list. While quarantined tests are hidden in Launches (the default), they are left out of the totals and pass rate shown there — the team can focus on real failures.
 
 ---
 
@@ -15,13 +15,16 @@ Quarantine automatically isolates consistently failing tests so they stop blocki
 When a test is quarantined:
 
 - It **still runs** in your test suite
-- It is **excluded from the pass rate** — does not drag down build health metrics
-- A **Quarantined** badge appears on the test in the Launches view and dashboards
-- You can toggle quarantined tests on/off in Launches to see both the **effective pass rate** (quarantined excluded) and the **real pass rate** (including them)
+- It is **hidden from the Launches list by default**, and while hidden it is **left out of the totals and pass rate shown in Launches**
+- Results stored in UReport are not changed — quarantine only affects what Launches shows
+- A **Quarantined** badge (lock icon) appears on the test in the Launches view and dashboards
+- Use the **Quarantined Tests** section of the Launches filter menu (**Not Quarantined**, **Quarantined Only**, **Both**) to see both the **effective pass rate** (quarantined hidden) and the **real pass rate** (including them). The totals and pass rate follow the filter.
 
 This is the key difference between quarantine and triage:
-- **Triage** — labels a test as known-failing, but it still counts against the pass rate
-- **Quarantine** — removes the test from the pass rate calculation entirely
+- **Triage** — labels a test as known-failing, but it stays in the list and still counts against the pass rate
+- **Quarantine** — hides the test and leaves it out of the pass rate shown in Launches until it is shown again or released
+
+Quarantine does not change CI exit codes or build results: quarantined tests still run and are still reported.
 
 Quarantine is rule-driven and automatic — no one needs to manually flag flaky tests.
 
@@ -163,7 +166,7 @@ Automatically after every build status calculation — never blocks the build re
 
 | Badge | Meaning |
 |---|---|
-| **Quarantined** | Currently quarantined — excluded from pass rate, shown with badge in Launches and dashboards |
+| **Quarantined** | Currently quarantined — hidden from Launches and left out of its pass rate by default, shown with badge in Launches and dashboards |
 | **Exempt** | Excluded from all quarantine rules — can be un-exempted to restore eligibility |
 | **Resolved** | Was quarantined but has since passed enough consecutive builds — no longer quarantined |
 

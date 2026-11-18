@@ -19,6 +19,7 @@ const Preset = require("../src/models/preset");
 const AiAnalysis = require("../src/models/ai_analysis");
 const User = require("../src/models/user");
 const { seedHealDemo, NOVA, LEGACY } = require("./seedHealDemo");
+const { seedInsightsDemo } = require("./seedInsightsDemo");
 const demoUsers = require("../data/users");
 
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -2675,6 +2676,7 @@ async function main() {
   console.log("    • dashboards     — cleared for user+name pattern, then re-seeded");
   console.log("    • presets          — cleared for the products' lanes, then re-seeded");
   console.log("    • aianalysis       — cleared for product, then re-seeded");
+  console.log(`    • Insights demo  — ${PRODUCT} assignments and quarantine history cleared and re-seeded, triage rows varied; ${NOVA} rerun signals and the "Acme – Insights" dashboard re-seeded`);
   console.log(`    • ${NOVA} / ${LEGACY}: builds, tests, relations, settings, quarantine, heal playbook / signals / exclusions, preset — cleared, then re-seeded`);
   console.log("    • users          — the operator account is added when it is missing; nothing else is changed");
   console.log("─────────────────────────────────────────");
@@ -2771,6 +2773,8 @@ async function main() {
   await seedPresets();
   await seedAiAnalysis();
   await seedHealDemo({ generateTestData, uid2name, QUARANTINE_RULES });
+  // After triage, quarantine and heal: it varies those rows and adds what the Insights page needs
+  await seedInsightsDemo();
   await ensureOperator();
 
   const acmeBuildCount = await Build.countDocuments({ product: PRODUCT });

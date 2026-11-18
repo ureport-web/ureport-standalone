@@ -204,6 +204,10 @@ An **outage** represents a broader infrastructure or environment incident — a 
 Triage = the test failed because of a specific code defect or automation issue.
 Outage = the test failed because of an environmental or systemic problem unrelated to the test itself.
 
+**Scope:** an outage applies to **one run only**, and is matched on the **exact error message**. The dialog says so: *"All tests with this exact error message will be linked as outage for the current run. No history runs will be affected."* Earlier runs and later builds are not touched. There is no time window, and nothing is detected automatically — an operator or admin links it by hand. To take one test out of an outage, use **Remove Outage** on that test.
+
+Outage tests are shown with their own **Outage** status and count, separate from Triaged, but they are **not removed from the pass rate** (pass ÷ total), and they stay in the Launches list.
+
 Outage entries display differently in dashboards: the Triaged Pie Chart and Summary Card — Triaged widget distinguishes outage failures from standard triaged failures.
 
 **How to link:** ⋮ context menu → **Link as Outage** → choose issue type. Same Triage dialog opens, but the header reads "Link Test as Outage".
